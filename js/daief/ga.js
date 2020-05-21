@@ -1,0 +1,1 @@
+!function(){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga("create","UA-146082840-1","auto"),ga("send","pageview");var a=document.createElement("script");a.async=!0,a.setAttribute("src","https://www.google-analytics.com/analytics.js"),document.head.appendChild(a)}();

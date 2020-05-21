@@ -1,0 +1,981 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+
+    
+  <url>
+    <loc>https://daief.tech/2019-11-28/compile-vue-file-to-js-file.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>编译 Vue 单文件组件至 JS 文件</title>
+        <pubTime>2019-11-28T17:34:26.000Z</pubTime>
+        
+        <tag>Vue</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2019-12-29/year-end-summary-2019.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>我的 2019</title>
+        <pubTime>2019-12-29T15:17:00.000Z</pubTime>
+        
+        <tag>生活</tag>
+         
+         
+           
+             
+              <breadCrumb title="生活" url="https://daief.tech/categories/%E7%94%9F%E6%B4%BB/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2020-01-11/build-a-site-generator-by-a-custom-webpack-loader.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>自定义 webpack loader 来实现简单的站点生成器</title>
+        <pubTime>2020-01-11T15:05:40.000Z</pubTime>
+        
+        <tag>webpack</tag>
+         
+        <tag>loader</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2020-01-26/usage-of-ts-transformer.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>TS transformer 的使用</title>
+        <pubTime>2020-01-26T13:07:08.000Z</pubTime>
+        
+        <tag>TypeScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="TypeScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/TypeScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2020-02-09/the-prototype-of-javascript.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>JavaScript 原型相关</title>
+        <pubTime>2020-02-09T10:41:22.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2020-02-23/oop-in-javascript.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>JavaScript 中的面向对象</title>
+        <pubTime>2020-02-23T13:19:07.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2020-03-08/function-hoist-and-conditionally-created-functions.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>函数提升 & 有条件地创建函数</title>
+        <pubTime>2020-03-08T15:54:52.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2020-03-13/my-mac-apps.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>我的 Mac 应用</title>
+        <pubTime>2020-03-13T14:26:11.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="生活" url="https://daief.tech/categories/%E7%94%9F%E6%B4%BB/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2020-03-22/encapsulation-in-react.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>React 中的一些封装</title>
+        <pubTime>2020-03-22T21:06:34.000Z</pubTime>
+        
+        <tag>React</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="React" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/React/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2020-03-23/hexo-custom-code-highlight-by-prismjs.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>使用 prismjs 自定义 Hexo 代码高亮</title>
+        <pubTime>2020-03-23T16:50:24.000Z</pubTime>
+        
+        <tag>Hexo</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="Hexo" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/Hexo/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2020-04-02/build-a-poor-vue.html</loc>
+    <lastmod>2020-05-21T02:45:37.259Z</lastmod>
+    <data>
+        <display>
+        <title>学写一个乞丐版 Vue</title>
+        <pubTime>2020-04-02T13:03:54.000Z</pubTime>
+        
+        <tag>Vue</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="Vue" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/Vue/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
+    
+    
+    
+    
+  <url>
+    <loc>https://daief.tech/2018-09-17/learn-how-antd-build-a-npm-lib.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>简单学习 antd 的 build 步骤</title>
+        <pubTime>2018-09-17T21:07:46.000Z</pubTime>
+        
+        <tag>npm</tag>
+         
+        <tag>antd</tag>
+         
+        <tag>gulp</tag>
+         
+        <tag>antd-tools</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2018-09-25/transforming-concurrent-asynchronous-operations-into-serial-execution.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>将并发的异步操作转化为串行执行</title>
+        <pubTime>2018-09-25T22:46:20.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2018-12-25/try-to-improve-spa-load-performance.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>记一次单页应用的加载优化</title>
+        <pubTime>2018-12-25T23:54:23.000Z</pubTime>
+        
+        <tag>SPA</tag>
+         
+        <tag>performance</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2019-02-01/the-first-time-i-learn-ast.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>初识 AST</title>
+        <pubTime>2019-02-01T15:58:47.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+        <tag>TypeScript</tag>
+         
+        <tag>AST</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2019-02-12/happy-vue-with-typescript.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>用 TypeScript 来写 Vue！</title>
+        <pubTime>2019-02-12T17:25:59.000Z</pubTime>
+        
+        <tag>Vue</tag>
+         
+        <tag>TypeScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="TypeScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/TypeScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2019-07-01/getting-started-with-docker.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>Docker 入门笔记</title>
+        <pubTime>2019-07-01T19:52:55.000Z</pubTime>
+        
+        <tag>Docker</tag>
+         
+         
+           
+             
+              <breadCrumb title="DevOps" url="https://daief.tech/categories/DevOps/"/>
+          
+             
+              <breadCrumb title="Docker" url="https://daief.tech/categories/DevOps/Docker/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2019-07-02/get-a-ssr-demo-step-by-step.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>从零搭建 SSR</title>
+        <pubTime>2019-07-02T17:10:37.000Z</pubTime>
+        
+        <tag>SSR</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2019-07-03/use-summary-of-next-js-and-graphql.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>Next.js、GraphQL 使用小结</title>
+        <pubTime>2019-07-03T19:11:51.000Z</pubTime>
+        
+        <tag>SSR</tag>
+         
+        <tag>GraphQL</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2019-09-07/troubles-with-web-developing-in-weixin.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>微信网页开发踩坑记录</title>
+        <pubTime>2019-09-07T14:51:32.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2019-09-08/typescript-types-of-nested-array-and-deep-partial.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>TypeScript 之嵌套数组与深度可选类型</title>
+        <pubTime>2019-09-08T19:22:56.000Z</pubTime>
+        
+        <tag>TypeScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="TypeScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/TypeScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2019-11-03/some-web-debugging-skills.html</loc>
+    <lastmod>2020-05-21T02:45:37.231Z</lastmod>
+    <data>
+        <display>
+        <title>也许有用的 Web 调试技能</title>
+        <pubTime>2019-11-03T00:37:13.000Z</pubTime>
+        
+        <tag>Chrome</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-07-20/build-a-vue-project.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>Vue, vue-router, vuex项目构建</title>
+        <pubTime>2017-07-20T16:48:54.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+        <tag>Vue</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-07-20/learn-webpack.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>webpack学习</title>
+        <pubTime>2017-07-20T16:52:48.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+        <tag>webpack</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-09-04/record-of-vue-music.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>vue-music记录</title>
+        <pubTime>2017-09-04T19:39:02.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+        <tag>Vue</tag>
+         
+        <tag>TypeScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-09-10/install-java-tomcat-on-linux.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>Linux-Java环境、Tomcat服务器的安装</title>
+        <pubTime>2017-09-10T21:56:44.000Z</pubTime>
+        
+        <tag>Linux</tag>
+         
+        <tag>JDK</tag>
+         
+        <tag>Tomcat</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://daief.tech/categories/Linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-09-17/deploy-java-app-on-linux.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>Linux-部署 Java 应用程序</title>
+        <pubTime>2017-09-17T18:50:38.000Z</pubTime>
+        
+        <tag>Linux</tag>
+         
+        <tag>Java</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://daief.tech/categories/Linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-09-17/http-get-request-cache.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>ajax请求缓存</title>
+        <pubTime>2017-09-17T19:41:45.000Z</pubTime>
+        
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-09-17/install-nodejs-on-linux.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>Linux-安装、部署 Node.js</title>
+        <pubTime>2017-09-17T19:34:55.000Z</pubTime>
+        
+        <tag>Linux</tag>
+         
+        <tag>Node.js</tag>
+         
+         
+           
+             
+              <breadCrumb title="Linux" url="https://daief.tech/categories/Linux/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-10-04/learn-nodejs.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>Node.js 学习搭建</title>
+        <pubTime>2017-10-04T00:00:00.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+        <tag>Node.js</tag>
+         
+         
+           
+             
+              <breadCrumb title="Node.js" url="https://daief.tech/categories/Node-js/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-11-10/html5-indexdb.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>IndexedDB的简单使用</title>
+        <pubTime>2017-11-10T23:19:49.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-11-22/js-watch-variable-change.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>JS监听一个变量的变化</title>
+        <pubTime>2017-11-22T16:18:10.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-12-07/css-general-knowledge.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>CSS小知识</title>
+        <pubTime>2017-12-07T16:52:48.000Z</pubTime>
+        
+        <tag>CSS</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="CSS" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/CSS/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-12-11/js-variable-promotion.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>JS变量提升</title>
+        <pubTime>2017-12-11T22:26:18.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-12-20/catch-js-and-ajax-exception.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>前端错误捕获以及ajax监听</title>
+        <pubTime>2017-12-20T20:44:10.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+        <tag>前端日志</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2018-01-04/what-is-currying.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>认识柯里化(currying)</title>
+        <pubTime>2018-01-04T22:29:17.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+        <tag>currying</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2018-08-21/encapsulate-setTimeout-with-promise.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>使用promise封装setTimeout</title>
+        <pubTime>2018-08-21T22:17:59.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+        <tag>Promise</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2018-08-31/a-simple-cli.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>简单的前端脚手架</title>
+        <pubTime>2018-08-31T22:53:34.000Z</pubTime>
+        
+        <tag>JavaScript</tag>
+         
+        <tag>Node.js</tag>
+         
+        <tag>CLI</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="JavaScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/JavaScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2018-09-01/10-things-you-will-eventually-learn-about-javascript-projects.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>[译] 前端编程中 10 条你需要了解的原则</title>
+        <pubTime>2018-09-01T14:44:29.000Z</pubTime>
+        
+        <tag>翻译</tag>
+         
+         
+           
+             
+              <breadCrumb title="翻译" url="https://daief.tech/categories/%E7%BF%BB%E8%AF%91/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2018-09-04/declaration-files-of-typescript.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>TypeScript 中的声明文件</title>
+        <pubTime>2018-09-04T21:10:44.000Z</pubTime>
+        
+        <tag>TypeScript</tag>
+         
+        <tag>declaration-files</tag>
+         
+         
+           
+             
+              <breadCrumb title="前端" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/"/>
+          
+             
+              <breadCrumb title="TypeScript" url="https://daief.tech/categories/%E5%89%8D%E7%AB%AF/TypeScript/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2018-09-16/version-control-of-dependencies-in-package-json.html</loc>
+    <lastmod>2020-05-21T02:45:37.227Z</lastmod>
+    <data>
+        <display>
+        <title>package.json 中依赖包的版本控制</title>
+        <pubTime>2018-09-16T16:51:33.000Z</pubTime>
+        
+        <tag>npm</tag>
+         
+        <tag>package.json</tag>
+         
+        <tag>语义化版本</tag>
+         
+         
+           
+             
+              <breadCrumb title="Node.js" url="https://daief.tech/categories/Node-js/"/>
+          
+             
+              <breadCrumb title="npm" url="https://daief.tech/categories/Node-js/npm/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-07-16/git-general-knowledge.html</loc>
+    <lastmod>2020-05-21T02:45:37.223Z</lastmod>
+    <data>
+        <display>
+        <title>Git 学习的简单记录</title>
+        <pubTime>2017-07-16T21:01:31.000Z</pubTime>
+        
+        <tag>Git</tag>
+         
+        <tag>GitHub</tag>
+         
+         
+           
+             
+              <breadCrumb title="Git" url="https://daief.tech/categories/Git/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://daief.tech/2017-07-16/start-on-a-journey.html</loc>
+    <lastmod>2020-05-21T02:45:37.223Z</lastmod>
+    <data>
+        <display>
+        <title>开始</title>
+        <pubTime>2017-07-16T20:00:00.000Z</pubTime>
+        
+        <tag>生活</tag>
+         
+         
+           
+             
+              <breadCrumb title="生活" url="https://daief.tech/categories/%E7%94%9F%E6%B4%BB/"/>
+          
+        </display>
+    </data>
+    </url>
+
+</urlset>
