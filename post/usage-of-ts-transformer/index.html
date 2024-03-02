@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TS transformer 的使用 | daief的个人日志</title><meta property="og:title" content="TS transformer 的使用 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"usage-of-ts-transformer","slug":"post/usage-of-ts-transformer","path":"/post/usage-of-ts-transformer","title":"TS transformer 的使用","comments":true,"published":true,"date":"2020-01-26T13:07:08.000Z","updated":"","tags":[{"id":"558b544cf685f39d34e4903e39c38b67","name":"TypeScript","postCount":6,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"558b544cf685f39d34e4903e39c38b67","name":"TypeScript","slug":"categories/TypeScript","path":"/categories/TypeScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":4,"postIds":[]}],"excerpt":"<p><code>TS transformer</code> 简单来讲就像<a href=\"https://babeljs.io/docs/en/plugins/\">babel 插件</a>一样，只不过作用于 TypeScript 的编译过程。</p>\n<p>与 babel 插件不同的是，配置 transformer 的时候会有 <code>before</code>、<code>after</code>、<code>afterDeclarations</code> 这三种选项，如果不清楚他们之前的区别的话，使用的时候会充满困惑。</p>\n<p>本文只关注 transformer 的使用，对应的 demo 仓库：<a href=\"https://github.com/daief/usage-of-ts-transformer\">https://github.com/daief/usage-of-ts-transformer</a>。</p>\n","more":"\n\n<h1 id=\"配置 transformer\">配置 transformer<a name=\"配置 transformer\" class=\"headerlink\" href=\"#配置 transformer\"></a></h1><p>想要使用 transformer 有多种方式，常见的有：</p>\n<ul>\n<li>配合 <a href=\"https://github.com/TypeStrong/ts-loader#getcustomtransformers\">ts-loader</a></li>\n<li>配合 <a href=\"https://github.com/s-panferov/awesome-typescript-loader#getcustomtransformers-string--program-tsprogram--tscustomtransformers--undefined-defaultundefined\">awesome-typescript-loader</a></li>\n<li>配合 <a href=\"https://github.com/ivogabe/gulp-typescript#custom-transforms\">gulp-typescript</a></li>\n</ul>\n<p>而这里只是作为简单演示，则是直接使用了 <a href=\"https://www.npmjs.com/package/typescript\">typescript</a>：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-comment\">// index.ts</span>\n<span class=\"hljs-keyword\">import</span> * <span class=\"hljs-keyword\">as</span> ts <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&#x27;typescript&#x27;</span>;\n\n<span class=\"hljs-comment\">/**\n * 自定义 transformer\n */</span>\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title class_\">RenameTransformerFactory</span>: ts.<span class=\"hljs-property\">TransformerFactory</span>&lt;ts.<span class=\"hljs-property\">SourceFile</span>&gt; = <span class=\"hljs-function\"><span class=\"hljs-params\">context</span> =&gt;</span> {\n  <span class=\"hljs-comment\">// ...... 暂时省略</span>\n};\n\n<span class=\"hljs-comment\">// Create the TS program.</span>\n<span class=\"hljs-keyword\">const</span> program = ts.<span class=\"hljs-title function_\">createProgram</span>([<span class=\"hljs-string\">&#x27;src/index.ts&#x27;</span>], {\n  <span class=\"hljs-attr\">target</span>: ts.<span class=\"hljs-property\">ScriptTarget</span>.<span class=\"hljs-property\">ES5</span>,\n  <span class=\"hljs-attr\">module</span>: ts.<span class=\"hljs-property\">ModuleKind</span>.<span class=\"hljs-property\">CommonJS</span>,\n  <span class=\"hljs-attr\">declaration</span>: <span class=\"hljs-literal\">true</span>,\n  <span class=\"hljs-attr\">outDir</span>: <span class=\"hljs-string\">&#x27;lib&#x27;</span>,\n});\n\n<span class=\"hljs-comment\">// emit compile</span>\n<span class=\"hljs-keyword\">const</span> emitResult = program.<span class=\"hljs-title function_\">emit</span>(<span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, {\n  <span class=\"hljs-attr\">before</span>: [<span class=\"hljs-title class_\">RenameTransformerFactory</span>], <span class=\"hljs-comment\">// 使用 transformer</span>\n  <span class=\"hljs-attr\">after</span>: [],\n  <span class=\"hljs-attr\">afterDeclarations</span>: [],\n});</code></pre><h1 id=\"使用时机\">使用时机<a name=\"使用时机\" class=\"headerlink\" href=\"#使用时机\"></a></h1><p>在上述代码片段中可以看到，将 transformer 传入到了 <code>before</code>，同时还有 <code>after</code> 和 <code>afterDeclarations</code> 可供选择，而三者的区别参阅的资料如下：</p>\n<blockquote>\n<p>TS itself comes with <a href=\"https://github.com/Microsoft/TypeScript/tree/master/src/compiler/transformers\">a lot of ESNext -&gt; ES5</a> transformers by default. The pipeline allows you to order your custom transformer in a specific way:</p>\n<ol>\n<li><code>before</code> means your transformers get run before TS ones, which means your transformer will get raw TS syntax instead of transpiled syntax (e.g <code>import</code> instead of <code>require</code> or <code>define</code>)</li>\n<li><code>after</code> means your transformers get run after TS ones, which gets transpiled syntax.</li>\n<li><code>afterDeclarations</code> means your transformers get run during <code>d.ts</code> generation phase, allowing you to transform output type declarations.</li>\n</ol>\n</blockquote>\n<p>我个人基于此的理解是这样的：</p>\n<p>TS 自身具有强大的编译功能，如将 <code>ESNext</code> 语法降级、<code>ESModule</code> 语法转换为 <code>CommonJS</code> 规范。</p>\n<p>假设有这样的一个转换场景：源码使用的是 <code>ESModule</code> 规范，<code>tsconfig</code> 中指定了 <code>module</code> 为 <code>commonjs</code>。</p>\n<ul>\n<li><code>before</code>：指定在此阶段的 transformer，运行于 TS 自身的编译功能之前。transformer 基于的是最初输入的抽象语法树（AST），也就是说此时可以在 AST 找到 <code>import</code> 等与 <code>ESModule</code> 相关的节点。</li>\n<li><code>after</code>：此阶段的 transformer 运行于 TS 编译之后，因为上面指定了输出为 <code>commonjs</code> 规范，同时代表此处的 transformer 已经读取不到 <code>ESModule</code> 相关的节点了，只能获取到 <code>require</code> 等信息。</li>\n<li><code>afterDeclarations</code>：则是作用于 <code>d.ts</code> 类型文件生成的阶段，只影响类型文件的生成。</li>\n</ul>\n<p>文字的描述显得苍白、费解，接着会分别看一下实际效果来帮助理解，但在那之前先简单介绍一下演示中的 transformer：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-comment\">/**\n * 定义一个简单的 transformer，作用是：\n *  - before/afterDeclarations：将 import 语句中的模块名改成 `renamed-lib-name`\n *  - after：将 `&quot;use strict&quot;;` 语句改为 `&quot;use strict&quot;; // use strict`\n */</span>\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title class_\">RenameTransformerFactory</span>: ts.<span class=\"hljs-property\">TransformerFactory</span>&lt;ts.<span class=\"hljs-property\">SourceFile</span>&gt; = <span class=\"hljs-function\"><span class=\"hljs-params\">context</span> =&gt;</span> {\n  <span class=\"hljs-keyword\">return</span> <span class=\"hljs-function\"><span class=\"hljs-params\">node</span> =&gt;</span> {\n    <span class=\"hljs-keyword\">const</span> <span class=\"hljs-attr\">visitor</span>: ts.<span class=\"hljs-property\">Visitor</span> = (<span class=\"hljs-attr\">node</span>: ts.<span class=\"hljs-property\">Node</span>): ts.<span class=\"hljs-property\">VisitResult</span>&lt;ts.<span class=\"hljs-property\">Node</span>&gt; =&gt; {\n      <span class=\"hljs-keyword\">if</span> (\n        node.<span class=\"hljs-property\">parent</span> &amp;&amp;\n        ts.<span class=\"hljs-title function_\">isImportDeclaration</span>(node.<span class=\"hljs-property\">parent</span>) &amp;&amp;\n        node.<span class=\"hljs-property\">parent</span>.<span class=\"hljs-property\">moduleSpecifier</span> === node\n      ) {\n        <span class=\"hljs-comment\">// 更新 import</span>\n        <span class=\"hljs-keyword\">return</span> ts.<span class=\"hljs-title function_\">createStringLiteral</span>(<span class=\"hljs-string\">&#x27;renamed-lib-name&#x27;</span>);\n      } <span class=\"hljs-keyword\">else</span> <span class=\"hljs-keyword\">if</span> (\n        ts.<span class=\"hljs-title function_\">isExpressionStatement</span>(node) &amp;&amp;\n        ts.<span class=\"hljs-title function_\">isStringLiteral</span>(node.<span class=\"hljs-property\">expression</span>) &amp;&amp;\n        node.<span class=\"hljs-property\">expression</span>.<span class=\"hljs-property\">text</span> === <span class=\"hljs-string\">&#x27;use strict&#x27;</span>\n      ) {\n        <span class=\"hljs-comment\">// 添加注释</span>\n        <span class=\"hljs-keyword\">return</span> ts.<span class=\"hljs-title function_\">createIdentifier</span>(<span class=\"hljs-string\">&#x27;&quot;use strict&quot;; // use strict&#x27;</span>);\n      }\n      <span class=\"hljs-keyword\">return</span> ts.<span class=\"hljs-title function_\">visitEachChild</span>(node, visitor, context);\n    };\n    <span class=\"hljs-keyword\">return</span> ts.<span class=\"hljs-title function_\">visitNode</span>(node, visitor);\n  };\n};</code></pre><p>作为输入的源文件内容如下，<code>src/index.ts</code>：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-comment\">// @ts-ignore</span>\n<span class=\"hljs-keyword\">import</span> value <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&#x27;some-lib&#x27;</span>;\n\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> value;</code></pre><h2 id=\"before\">before<a name=\"before\" class=\"headerlink\" href=\"#before\"></a></h2><p>只在 before 中使用，按照如下更改代码：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-comment\">// emit compile</span>\n<span class=\"hljs-keyword\">const</span> emitResult = program.<span class=\"hljs-title function_\">emit</span>(<span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, {\n  <span class=\"hljs-attr\">before</span>: [<span class=\"hljs-title class_\">RenameTransformerFactory</span>],\n  <span class=\"hljs-comment\">// after: [RenameTransformerFactory],</span>\n  <span class=\"hljs-comment\">// afterDeclarations: [RenameTransformerFactory]</span>\n});</code></pre><p>然后运行编译（运行 <code>yarn compile</code>），查看 <code>lib</code> 下的结果文件。</p>\n<p><code>lib/index.js</code>：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-meta\">&#x27;use strict&#x27;</span>;\n<span class=\"hljs-title class_\">Object</span>.<span class=\"hljs-title function_\">defineProperty</span>(<span class=\"hljs-built_in\">exports</span>, <span class=\"hljs-string\">&#x27;__esModule&#x27;</span>, { <span class=\"hljs-attr\">value</span>: <span class=\"hljs-literal\">true</span> });\n<span class=\"hljs-comment\">// @ts-ignore</span>\n<span class=\"hljs-keyword\">var</span> some_lib_1 = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;renamed-lib-name&#x27;</span>);\n<span class=\"hljs-built_in\">exports</span>.<span class=\"hljs-property\">default</span> = some_lib_1.<span class=\"hljs-property\">default</span>;</code></pre><p><code>lib/index.d.ts</code>：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-keyword\">import</span> value <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&#x27;some-lib&#x27;</span>;\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> value;</code></pre><p>**可以看到，transformer 生效将 <code>some-lib</code> 改成了 <code>renamed-lib-name</code>；但是输出的类型文件中依旧是 <code>import value from &#39;some-lib&#39;</code>**。</p>\n<h2 id=\"after\">after<a name=\"after\" class=\"headerlink\" href=\"#after\"></a></h2><p>更新代码如下并编译：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> emitResult = program.<span class=\"hljs-title function_\">emit</span>(<span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, {\n  <span class=\"hljs-comment\">// before: [RenameTransformerFactory],</span>\n  <span class=\"hljs-attr\">after</span>: [<span class=\"hljs-title class_\">RenameTransformerFactory</span>],\n  <span class=\"hljs-comment\">// afterDeclarations: [RenameTransformerFactory]</span>\n});</code></pre><p>查看结果。</p>\n<p><code>lib/index.js</code>：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-meta\">&#x27;use strict&#x27;</span>; <span class=\"hljs-comment\">// use strict</span>\n<span class=\"hljs-title class_\">Object</span>.<span class=\"hljs-title function_\">defineProperty</span>(<span class=\"hljs-built_in\">exports</span>, <span class=\"hljs-string\">&#x27;__esModule&#x27;</span>, { <span class=\"hljs-attr\">value</span>: <span class=\"hljs-literal\">true</span> });\n<span class=\"hljs-comment\">// @ts-ignore</span>\n<span class=\"hljs-keyword\">var</span> some_lib_1 = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;some-lib&#x27;</span>);\n<span class=\"hljs-built_in\">exports</span>.<span class=\"hljs-property\">default</span> = some_lib_1.<span class=\"hljs-property\">default</span>;</code></pre><p><code>lib/index.d.ts</code>：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-keyword\">import</span> value <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&#x27;some-lib&#x27;</span>;\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> value;</code></pre><p><strong>这一次发现，注释成功添加上了，但是 <code>some-lib</code> 没有发生变化，类型文件也毫无变化。</strong></p>\n<p>如前文所述，此时将插件作用到了 <code>after</code>，此时已经经过了 TS 自身的转换，已经转换成 <code>commonjs</code> 模块了，而更新 <code>some-lib</code> 是基于查找 <code>ImportDeclaration</code> 类型的节点的，此时自然就找不到、也做不了修改了；同时经过 TS 自身编译后的会在文件头部添加 <code>use strict</code>，因此 transformer 中第二个判断逻辑得以找到符合要求的节点并添加了注释。</p>\n<h2 id=\"afterDeclarations\">afterDeclarations<a name=\"afterDeclarations\" class=\"headerlink\" href=\"#afterDeclarations\"></a></h2><p>同样，更新代码使得插件作用于 <code>afterDeclarations</code>，并查看结果：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> emitResult = program.<span class=\"hljs-title function_\">emit</span>(<span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, <span class=\"hljs-literal\">undefined</span>, {\n  <span class=\"hljs-comment\">// before: [RenameTransformerFactory],</span>\n  <span class=\"hljs-comment\">// after: [RenameTransformerFactory]</span>\n  <span class=\"hljs-attr\">afterDeclarations</span>: [<span class=\"hljs-title class_\">RenameTransformerFactory</span>],\n});</code></pre><p><code>lib/index.js</code>：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-meta\">&#x27;use strict&#x27;</span>;\n<span class=\"hljs-title class_\">Object</span>.<span class=\"hljs-title function_\">defineProperty</span>(<span class=\"hljs-built_in\">exports</span>, <span class=\"hljs-string\">&#x27;__esModule&#x27;</span>, { <span class=\"hljs-attr\">value</span>: <span class=\"hljs-literal\">true</span> });\n<span class=\"hljs-comment\">// @ts-ignore</span>\n<span class=\"hljs-keyword\">var</span> some_lib_1 = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;some-lib&#x27;</span>);\n<span class=\"hljs-built_in\">exports</span>.<span class=\"hljs-property\">default</span> = some_lib_1.<span class=\"hljs-property\">default</span>;</code></pre><p><code>lib/index.d.ts</code>：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-keyword\">import</span> value <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&#x27;renamed-lib-name&#x27;</span>;\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> value;</code></pre><p><strong>可以看到只有 <code>d.ts</code> 类型文件中体现了 transformer 的修改。所以，当需要通过 AST 干涉类型文件的生成时，就要在 afterDeclarations 中指定 transformer。</strong></p>\n<h1 id=\"结语\">结语<a name=\"结语\" class=\"headerlink\" href=\"#结语\"></a></h1><p>至此，对 TS transformer 的使用总算有了一个大体的认识。忍不住想吐槽一下，TS 的 transformer 在使用上相比 babel 插件要麻烦好多啊~</p>\n<p>另外，<code>afterDeclarations</code> 是在这一次的学习中意外发现的，了解到 transformer 干涉类型文件的正确姿势。</p>\n<p>实际上之前查阅过多次 transformer 修改类型文件输出的内容，但总是无果（感觉资料也少、又英文居多 😅...）。</p>\n<p>all in all，这次学习了新知识的同时还解开了一个一直以来的小心结，内心十分舒坦。</p>\n<p>最后，今天是新年初二，祝您新年快乐，鼠年大吉，平平安安，快快乐乐，万事如意~</p>\n<p>也希望能早日战胜疫情，武汉加油！中国加油！</p>\n<hr>\n<p>参考资料 &amp; 相关阅读</p>\n<ul>\n<li><a href=\"https://levelup.gitconnected.com/writing-typescript-custom-ast-transformer-part-1-7585d6916819\">Writing TypeScript custom AST Transformer (Part 1)</a></li>\n<li><a href=\"https://github.com/Microsoft/TypeScript/issues/29543\">custom transformer in afterDeclarations cannot transform declaration files</a></li>\n</ul>\n","hash":"ebf4532a5cdcbd505c04ab8afbb336ae","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"build-a-site-generator-by-a-custom-webpack-loader","slug":"post/build-a-site-generator-by-a-custom-webpack-loader","path":"/post/build-a-site-generator-by-a-custom-webpack-loader","title":"自定义 webpack loader 来实现简单的站点生成器","comments":true,"published":true,"date":"2020-01-11T15:05:40.000Z","updated":"","tags":[{"id":"424516ca53b4ad4bef37ed04f8795a88","name":"webpack","postCount":2,"postIds":[]},{"id":"4a527f83a3a4ca7e1d70adb26a35b72e","name":"loader","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>本篇内容实际上在公司内部分享时有过讲解，通过编写一个自定义的 webpack loader，实现方便快速地构建一个文档类型的网站。现在重新实现了一下，并将这个部分的内容与 <code>jugg</code> 进行了结合，故自己再次整理一遍。</p>\n","more":"","hash":"4f8ad34f949cf02c3a6e22d2e2fb302d","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"the-prototype-of-javascript","slug":"post/the-prototype-of-javascript","path":"/post/the-prototype-of-javascript","title":"JavaScript 原型相关","comments":true,"published":true,"date":"2020-02-09T10:41:22.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>一直以来没有系统地去学习过原型相关的知识概念，虽然平时直接使用不多，但时常会看到，有必要搞明白一点。</p>\n","more":"","hash":"05bc56a654dda0572e5bf1fedb0c01c1","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.f6204dfb.js"></script>
+    <link rel="modulepreload" href="/assets/vendor.cada02d7.js">
+    <link rel="stylesheet" href="/assets/index.2fa6ecca.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">TS transformer 的使用</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2020-01-26</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span>，</span><!--]--><!--[--><a href="/categories/TypeScript" class="unset">TypeScript</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p><code>TS transformer</code> 简单来讲就像<a href="https://babeljs.io/docs/en/plugins/">babel 插件</a>一样，只不过作用于 TypeScript 的编译过程。</p>
+<p>与 babel 插件不同的是，配置 transformer 的时候会有 <code>before</code>、<code>after</code>、<code>afterDeclarations</code> 这三种选项，如果不清楚他们之前的区别的话，使用的时候会充满困惑。</p>
+<p>本文只关注 transformer 的使用，对应的 demo 仓库：<a href="https://github.com/daief/usage-of-ts-transformer">https://github.com/daief/usage-of-ts-transformer</a>。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h1 id="配置 transformer">配置 transformer<a name="配置 transformer" class="headerlink" href="#配置 transformer"></a></h1><p>想要使用 transformer 有多种方式，常见的有：</p>
+<ul>
+<li>配合 <a href="https://github.com/TypeStrong/ts-loader#getcustomtransformers">ts-loader</a></li>
+<li>配合 <a href="https://github.com/s-panferov/awesome-typescript-loader#getcustomtransformers-string--program-tsprogram--tscustomtransformers--undefined-defaultundefined">awesome-typescript-loader</a></li>
+<li>配合 <a href="https://github.com/ivogabe/gulp-typescript#custom-transforms">gulp-typescript</a></li>
+</ul>
+<p>而这里只是作为简单演示，则是直接使用了 <a href="https://www.npmjs.com/package/typescript">typescript</a>：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-comment">// index.ts</span>
+<span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> ts <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;typescript&#x27;</span>;
+
+<span class="hljs-comment">/**
+ * 自定义 transformer
+ */</span>
+<span class="hljs-keyword">const</span> <span class="hljs-title class_">RenameTransformerFactory</span>: ts.<span class="hljs-property">TransformerFactory</span>&lt;ts.<span class="hljs-property">SourceFile</span>&gt; = <span class="hljs-function"><span class="hljs-params">context</span> =&gt;</span> {
+  <span class="hljs-comment">// ...... 暂时省略</span>
+};
+
+<span class="hljs-comment">// Create the TS program.</span>
+<span class="hljs-keyword">const</span> program = ts.<span class="hljs-title function_">createProgram</span>([<span class="hljs-string">&#x27;src/index.ts&#x27;</span>], {
+  <span class="hljs-attr">target</span>: ts.<span class="hljs-property">ScriptTarget</span>.<span class="hljs-property">ES5</span>,
+  <span class="hljs-attr">module</span>: ts.<span class="hljs-property">ModuleKind</span>.<span class="hljs-property">CommonJS</span>,
+  <span class="hljs-attr">declaration</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">outDir</span>: <span class="hljs-string">&#x27;lib&#x27;</span>,
+});
+
+<span class="hljs-comment">// emit compile</span>
+<span class="hljs-keyword">const</span> emitResult = program.<span class="hljs-title function_">emit</span>(<span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, {
+  <span class="hljs-attr">before</span>: [<span class="hljs-title class_">RenameTransformerFactory</span>], <span class="hljs-comment">// 使用 transformer</span>
+  <span class="hljs-attr">after</span>: [],
+  <span class="hljs-attr">afterDeclarations</span>: [],
+});</code></pre><h1 id="使用时机">使用时机<a name="使用时机" class="headerlink" href="#使用时机"></a></h1><p>在上述代码片段中可以看到，将 transformer 传入到了 <code>before</code>，同时还有 <code>after</code> 和 <code>afterDeclarations</code> 可供选择，而三者的区别参阅的资料如下：</p>
+<blockquote>
+<p>TS itself comes with <a href="https://github.com/Microsoft/TypeScript/tree/master/src/compiler/transformers">a lot of ESNext -&gt; ES5</a> transformers by default. The pipeline allows you to order your custom transformer in a specific way:</p>
+<ol>
+<li><code>before</code> means your transformers get run before TS ones, which means your transformer will get raw TS syntax instead of transpiled syntax (e.g <code>import</code> instead of <code>require</code> or <code>define</code>)</li>
+<li><code>after</code> means your transformers get run after TS ones, which gets transpiled syntax.</li>
+<li><code>afterDeclarations</code> means your transformers get run during <code>d.ts</code> generation phase, allowing you to transform output type declarations.</li>
+</ol>
+</blockquote>
+<p>我个人基于此的理解是这样的：</p>
+<p>TS 自身具有强大的编译功能，如将 <code>ESNext</code> 语法降级、<code>ESModule</code> 语法转换为 <code>CommonJS</code> 规范。</p>
+<p>假设有这样的一个转换场景：源码使用的是 <code>ESModule</code> 规范，<code>tsconfig</code> 中指定了 <code>module</code> 为 <code>commonjs</code>。</p>
+<ul>
+<li><code>before</code>：指定在此阶段的 transformer，运行于 TS 自身的编译功能之前。transformer 基于的是最初输入的抽象语法树（AST），也就是说此时可以在 AST 找到 <code>import</code> 等与 <code>ESModule</code> 相关的节点。</li>
+<li><code>after</code>：此阶段的 transformer 运行于 TS 编译之后，因为上面指定了输出为 <code>commonjs</code> 规范，同时代表此处的 transformer 已经读取不到 <code>ESModule</code> 相关的节点了，只能获取到 <code>require</code> 等信息。</li>
+<li><code>afterDeclarations</code>：则是作用于 <code>d.ts</code> 类型文件生成的阶段，只影响类型文件的生成。</li>
+</ul>
+<p>文字的描述显得苍白、费解，接着会分别看一下实际效果来帮助理解，但在那之前先简单介绍一下演示中的 transformer：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-comment">/**
+ * 定义一个简单的 transformer，作用是：
+ *  - before/afterDeclarations：将 import 语句中的模块名改成 `renamed-lib-name`
+ *  - after：将 `&quot;use strict&quot;;` 语句改为 `&quot;use strict&quot;; // use strict`
+ */</span>
+<span class="hljs-keyword">const</span> <span class="hljs-title class_">RenameTransformerFactory</span>: ts.<span class="hljs-property">TransformerFactory</span>&lt;ts.<span class="hljs-property">SourceFile</span>&gt; = <span class="hljs-function"><span class="hljs-params">context</span> =&gt;</span> {
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-params">node</span> =&gt;</span> {
+    <span class="hljs-keyword">const</span> <span class="hljs-attr">visitor</span>: ts.<span class="hljs-property">Visitor</span> = (<span class="hljs-attr">node</span>: ts.<span class="hljs-property">Node</span>): ts.<span class="hljs-property">VisitResult</span>&lt;ts.<span class="hljs-property">Node</span>&gt; =&gt; {
+      <span class="hljs-keyword">if</span> (
+        node.<span class="hljs-property">parent</span> &amp;&amp;
+        ts.<span class="hljs-title function_">isImportDeclaration</span>(node.<span class="hljs-property">parent</span>) &amp;&amp;
+        node.<span class="hljs-property">parent</span>.<span class="hljs-property">moduleSpecifier</span> === node
+      ) {
+        <span class="hljs-comment">// 更新 import</span>
+        <span class="hljs-keyword">return</span> ts.<span class="hljs-title function_">createStringLiteral</span>(<span class="hljs-string">&#x27;renamed-lib-name&#x27;</span>);
+      } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (
+        ts.<span class="hljs-title function_">isExpressionStatement</span>(node) &amp;&amp;
+        ts.<span class="hljs-title function_">isStringLiteral</span>(node.<span class="hljs-property">expression</span>) &amp;&amp;
+        node.<span class="hljs-property">expression</span>.<span class="hljs-property">text</span> === <span class="hljs-string">&#x27;use strict&#x27;</span>
+      ) {
+        <span class="hljs-comment">// 添加注释</span>
+        <span class="hljs-keyword">return</span> ts.<span class="hljs-title function_">createIdentifier</span>(<span class="hljs-string">&#x27;&quot;use strict&quot;; // use strict&#x27;</span>);
+      }
+      <span class="hljs-keyword">return</span> ts.<span class="hljs-title function_">visitEachChild</span>(node, visitor, context);
+    };
+    <span class="hljs-keyword">return</span> ts.<span class="hljs-title function_">visitNode</span>(node, visitor);
+  };
+};</code></pre><p>作为输入的源文件内容如下，<code>src/index.ts</code>：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-comment">// @ts-ignore</span>
+<span class="hljs-keyword">import</span> value <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;some-lib&#x27;</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> value;</code></pre><h2 id="before">before<a name="before" class="headerlink" href="#before"></a></h2><p>只在 before 中使用，按照如下更改代码：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-comment">// emit compile</span>
+<span class="hljs-keyword">const</span> emitResult = program.<span class="hljs-title function_">emit</span>(<span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, {
+  <span class="hljs-attr">before</span>: [<span class="hljs-title class_">RenameTransformerFactory</span>],
+  <span class="hljs-comment">// after: [RenameTransformerFactory],</span>
+  <span class="hljs-comment">// afterDeclarations: [RenameTransformerFactory]</span>
+});</code></pre><p>然后运行编译（运行 <code>yarn compile</code>），查看 <code>lib</code> 下的结果文件。</p>
+<p><code>lib/index.js</code>：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-meta">&#x27;use strict&#x27;</span>;
+<span class="hljs-title class_">Object</span>.<span class="hljs-title function_">defineProperty</span>(<span class="hljs-built_in">exports</span>, <span class="hljs-string">&#x27;__esModule&#x27;</span>, { <span class="hljs-attr">value</span>: <span class="hljs-literal">true</span> });
+<span class="hljs-comment">// @ts-ignore</span>
+<span class="hljs-keyword">var</span> some_lib_1 = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;renamed-lib-name&#x27;</span>);
+<span class="hljs-built_in">exports</span>.<span class="hljs-property">default</span> = some_lib_1.<span class="hljs-property">default</span>;</code></pre><p><code>lib/index.d.ts</code>：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-keyword">import</span> value <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;some-lib&#x27;</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> value;</code></pre><p>**可以看到，transformer 生效将 <code>some-lib</code> 改成了 <code>renamed-lib-name</code>；但是输出的类型文件中依旧是 <code>import value from &#39;some-lib&#39;</code>**。</p>
+<h2 id="after">after<a name="after" class="headerlink" href="#after"></a></h2><p>更新代码如下并编译：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-keyword">const</span> emitResult = program.<span class="hljs-title function_">emit</span>(<span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, {
+  <span class="hljs-comment">// before: [RenameTransformerFactory],</span>
+  <span class="hljs-attr">after</span>: [<span class="hljs-title class_">RenameTransformerFactory</span>],
+  <span class="hljs-comment">// afterDeclarations: [RenameTransformerFactory]</span>
+});</code></pre><p>查看结果。</p>
+<p><code>lib/index.js</code>：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-meta">&#x27;use strict&#x27;</span>; <span class="hljs-comment">// use strict</span>
+<span class="hljs-title class_">Object</span>.<span class="hljs-title function_">defineProperty</span>(<span class="hljs-built_in">exports</span>, <span class="hljs-string">&#x27;__esModule&#x27;</span>, { <span class="hljs-attr">value</span>: <span class="hljs-literal">true</span> });
+<span class="hljs-comment">// @ts-ignore</span>
+<span class="hljs-keyword">var</span> some_lib_1 = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;some-lib&#x27;</span>);
+<span class="hljs-built_in">exports</span>.<span class="hljs-property">default</span> = some_lib_1.<span class="hljs-property">default</span>;</code></pre><p><code>lib/index.d.ts</code>：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-keyword">import</span> value <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;some-lib&#x27;</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> value;</code></pre><p><strong>这一次发现，注释成功添加上了，但是 <code>some-lib</code> 没有发生变化，类型文件也毫无变化。</strong></p>
+<p>如前文所述，此时将插件作用到了 <code>after</code>，此时已经经过了 TS 自身的转换，已经转换成 <code>commonjs</code> 模块了，而更新 <code>some-lib</code> 是基于查找 <code>ImportDeclaration</code> 类型的节点的，此时自然就找不到、也做不了修改了；同时经过 TS 自身编译后的会在文件头部添加 <code>use strict</code>，因此 transformer 中第二个判断逻辑得以找到符合要求的节点并添加了注释。</p>
+<h2 id="afterDeclarations">afterDeclarations<a name="afterDeclarations" class="headerlink" href="#afterDeclarations"></a></h2><p>同样，更新代码使得插件作用于 <code>afterDeclarations</code>，并查看结果：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-keyword">const</span> emitResult = program.<span class="hljs-title function_">emit</span>(<span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, <span class="hljs-literal">undefined</span>, {
+  <span class="hljs-comment">// before: [RenameTransformerFactory],</span>
+  <span class="hljs-comment">// after: [RenameTransformerFactory]</span>
+  <span class="hljs-attr">afterDeclarations</span>: [<span class="hljs-title class_">RenameTransformerFactory</span>],
+});</code></pre><p><code>lib/index.js</code>：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-meta">&#x27;use strict&#x27;</span>;
+<span class="hljs-title class_">Object</span>.<span class="hljs-title function_">defineProperty</span>(<span class="hljs-built_in">exports</span>, <span class="hljs-string">&#x27;__esModule&#x27;</span>, { <span class="hljs-attr">value</span>: <span class="hljs-literal">true</span> });
+<span class="hljs-comment">// @ts-ignore</span>
+<span class="hljs-keyword">var</span> some_lib_1 = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;some-lib&#x27;</span>);
+<span class="hljs-built_in">exports</span>.<span class="hljs-property">default</span> = some_lib_1.<span class="hljs-property">default</span>;</code></pre><p><code>lib/index.d.ts</code>：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-keyword">import</span> value <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;renamed-lib-name&#x27;</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> value;</code></pre><p><strong>可以看到只有 <code>d.ts</code> 类型文件中体现了 transformer 的修改。所以，当需要通过 AST 干涉类型文件的生成时，就要在 afterDeclarations 中指定 transformer。</strong></p>
+<h1 id="结语">结语<a name="结语" class="headerlink" href="#结语"></a></h1><p>至此，对 TS transformer 的使用总算有了一个大体的认识。忍不住想吐槽一下，TS 的 transformer 在使用上相比 babel 插件要麻烦好多啊~</p>
+<p>另外，<code>afterDeclarations</code> 是在这一次的学习中意外发现的，了解到 transformer 干涉类型文件的正确姿势。</p>
+<p>实际上之前查阅过多次 transformer 修改类型文件输出的内容，但总是无果（感觉资料也少、又英文居多 😅...）。</p>
+<p>all in all，这次学习了新知识的同时还解开了一个一直以来的小心结，内心十分舒坦。</p>
+<p>最后，今天是新年初二，祝您新年快乐，鼠年大吉，平平安安，快快乐乐，万事如意~</p>
+<p>也希望能早日战胜疫情，武汉加油！中国加油！</p>
+<hr>
+<p>参考资料 &amp; 相关阅读</p>
+<ul>
+<li><a href="https://levelup.gitconnected.com/writing-typescript-custom-ast-transformer-part-1-7585d6916819">Writing TypeScript custom AST Transformer (Part 1)</a></li>
+<li><a href="https://github.com/Microsoft/TypeScript/issues/29543">custom transformer in afterDeclarations cannot transform declaration files</a></li>
+</ul>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/TypeScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> TypeScript</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/build-a-site-generator-by-a-custom-webpack-loader" class="unset">自定义 webpack loader 来实现简单的站点生成器</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/the-prototype-of-javascript" class="unset">JavaScript 原型相关</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

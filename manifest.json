@@ -1,0 +1,42 @@
+{
+  "index.html": {
+    "file": "assets/index.f6204dfb.js",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "_vendor.cada02d7.js"
+    ],
+    "dynamicImports": [
+      "_pickr.min.538e4096.js",
+      "_mermaid.min.69e625de.js",
+      "_viewer.min.d08a2168.js"
+    ],
+    "css": [
+      "assets/index.2fa6ecca.css"
+    ]
+  },
+  "_vendor.cada02d7.js": {
+    "file": "assets/vendor.cada02d7.js"
+  },
+  "_viewer.min.d08a2168.js": {
+    "file": "assets/viewer.min.d08a2168.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor.cada02d7.js"
+    ]
+  },
+  "_pickr.min.538e4096.js": {
+    "file": "assets/pickr.min.538e4096.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor.cada02d7.js"
+    ]
+  },
+  "_mermaid.min.69e625de.js": {
+    "file": "assets/mermaid.min.69e625de.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_vendor.cada02d7.js"
+    ]
+  }
+}

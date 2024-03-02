@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JS监听一个变量的变化 | daief的个人日志</title><meta property="og:title" content="JS监听一个变量的变化 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"js-watch-variable-change","slug":"post/js-watch-variable-change","path":"/post/js-watch-variable-change","title":"JS监听一个变量的变化","comments":true,"published":true,"date":"2017-11-22T16:18:10.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>js 监听一个值的变化，当值变化之后能够触发一些操作。</p>\n","more":"\n\n<blockquote>\n<p><a href=\"https://blog.daraw.cn/2016/08/17/how-to-monitor-changes-of-js-variable/\">https://blog.daraw.cn/2016/08/17/how-to-monitor-changes-of-js-variable/</a></p>\n</blockquote>\n<h3 id=\"defineProperty （ES5）\">defineProperty （ES5）<a name=\"defineProperty （ES5）\" class=\"headerlink\" href=\"#defineProperty （ES5）\"></a></h3><blockquote>\n<p>首先 IE8 及更低版本 IE 是无法使用的，而且这个特性是没有 polyfill 的，无法在不支持的平台实现，这也是基于 ES5getter 和 setter 的 Vue.js 不支持 IE8 及更低版本 IE 的原因。也许有人会提到 avalon，avalon 在低版本 IE 借助 vbscript 一些黑魔法实现了类似的功能。\n除此之外，还有一个问题就是修改数组的 length，直接用索引设置元素如 items[0] = {}，以及数组的 push 等变异方法是无法触发 setter 的。</p>\n</blockquote>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-comment\">// 监听变量的变化 es5 defineProperty</span>\n<span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">Watch</span>(<span class=\"hljs-params\">v, getcall, setcall</span>) {\n  <span class=\"hljs-keyword\">var</span> val = v;\n  <span class=\"hljs-title class_\">Object</span>.<span class=\"hljs-title function_\">defineProperty</span>(<span class=\"hljs-variable language_\">this</span>, <span class=\"hljs-string\">&quot;val&quot;</span>, {\n    <span class=\"hljs-attr\">get</span>: <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n      <span class=\"hljs-title function_\">getcall</span>(val);\n      <span class=\"hljs-keyword\">return</span> val;\n    },\n    <span class=\"hljs-attr\">set</span>: <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">value</span>) {\n      <span class=\"hljs-keyword\">var</span> old = val;\n      val = value;\n      <span class=\"hljs-title function_\">setcall</span>(old, val);\n    }\n  });\n}\n\n<span class=\"hljs-keyword\">var</span> count = <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Watch</span>(\n  <span class=\"hljs-number\">0</span>,\n  <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">v</span>) {\n    <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&quot;get&quot;</span>, v);\n  },\n  <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">old, newv</span>) {\n    <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&quot;set&quot;</span>, <span class=\"hljs-string\">&quot;old:&quot;</span>, old, <span class=\"hljs-string\">&quot;new:&quot;</span>, newv);\n  }\n);\n\ncount.<span class=\"hljs-property\">val</span> = <span class=\"hljs-number\">1</span>; <span class=\"hljs-comment\">// 触发set回调</span>\n\n<span class=\"hljs-title function_\">alert</span>(count.<span class=\"hljs-property\">val</span>); <span class=\"hljs-comment\">// 触发get回调</span></code></pre><h3 id=\"Proxy （ES6）\">Proxy （ES6）<a name=\"Proxy （ES6）\" class=\"headerlink\" href=\"#Proxy （ES6）\"></a></h3><pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">var</span> p = <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Proxy</span>(target, handler);\n<span class=\"hljs-comment\">// target为目标对象，可以是任意类型的对象，比如数组，函数，甚至是另外一个代理对象。</span>\n<span class=\"hljs-comment\">// handler为处理器对象，包含了一组代理方法，分别控制所生成代理对象的各种行为。</span></code></pre><pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">var</span> a = <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Proxy</span>(\n  {},\n  {\n    <span class=\"hljs-attr\">get</span>: <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">obj, prop</span>) {\n      <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&quot;get:&quot;</span>, prop);\n      <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">true</span>;\n    },\n    <span class=\"hljs-attr\">set</span>: <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">obj, prop, value</span>) {\n      obj[prop] = value;\n\n      <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&quot;obj:&quot;</span>, obj, <span class=\"hljs-string\">&quot;prop:&quot;</span>, prop, <span class=\"hljs-string\">&quot;value:&quot;</span>, value);\n\n      <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">true</span>;\n    }\n  }\n);\n\na.<span class=\"hljs-property\">val</span> = <span class=\"hljs-number\">100</span>; <span class=\"hljs-comment\">// obj: {val: 100} prop: val value: 100</span>\n\n<span class=\"hljs-keyword\">var</span> b = a.<span class=\"hljs-property\">val</span>; <span class=\"hljs-comment\">// get: val</span></code></pre><blockquote>\n<p>Proxy 的能力远不仅此。</p>\n</blockquote>\n","hash":"1c8779de7b19bc69a62a17416d3e6865","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"html5-indexdb","slug":"post/html5-indexdb","path":"/post/html5-indexdb","title":"IndexedDB的简单使用","comments":true,"published":true,"date":"2017-11-10T23:19:49.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>使用 IndexedDB 在前端对数据进行缓存，简单记录用法。</p>\n<blockquote>\n<p>IndexedDB 是一种低级 API，用于客户端存储大量结构化数据(包括, 文件/ blobs)。该 API 使用索引来实现对该数据的高性能搜索。</p>\n</blockquote>\n","more":"","hash":"18a78607854650204f8498fa9059ba03","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"css-general-knowledge","slug":"post/css-general-knowledge","path":"/post/css-general-knowledge","title":"CSS小知识","comments":true,"published":true,"date":"2017-12-07T16:52:48.000Z","updated":"","tags":[{"id":"2c56c360580420d293172f42d85dfbed","name":"CSS","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"2c56c360580420d293172f42d85dfbed","name":"CSS","slug":"categories/CSS","path":"/categories/CSS","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":1,"postIds":[]}],"excerpt":"<p>记录 CSS 一些有用、易忘的知识。</p>\n","more":"","hash":"2e49d1cdd2381727101e97efa3eabd87","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.f6204dfb.js"></script>
+    <link rel="modulepreload" href="/assets/vendor.cada02d7.js">
+    <link rel="stylesheet" href="/assets/index.2fa6ecca.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">JS监听一个变量的变化</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2017-11-22</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span>，</span><!--]--><!--[--><a href="/categories/JavaScript" class="unset">JavaScript</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>js 监听一个值的变化，当值变化之后能够触发一些操作。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<blockquote>
+<p><a href="https://blog.daraw.cn/2016/08/17/how-to-monitor-changes-of-js-variable/">https://blog.daraw.cn/2016/08/17/how-to-monitor-changes-of-js-variable/</a></p>
+</blockquote>
+<h3 id="defineProperty （ES5）">defineProperty （ES5）<a name="defineProperty （ES5）" class="headerlink" href="#defineProperty （ES5）"></a></h3><blockquote>
+<p>首先 IE8 及更低版本 IE 是无法使用的，而且这个特性是没有 polyfill 的，无法在不支持的平台实现，这也是基于 ES5getter 和 setter 的 Vue.js 不支持 IE8 及更低版本 IE 的原因。也许有人会提到 avalon，avalon 在低版本 IE 借助 vbscript 一些黑魔法实现了类似的功能。
+除此之外，还有一个问题就是修改数组的 length，直接用索引设置元素如 items[0] = {}，以及数组的 push 等变异方法是无法触发 setter 的。</p>
+</blockquote>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-comment">// 监听变量的变化 es5 defineProperty</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">Watch</span>(<span class="hljs-params">v, getcall, setcall</span>) {
+  <span class="hljs-keyword">var</span> val = v;
+  <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">defineProperty</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-string">&quot;val&quot;</span>, {
+    <span class="hljs-attr">get</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+      <span class="hljs-title function_">getcall</span>(val);
+      <span class="hljs-keyword">return</span> val;
+    },
+    <span class="hljs-attr">set</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params">value</span>) {
+      <span class="hljs-keyword">var</span> old = val;
+      val = value;
+      <span class="hljs-title function_">setcall</span>(old, val);
+    }
+  });
+}
+
+<span class="hljs-keyword">var</span> count = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Watch</span>(
+  <span class="hljs-number">0</span>,
+  <span class="hljs-keyword">function</span>(<span class="hljs-params">v</span>) {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;get&quot;</span>, v);
+  },
+  <span class="hljs-keyword">function</span>(<span class="hljs-params">old, newv</span>) {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;set&quot;</span>, <span class="hljs-string">&quot;old:&quot;</span>, old, <span class="hljs-string">&quot;new:&quot;</span>, newv);
+  }
+);
+
+count.<span class="hljs-property">val</span> = <span class="hljs-number">1</span>; <span class="hljs-comment">// 触发set回调</span>
+
+<span class="hljs-title function_">alert</span>(count.<span class="hljs-property">val</span>); <span class="hljs-comment">// 触发get回调</span></code></pre><h3 id="Proxy （ES6）">Proxy （ES6）<a name="Proxy （ES6）" class="headerlink" href="#Proxy （ES6）"></a></h3><pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">var</span> p = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Proxy</span>(target, handler);
+<span class="hljs-comment">// target为目标对象，可以是任意类型的对象，比如数组，函数，甚至是另外一个代理对象。</span>
+<span class="hljs-comment">// handler为处理器对象，包含了一组代理方法，分别控制所生成代理对象的各种行为。</span></code></pre><pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">var</span> a = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Proxy</span>(
+  {},
+  {
+    <span class="hljs-attr">get</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params">obj, prop</span>) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;get:&quot;</span>, prop);
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    },
+    <span class="hljs-attr">set</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params">obj, prop, value</span>) {
+      obj[prop] = value;
+
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;obj:&quot;</span>, obj, <span class="hljs-string">&quot;prop:&quot;</span>, prop, <span class="hljs-string">&quot;value:&quot;</span>, value);
+
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+  }
+);
+
+a.<span class="hljs-property">val</span> = <span class="hljs-number">100</span>; <span class="hljs-comment">// obj: {val: 100} prop: val value: 100</span>
+
+<span class="hljs-keyword">var</span> b = a.<span class="hljs-property">val</span>; <span class="hljs-comment">// get: val</span></code></pre><blockquote>
+<p>Proxy 的能力远不仅此。</p>
+</blockquote>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/JavaScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> JavaScript</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/html5-indexdb" class="unset">IndexedDB的简单使用</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/css-general-knowledge" class="unset">CSS小知识</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

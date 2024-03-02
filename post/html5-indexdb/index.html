@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IndexedDB的简单使用 | daief的个人日志</title><meta property="og:title" content="IndexedDB的简单使用 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"html5-indexdb","slug":"post/html5-indexdb","path":"/post/html5-indexdb","title":"IndexedDB的简单使用","comments":true,"published":true,"date":"2017-11-10T23:19:49.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>使用 IndexedDB 在前端对数据进行缓存，简单记录用法。</p>\n<blockquote>\n<p>IndexedDB 是一种低级 API，用于客户端存储大量结构化数据(包括, 文件/ blobs)。该 API 使用索引来实现对该数据的高性能搜索。</p>\n</blockquote>\n","more":"\n\n<blockquote>\n<p><a href=\"http://www.tfan.org/using-indexeddb/\">使用 IndexedDB http://www.tfan.org/using-indexeddb/</a></p>\n</blockquote>\n<h3 id=\"基本模式\">基本模式<a name=\"基本模式\" class=\"headerlink\" href=\"#基本模式\"></a></h3><p><strong>IndexedDB 的操作都是异步的</strong></p>\n<p>IndexedDB 鼓励使用的基本模式如下所示：</p>\n<ol>\n<li>打开数据库并且开始一个事务。</li>\n<li>创建一个 object store（IndexedDB 使用对象存储空间而不是表）。</li>\n<li>构建一个请求来执行一些数据库操作，像增加或提取数据等。</li>\n<li>通过监听正确类型的事件以等待操作完成。</li>\n<li>在操作结果上进行一些操作（可以在 request 对象中找到）。</li>\n</ol>\n<h3 id=\"实现过程\">实现过程<a name=\"实现过程\" class=\"headerlink\" href=\"#实现过程\"></a></h3><h4 id=\"<code>idb.js</code>:\"><code>idb.js</code>:<a name=\"<code>idb.js</code>:\" class=\"headerlink\" href=\"#<code>idb.js</code>:\"></a></h4><pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> <span class=\"hljs-variable constant_\">DB_NAME</span> = <span class=\"hljs-string\">&quot;test_db&quot;</span>;\n<span class=\"hljs-comment\">// 数据库版本</span>\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-variable constant_\">DB_VERSION</span> = <span class=\"hljs-number\">1</span>;\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-variable constant_\">DB_STORE_NAME</span> = <span class=\"hljs-string\">&quot;books&quot;</span>;\n\n<span class=\"hljs-comment\">// IndexedDB 句柄</span>\n<span class=\"hljs-keyword\">var</span> db = <span class=\"hljs-literal\">null</span>;\n\n<span class=\"hljs-title function_\">initDb</span>();\n\n<span class=\"hljs-comment\">/**\n * 初始化\n */</span>\n<span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">initDb</span>(<span class=\"hljs-params\"></span>) {\n  <span class=\"hljs-comment\">/**\n   * open 函数的结果是一个IDBDatabase对象的实例。\n   * 第二个参数，就是数据库的版本号。\n   * 如果我们打开的数据库不是我们期望的最新版本的话，\n   * 我们可以对 object store 进行创建或是删除。\n   * 在 onupgradeneeded 事件中进行更新\n   */</span>\n  <span class=\"hljs-keyword\">var</span> req = indexedDB.<span class=\"hljs-title function_\">open</span>(<span class=\"hljs-variable constant_\">DB_NAME</span>, <span class=\"hljs-variable constant_\">DB_VERSION</span>);\n\n  req.<span class=\"hljs-property\">onsuccess</span> = <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">evt</span>) {\n    <span class=\"hljs-comment\">// 打开成功的事件回调，取得句柄</span>\n    db = <span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-property\">result</span>;\n  };\n\n  req.<span class=\"hljs-property\">onerror</span> = <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">evt</span>) {\n    <span class=\"hljs-comment\">// 数据库打开失败</span>\n    <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">error</span>(<span class=\"hljs-string\">&quot;initDb:&quot;</span>, evt.<span class=\"hljs-property\">target</span>.<span class=\"hljs-property\">errorCode</span>);\n  };\n\n  req.<span class=\"hljs-property\">onupgradeneeded</span> = <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">evt</span>) {\n    <span class=\"hljs-comment\">// 更新对象存储空间和索引</span>\n    <span class=\"hljs-comment\">// 创建 object store</span>\n    <span class=\"hljs-comment\">// 以该方式创建使用键值对形式进行存储</span>\n    <span class=\"hljs-keyword\">var</span> store = evt.<span class=\"hljs-property\">currentTarget</span>.<span class=\"hljs-property\">result</span>.<span class=\"hljs-title function_\">createObjectStore</span>(<span class=\"hljs-variable constant_\">DB_STORE_NAME</span>);\n  };\n}\n\n<span class=\"hljs-comment\">/**\n * 读取数据\n * <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">Object</span>} key 键\n * <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">Function</span>} success 读取数据成功的回调\n * <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">Function</span>} fail 读取数据失败的回调\n */</span>\n<span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">getBook</span>(<span class=\"hljs-params\">key, success, fail</span>) {\n  success = success || <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {};\n  fail = fail || <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {};\n  <span class=\"hljs-keyword\">if</span> (!db) {\n    <span class=\"hljs-comment\">// db 未初始化或不支持</span>\n    <span class=\"hljs-title function_\">fail</span>();\n    <span class=\"hljs-keyword\">return</span>;\n  }\n\n  <span class=\"hljs-comment\">// 每次读写要创建事务</span>\n  <span class=\"hljs-comment\">// transaction() 方法返回一个事务对象。</span>\n  <span class=\"hljs-comment\">// 第一个参数是事务希望跨越的对象存储空间的列表。空数组表示跨越所有对象存储空间。</span>\n  <span class=\"hljs-comment\">// 如果你没有为第二个参数指定读写方式</span>\n  <span class=\"hljs-keyword\">var</span> tx = db.<span class=\"hljs-title function_\">transaction</span>(<span class=\"hljs-variable constant_\">DB_STORE_NAME</span>, <span class=\"hljs-string\">&quot;readonly&quot;</span>);\n  <span class=\"hljs-keyword\">var</span> store = tx.<span class=\"hljs-title function_\">objectStore</span>(<span class=\"hljs-variable constant_\">DB_STORE_NAME</span>);\n  <span class=\"hljs-comment\">// 读取数据</span>\n  <span class=\"hljs-keyword\">var</span> req = store.<span class=\"hljs-title function_\">get</span>(key);\n\n  req.<span class=\"hljs-property\">onsuccess</span> = <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">evt</span>) {\n    <span class=\"hljs-comment\">// 在成功的回调中取得结果</span>\n    <span class=\"hljs-title function_\">success</span>(<span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-property\">result</span>);\n  };\n\n  req.<span class=\"hljs-property\">onerror</span> = <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">evt</span>) {\n    <span class=\"hljs-comment\">// 读取失败</span>\n    <span class=\"hljs-title function_\">fail</span>();\n    <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&quot;get fail&quot;</span>, evt.<span class=\"hljs-property\">target</span>.<span class=\"hljs-property\">result</span>);\n  };\n}\n\n<span class=\"hljs-comment\">/**\n * 添加数据\n * <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">Object</span>} obj 要添加的值\n * <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">Object</span>} key 键\n * <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">Function</span>} success 添加成功后的回调\n * <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">Function</span>} fail 添加数据失败的回调\n */</span>\n<span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">addBook</span>(<span class=\"hljs-params\">obj, key, success, fail</span>) {\n  success = success || <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {};\n  fail = fail || <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {};\n  <span class=\"hljs-keyword\">if</span> (!db) {\n    <span class=\"hljs-title function_\">fail</span>();\n    <span class=\"hljs-keyword\">return</span>;\n  }\n\n  <span class=\"hljs-comment\">// 创建事务</span>\n  <span class=\"hljs-keyword\">var</span> tx = db.<span class=\"hljs-title function_\">transaction</span>(<span class=\"hljs-variable constant_\">DB_STORE_NAME</span>, <span class=\"hljs-string\">&quot;readwrite&quot;</span>);\n  <span class=\"hljs-keyword\">var</span> store = tx.<span class=\"hljs-title function_\">objectStore</span>(<span class=\"hljs-variable constant_\">DB_STORE_NAME</span>);\n  <span class=\"hljs-comment\">// 添加数据</span>\n  <span class=\"hljs-keyword\">var</span> req = store.<span class=\"hljs-title function_\">add</span>(obj, key);\n\n  req.<span class=\"hljs-property\">onsuccess</span> = <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">evt</span>) {\n    <span class=\"hljs-title function_\">success</span>();\n  };\n\n  req.<span class=\"hljs-property\">onerror</span> = <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n    <span class=\"hljs-title function_\">fail</span>();\n    <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">error</span>(<span class=\"hljs-string\">&quot;add error&quot;</span>, <span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-property\">error</span>);\n  };\n}</code></pre><h4 id=\"<code>index.html</code>中进行使用：\"><code>index.html</code>中进行使用：<a name=\"<code>index.html</code>中进行使用：\" class=\"headerlink\" href=\"#<code>index.html</code>中进行使用：\"></a></h4><pre class=\"hljs language-html\" hljs-language=\"html\"><code style=\"display:block;\"><span class=\"hljs-meta\">&lt;!DOCTYPE <span class=\"hljs-keyword\">html</span>&gt;</span>\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">html</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">head</span>&gt;</span>\n    <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">title</span>&gt;</span>index<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">title</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">head</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">body</span>&gt;</span>\n    <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">script</span> <span class=\"hljs-attr\">src</span>=<span class=\"hljs-string\">&quot;idb.js&quot;</span>&gt;</span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">script</span>&gt;</span>\n    <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">script</span> <span class=\"hljs-attr\">type</span>=<span class=\"hljs-string\">&quot;text/javascript&quot;</span>&gt;</span><span class=\"language-javascript\">\n      <span class=\"hljs-comment\">// 延时操作，确保 indexeddb 初始化完成</span>\n      <span class=\"hljs-built_in\">setTimeout</span>(<span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n        <span class=\"hljs-title function_\">addBook</span>(\n          <span class=\"hljs-string\">&quot;JavaScript&quot;</span>,\n          <span class=\"hljs-number\">1</span>,\n          <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n            <span class=\"hljs-comment\">// add seccess</span>\n            <span class=\"hljs-title function_\">getBook</span>(\n              <span class=\"hljs-number\">1</span>,\n              <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">result</span>) {\n                <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&quot;get:&quot;</span>, result);\n              },\n              <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n                <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&quot;get err&quot;</span>);\n              }\n            );\n          },\n          <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n            <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&quot;add err&quot;</span>);\n          }\n        );\n      }, <span class=\"hljs-number\">500</span>);\n    </span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">script</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">body</span>&gt;</span>\n<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">html</span>&gt;</span></code></pre><h4 id=\"结果：\">结果：<a name=\"结果：\" class=\"headerlink\" href=\"#结果：\"></a></h4><img src=\"https://pic.superbed.cn/item/5c63cec85f3e509ed95668f2\">\n\n<img src=\"https://pic.superbed.cn/item/5c63cec85f3e509ed95668f4\">\n\n<h3 id=\"简单扩展\">简单扩展<a name=\"简单扩展\" class=\"headerlink\" href=\"#简单扩展\"></a></h3><h4 id=\"object store 键的提供方式\">object store 键的提供方式<a name=\"object store 键的提供方式\" class=\"headerlink\" href=\"#object store 键的提供方式\"></a></h4><pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\">db.<span class=\"hljs-title function_\">createObjectStore</span>(<span class=\"hljs-string\">&quot;books&quot;</span>, { <span class=\"hljs-attr\">keyPath</span>: <span class=\"hljs-string\">&quot;id&quot;</span> });</code></pre><table>\n<thead>\n<tr>\n<th align=\"center\">Key Path</th>\n<th align=\"center\">Key Generator</th>\n<th align=\"center\">Description</th>\n</tr>\n</thead>\n<tbody><tr>\n<td align=\"center\">No</td>\n<td align=\"center\">No</td>\n<td align=\"center\">这种对象存储空间可以持有任意类型的值，甚至是像数字和字符串这种基本数据类型的值。每当我们想要增加一个新值的时候，必须提供一个单独的键参数。</td>\n</tr>\n<tr>\n<td align=\"center\">Yes</td>\n<td align=\"center\">No</td>\n<td align=\"center\">这种对象存储空间只能持有 JavaScript 对象。这些对象必须具有一个和 key path 同名的属性。</td>\n</tr>\n<tr>\n<td align=\"center\">No</td>\n<td align=\"center\">Yes</td>\n<td align=\"center\">这种对象存储空间可以持有任意类型的值。键会为我们自动生成，或者如果你想要使用一个特定键的话你可以提供一个单独的键参数。</td>\n</tr>\n<tr>\n<td align=\"center\">Yes</td>\n<td align=\"center\">Yes</td>\n<td align=\"center\">这种对象存储空间只能持有 JavaScript 对象。通常一个键被生成的同时，生成的键的值被存储在对象中的一个和 key path 同名的属性中。然而，如果这样的一个属性已经存在的话，这个属性的值被用作键而不会生成一个新的键。</td>\n</tr>\n</tbody></table>\n","hash":"18a78607854650204f8498fa9059ba03","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"learn-nodejs","slug":"post/learn-nodejs","path":"/post/learn-nodejs","title":"Node.js 学习搭建","comments":true,"published":true,"date":"2017-10-04T00:00:00.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"3b2819dd4c24eda2faf2052eef449551","name":"Node.js","postCount":3,"postIds":[]}],"categories":[{"id":"3b2819dd4c24eda2faf2052eef449551","name":"Node.js","slug":"categories/Node.js","path":"/categories/Node.js","parentId":"","postCount":2,"postIds":[]}],"excerpt":"<p>听说 Node.js 是开启 JavaScript 后端开发之旅的技术，学习一下服务器的搭建过程。</p>\n","more":"","hash":"f243ab1bd311474cb91979f9d76e648a","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"js-watch-variable-change","slug":"post/js-watch-variable-change","path":"/post/js-watch-variable-change","title":"JS监听一个变量的变化","comments":true,"published":true,"date":"2017-11-22T16:18:10.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>js 监听一个值的变化，当值变化之后能够触发一些操作。</p>\n","more":"","hash":"1c8779de7b19bc69a62a17416d3e6865","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.f6204dfb.js"></script>
+    <link rel="modulepreload" href="/assets/vendor.cada02d7.js">
+    <link rel="stylesheet" href="/assets/index.2fa6ecca.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">IndexedDB的简单使用</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2017-11-10</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span>，</span><!--]--><!--[--><a href="/categories/JavaScript" class="unset">JavaScript</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>使用 IndexedDB 在前端对数据进行缓存，简单记录用法。</p>
+<blockquote>
+<p>IndexedDB 是一种低级 API，用于客户端存储大量结构化数据(包括, 文件/ blobs)。该 API 使用索引来实现对该数据的高性能搜索。</p>
+</blockquote>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<blockquote>
+<p><a href="http://www.tfan.org/using-indexeddb/">使用 IndexedDB http://www.tfan.org/using-indexeddb/</a></p>
+</blockquote>
+<h3 id="基本模式">基本模式<a name="基本模式" class="headerlink" href="#基本模式"></a></h3><p><strong>IndexedDB 的操作都是异步的</strong></p>
+<p>IndexedDB 鼓励使用的基本模式如下所示：</p>
+<ol>
+<li>打开数据库并且开始一个事务。</li>
+<li>创建一个 object store（IndexedDB 使用对象存储空间而不是表）。</li>
+<li>构建一个请求来执行一些数据库操作，像增加或提取数据等。</li>
+<li>通过监听正确类型的事件以等待操作完成。</li>
+<li>在操作结果上进行一些操作（可以在 request 对象中找到）。</li>
+</ol>
+<h3 id="实现过程">实现过程<a name="实现过程" class="headerlink" href="#实现过程"></a></h3><h4 id="<code>idb.js</code>:"><code>idb.js</code>:<a name="<code>idb.js</code>:" class="headerlink" href="#<code>idb.js</code>:"></a></h4><pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">DB_NAME</span> = <span class="hljs-string">&quot;test_db&quot;</span>;
+<span class="hljs-comment">// 数据库版本</span>
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">DB_VERSION</span> = <span class="hljs-number">1</span>;
+<span class="hljs-keyword">const</span> <span class="hljs-variable constant_">DB_STORE_NAME</span> = <span class="hljs-string">&quot;books&quot;</span>;
+
+<span class="hljs-comment">// IndexedDB 句柄</span>
+<span class="hljs-keyword">var</span> db = <span class="hljs-literal">null</span>;
+
+<span class="hljs-title function_">initDb</span>();
+
+<span class="hljs-comment">/**
+ * 初始化
+ */</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">initDb</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-comment">/**
+   * open 函数的结果是一个IDBDatabase对象的实例。
+   * 第二个参数，就是数据库的版本号。
+   * 如果我们打开的数据库不是我们期望的最新版本的话，
+   * 我们可以对 object store 进行创建或是删除。
+   * 在 onupgradeneeded 事件中进行更新
+   */</span>
+  <span class="hljs-keyword">var</span> req = indexedDB.<span class="hljs-title function_">open</span>(<span class="hljs-variable constant_">DB_NAME</span>, <span class="hljs-variable constant_">DB_VERSION</span>);
+
+  req.<span class="hljs-property">onsuccess</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">evt</span>) {
+    <span class="hljs-comment">// 打开成功的事件回调，取得句柄</span>
+    db = <span class="hljs-variable language_">this</span>.<span class="hljs-property">result</span>;
+  };
+
+  req.<span class="hljs-property">onerror</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">evt</span>) {
+    <span class="hljs-comment">// 数据库打开失败</span>
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&quot;initDb:&quot;</span>, evt.<span class="hljs-property">target</span>.<span class="hljs-property">errorCode</span>);
+  };
+
+  req.<span class="hljs-property">onupgradeneeded</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">evt</span>) {
+    <span class="hljs-comment">// 更新对象存储空间和索引</span>
+    <span class="hljs-comment">// 创建 object store</span>
+    <span class="hljs-comment">// 以该方式创建使用键值对形式进行存储</span>
+    <span class="hljs-keyword">var</span> store = evt.<span class="hljs-property">currentTarget</span>.<span class="hljs-property">result</span>.<span class="hljs-title function_">createObjectStore</span>(<span class="hljs-variable constant_">DB_STORE_NAME</span>);
+  };
+}
+
+<span class="hljs-comment">/**
+ * 读取数据
+ * <span class="hljs-doctag">@param</span> {<span class="hljs-type">Object</span>} key 键
+ * <span class="hljs-doctag">@param</span> {<span class="hljs-type">Function</span>} success 读取数据成功的回调
+ * <span class="hljs-doctag">@param</span> {<span class="hljs-type">Function</span>} fail 读取数据失败的回调
+ */</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">getBook</span>(<span class="hljs-params">key, success, fail</span>) {
+  success = success || <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {};
+  fail = fail || <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {};
+  <span class="hljs-keyword">if</span> (!db) {
+    <span class="hljs-comment">// db 未初始化或不支持</span>
+    <span class="hljs-title function_">fail</span>();
+    <span class="hljs-keyword">return</span>;
+  }
+
+  <span class="hljs-comment">// 每次读写要创建事务</span>
+  <span class="hljs-comment">// transaction() 方法返回一个事务对象。</span>
+  <span class="hljs-comment">// 第一个参数是事务希望跨越的对象存储空间的列表。空数组表示跨越所有对象存储空间。</span>
+  <span class="hljs-comment">// 如果你没有为第二个参数指定读写方式</span>
+  <span class="hljs-keyword">var</span> tx = db.<span class="hljs-title function_">transaction</span>(<span class="hljs-variable constant_">DB_STORE_NAME</span>, <span class="hljs-string">&quot;readonly&quot;</span>);
+  <span class="hljs-keyword">var</span> store = tx.<span class="hljs-title function_">objectStore</span>(<span class="hljs-variable constant_">DB_STORE_NAME</span>);
+  <span class="hljs-comment">// 读取数据</span>
+  <span class="hljs-keyword">var</span> req = store.<span class="hljs-title function_">get</span>(key);
+
+  req.<span class="hljs-property">onsuccess</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">evt</span>) {
+    <span class="hljs-comment">// 在成功的回调中取得结果</span>
+    <span class="hljs-title function_">success</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">result</span>);
+  };
+
+  req.<span class="hljs-property">onerror</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">evt</span>) {
+    <span class="hljs-comment">// 读取失败</span>
+    <span class="hljs-title function_">fail</span>();
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;get fail&quot;</span>, evt.<span class="hljs-property">target</span>.<span class="hljs-property">result</span>);
+  };
+}
+
+<span class="hljs-comment">/**
+ * 添加数据
+ * <span class="hljs-doctag">@param</span> {<span class="hljs-type">Object</span>} obj 要添加的值
+ * <span class="hljs-doctag">@param</span> {<span class="hljs-type">Object</span>} key 键
+ * <span class="hljs-doctag">@param</span> {<span class="hljs-type">Function</span>} success 添加成功后的回调
+ * <span class="hljs-doctag">@param</span> {<span class="hljs-type">Function</span>} fail 添加数据失败的回调
+ */</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">addBook</span>(<span class="hljs-params">obj, key, success, fail</span>) {
+  success = success || <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {};
+  fail = fail || <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {};
+  <span class="hljs-keyword">if</span> (!db) {
+    <span class="hljs-title function_">fail</span>();
+    <span class="hljs-keyword">return</span>;
+  }
+
+  <span class="hljs-comment">// 创建事务</span>
+  <span class="hljs-keyword">var</span> tx = db.<span class="hljs-title function_">transaction</span>(<span class="hljs-variable constant_">DB_STORE_NAME</span>, <span class="hljs-string">&quot;readwrite&quot;</span>);
+  <span class="hljs-keyword">var</span> store = tx.<span class="hljs-title function_">objectStore</span>(<span class="hljs-variable constant_">DB_STORE_NAME</span>);
+  <span class="hljs-comment">// 添加数据</span>
+  <span class="hljs-keyword">var</span> req = store.<span class="hljs-title function_">add</span>(obj, key);
+
+  req.<span class="hljs-property">onsuccess</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">evt</span>) {
+    <span class="hljs-title function_">success</span>();
+  };
+
+  req.<span class="hljs-property">onerror</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-title function_">fail</span>();
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(<span class="hljs-string">&quot;add error&quot;</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">error</span>);
+  };
+}</code></pre><h4 id="<code>index.html</code>中进行使用："><code>index.html</code>中进行使用：<a name="<code>index.html</code>中进行使用：" class="headerlink" href="#<code>index.html</code>中进行使用："></a></h4><pre class="hljs language-html" hljs-language="html"><code style="display:block;"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>index<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;idb.js&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;text/javascript&quot;</span>&gt;</span><span class="language-javascript">
+      <span class="hljs-comment">// 延时操作，确保 indexeddb 初始化完成</span>
+      <span class="hljs-built_in">setTimeout</span>(<span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+        <span class="hljs-title function_">addBook</span>(
+          <span class="hljs-string">&quot;JavaScript&quot;</span>,
+          <span class="hljs-number">1</span>,
+          <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+            <span class="hljs-comment">// add seccess</span>
+            <span class="hljs-title function_">getBook</span>(
+              <span class="hljs-number">1</span>,
+              <span class="hljs-keyword">function</span>(<span class="hljs-params">result</span>) {
+                <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;get:&quot;</span>, result);
+              },
+              <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+                <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;get err&quot;</span>);
+              }
+            );
+          },
+          <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+            <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;add err&quot;</span>);
+          }
+        );
+      }, <span class="hljs-number">500</span>);
+    </span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></code></pre><h4 id="结果：">结果：<a name="结果：" class="headerlink" href="#结果："></a></h4><img src="https://pic.superbed.cn/item/5c63cec85f3e509ed95668f2">
+
+<img src="https://pic.superbed.cn/item/5c63cec85f3e509ed95668f4">
+
+<h3 id="简单扩展">简单扩展<a name="简单扩展" class="headerlink" href="#简单扩展"></a></h3><h4 id="object store 键的提供方式">object store 键的提供方式<a name="object store 键的提供方式" class="headerlink" href="#object store 键的提供方式"></a></h4><pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;">db.<span class="hljs-title function_">createObjectStore</span>(<span class="hljs-string">&quot;books&quot;</span>, { <span class="hljs-attr">keyPath</span>: <span class="hljs-string">&quot;id&quot;</span> });</code></pre><table>
+<thead>
+<tr>
+<th align="center">Key Path</th>
+<th align="center">Key Generator</th>
+<th align="center">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">No</td>
+<td align="center">No</td>
+<td align="center">这种对象存储空间可以持有任意类型的值，甚至是像数字和字符串这种基本数据类型的值。每当我们想要增加一个新值的时候，必须提供一个单独的键参数。</td>
+</tr>
+<tr>
+<td align="center">Yes</td>
+<td align="center">No</td>
+<td align="center">这种对象存储空间只能持有 JavaScript 对象。这些对象必须具有一个和 key path 同名的属性。</td>
+</tr>
+<tr>
+<td align="center">No</td>
+<td align="center">Yes</td>
+<td align="center">这种对象存储空间可以持有任意类型的值。键会为我们自动生成，或者如果你想要使用一个特定键的话你可以提供一个单独的键参数。</td>
+</tr>
+<tr>
+<td align="center">Yes</td>
+<td align="center">Yes</td>
+<td align="center">这种对象存储空间只能持有 JavaScript 对象。通常一个键被生成的同时，生成的键的值被存储在对象中的一个和 key path 同名的属性中。然而，如果这样的一个属性已经存在的话，这个属性的值被用作键而不会生成一个新的键。</td>
+</tr>
+</tbody></table>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/JavaScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> JavaScript</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/learn-nodejs" class="unset">Node.js 学习搭建</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/js-watch-variable-change" class="unset">JS监听一个变量的变化</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

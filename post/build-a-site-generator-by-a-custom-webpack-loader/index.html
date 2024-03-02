@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>自定义 webpack loader 来实现简单的站点生成器 | daief的个人日志</title><meta property="og:title" content="自定义 webpack loader 来实现简单的站点生成器 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"build-a-site-generator-by-a-custom-webpack-loader","slug":"post/build-a-site-generator-by-a-custom-webpack-loader","path":"/post/build-a-site-generator-by-a-custom-webpack-loader","title":"自定义 webpack loader 来实现简单的站点生成器","comments":true,"published":true,"date":"2020-01-11T15:05:40.000Z","updated":"","tags":[{"id":"424516ca53b4ad4bef37ed04f8795a88","name":"webpack","postCount":2,"postIds":[]},{"id":"4a527f83a3a4ca7e1d70adb26a35b72e","name":"loader","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>本篇内容实际上在公司内部分享时有过讲解，通过编写一个自定义的 webpack loader，实现方便快速地构建一个文档类型的网站。现在重新实现了一下，并将这个部分的内容与 <code>jugg</code> 进行了结合，故自己再次整理一遍。</p>\n","more":"\n\n<p>目的：解析 Markdown 文件，生成页面；在过程中，同时对符合规则的代码块进行解析、执行，最终渲染出 demo。</p>\n<p>通篇的实现思路其实十分简单，重点是能够实现 <code>解析 Markdown 文件、解析其中代码块</code>，最后将这些解析的结果丢进项目中，渲染部分根据数据源可自由实现，最后打包、部署一下就完成了。</p>\n<blockquote>\n<p>这时候会想到 <code>mdx</code> 之类的实现，或是 docsify、Docusaurus、VuePress、bisheng 等优秀的开源站点生成器，但这都无法阻止自己想要折腾的心。</p>\n</blockquote>\n<h1 id=\"预览\">预览<a name=\"预览\" class=\"headerlink\" href=\"#预览\"></a></h1><p>效果预览地址：<a href=\"https://daief.tech/jugg/#/jugg-plugin-doc/packages/jugg-plugin-doc/demos\">https://daief.tech/jugg/#/jugg-plugin-doc/packages/jugg-plugin-doc/demos</a>。</p>\n<p>项目目前的特点：</p>\n<ul>\n<li>主题风格来源于 <a href=\"https://ant.design/index-cn\">Ant Design</a> 文档。</li>\n<li>基于 React、antd 编写</li>\n<li>可在 Markdown 中运行代码块，支持<ul>\n<li>普通的代码块</li>\n<li>渲染 React 组件</li>\n<li>渲染 Vue 组件</li>\n</ul>\n</li>\n</ul>\n<blockquote>\n<p>功能还在完善中...</p>\n</blockquote>\n<p>这里要十分感谢 Ant Design，因为这里的主题就是借鉴（<del>抄</del>）来的。</p>\n<h1 id=\"自定义 loader\">自定义 loader<a name=\"自定义 loader\" class=\"headerlink\" href=\"#自定义 loader\"></a></h1><p>目的：编写一个处理 Markdown 的 webpack loader —— md-loader，实现 Markdown 文件以及代码块的解析。</p>\n<p>关于 loader 的编写可参照官方文档：<a href=\"https://webpack.docschina.org/contribute/writing-a-loader/\">https://webpack.docschina.org/contribute/writing-a-loader/</a>。值得一提的是，编写 loader 建议搭配 <code>loader-utils</code> 一起使用，使得开发更加方便且不容易出错。</p>\n<p>只记一些我的个人想法和实现，有的可能还与官方推荐的 <code>用法准则</code> 有所冲突。</p>\n<p>md-loader 并不算复杂，每个 Markdown 经过 md-loader 转换成 JS 能够处理的模块，它的结果看起来会像是下面这样：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">const</span> metadata = {\n  <span class=\"hljs-comment\">// markdown 的元数据部分</span>\n};\n\n<span class=\"hljs-comment\">// 整个 markdown 对应的 html 结果</span>\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">const</span> html = <span class=\"hljs-string\">`...`</span>;\n\n<span class=\"hljs-comment\">// 可执行代码块的结果</span>\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> [\n  {\n    <span class=\"hljs-comment\">// 代码块标题</span>\n    <span class=\"hljs-attr\">title</span>: <span class=\"hljs-string\">&#x27;&#x27;</span>,\n    <span class=\"hljs-comment\">// 代码块的描述部分</span>\n    <span class=\"hljs-attr\">description</span>: <span class=\"hljs-string\">&#x27;&#x27;</span>,\n    <span class=\"hljs-comment\">// 代码块字符</span>\n    <span class=\"hljs-attr\">code</span>: <span class=\"hljs-string\">&#x27;&#x27;</span>,\n    <span class=\"hljs-comment\">// 代码块 html 字符串，包含 highlight 标签</span>\n    <span class=\"hljs-attr\">codeHtml</span>: <span class=\"hljs-string\">&#x27;&#x27;</span>,\n    <span class=\"hljs-comment\">// 代码块类型，TSX | VUE</span>\n    <span class=\"hljs-attr\">demoType</span>: <span class=\"hljs-string\">&#x27;TSX&#x27;</span>,\n    <span class=\"hljs-attr\">module</span>: <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;/the-demo-path.tsx&#x27;</span>),\n  },\n  {\n    <span class=\"hljs-attr\">title</span>: <span class=\"hljs-string\">&#x27;&#x27;</span>,\n    <span class=\"hljs-attr\">description</span>: <span class=\"hljs-string\">&#x27;&#x27;</span>,\n    <span class=\"hljs-attr\">code</span>: <span class=\"hljs-string\">&#x27;&#x27;</span>,\n    <span class=\"hljs-attr\">codeHtml</span>: <span class=\"hljs-string\">&#x27;&#x27;</span>,\n    <span class=\"hljs-attr\">demoType</span>: <span class=\"hljs-string\">&#x27;VUE&#x27;</span>,\n    <span class=\"hljs-attr\">module</span>: <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;/the-vue-demo-path.vue&#x27;</span>),\n  },\n];\n\n<span class=\"hljs-comment\">// 其他需要的内容</span>\n<span class=\"hljs-comment\">// export ...</span></code></pre><p>也就是说，接入 md-loader 之后，在代码中就可以这么写：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-comment\">// 导出需要的内容</span>\n<span class=\"hljs-keyword\">import</span> codeList, { metadata, html } <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&#x27;./your-markdown.md&#x27;</span>;</code></pre><p>最后写一下我自己不确定的部分，我不确定这是否是合理的实现方式，但目前为止这是我达到目的所用的最好方法了：</p>\n<ul>\n<li>将 Markdown 中的代码块解析出来，单独地生成一个文件，存放在一个缓存目录，文件类型可能是 <code>tsx?</code>、<code>vue</code> 或 <code>jsx?</code></li>\n<li>在代码块 <code>module</code> 字段通过 <code>require</code> 的方式重新引用回项目</li>\n</ul>\n<p><strong>好处：</strong></p>\n<ul>\n<li>不需要链式地配置 loader 进行处理、不需要考虑 demo 的文件类型</li>\n</ul>\n<p>即不需要出现下面这种配置：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-comment\">// webpack.config.js</span>\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> {\n  <span class=\"hljs-comment\">// ...</span>\n  <span class=\"hljs-attr\">module</span>: {\n    <span class=\"hljs-attr\">rules</span>: [\n      {\n        <span class=\"hljs-attr\">test</span>: <span class=\"hljs-regexp\">/\\.md/</span>,\n        <span class=\"hljs-attr\">use</span>: [\n          <span class=\"hljs-string\">&#x27;ts-loader&#x27;</span>\n          <span class=\"hljs-string\">&#x27;md-loader&#x27;</span>,\n        ]\n      }\n    ]\n  }\n};</code></pre><p>只要对每种类型分别配置完即可生效：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-keyword\">import</span> path <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&#x27;path&#x27;</span>;\n\n<span class=\"hljs-comment\">// webpack.config.js</span>\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> {\n  <span class=\"hljs-comment\">// ...</span>\n  <span class=\"hljs-attr\">module</span>: {\n    <span class=\"hljs-attr\">rules</span>: [\n      {\n        <span class=\"hljs-attr\">test</span>: <span class=\"hljs-regexp\">/\\.md$/</span>,\n        <span class=\"hljs-attr\">use</span>: [path.<span class=\"hljs-title function_\">resolve</span>(__dirname, <span class=\"hljs-string\">&#x27;./loader/md&#x27;</span>)],\n      },\n      {\n        <span class=\"hljs-attr\">test</span>: <span class=\"hljs-regexp\">/\\.tsx?$/</span>,\n        <span class=\"hljs-attr\">use</span>: [<span class=\"hljs-string\">&#x27;ts-loader&#x27;</span>],\n      },\n      {\n        <span class=\"hljs-attr\">test</span>: <span class=\"hljs-regexp\">/\\.vue$/</span>,\n        <span class=\"hljs-attr\">use</span>: [<span class=\"hljs-string\">&#x27;vue-loader&#x27;</span>],\n      },\n    ],\n  },\n};</code></pre><h2 id=\"具体实现\">具体实现<a name=\"具体实现\" class=\"headerlink\" href=\"#具体实现\"></a></h2><p>具体的实现就不贴了，可以查看<a href=\"https://github.com/daief/jugg/blob/master/packages/jugg-plugin-doc/src/loader/md.ts\">这里的实现</a>。</p>\n<h1 id=\"站点生成器\">站点生成器<a name=\"站点生成器\" class=\"headerlink\" href=\"#站点生成器\"></a></h1><p>我叫它这个名字只是因为这样看起来比较高级，刚好又具有了这样的功能。</p>\n<p>项目地址：<a href=\"https://github.com/daief/jugg/tree/master/packages/jugg-plugin-doc/site\">jugg-plugin-doc/site</a>。</p>\n<p>该部分的内容大概如下：</p>\n<ul>\n<li>读取用户配置项，寻找出所有匹配的 Markdown 源文件列表</li>\n<li>根据源文件列表动态数据源文件： <code>site/mds.tsx</code></li>\n<li>搭建一个前端项目，根据数据源渲染出页面</li>\n<li>最后打包成静态文件就结束了</li>\n</ul>\n<h1 id=\"结语\">结语<a name=\"结语\" class=\"headerlink\" href=\"#结语\"></a></h1><p>因为，本篇内容在 <a href=\"https://github.com/daief/jugg/tree/master/packages/jugg-plugin-doc\">Github 上有具体的实现</a>，所以细节都没有展开。另外实现思路也比较简单，所以通篇表现得比较简略。</p>\n<p>㊗ 新年快乐。</p>\n","hash":"4f8ad34f949cf02c3a6e22d2e2fb302d","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"year-end-summary-2019","slug":"post/year-end-summary-2019","path":"/post/year-end-summary-2019","title":"我的 2019","comments":true,"published":true,"date":"2019-12-29T15:17:00.000Z","updated":"","tags":[{"id":"aefcbfca08c840aeb8bd72dc1c8ff7f9","name":"生活","postCount":2,"postIds":[]}],"categories":[{"id":"aefcbfca08c840aeb8bd72dc1c8ff7f9","name":"生活","slug":"categories/生活","path":"/categories/生活","parentId":"","postCount":3,"postIds":[]}],"excerpt":"<p>距离 2019 结束只有不到三天，好好写完这份总结应该是今年最后一件事了。</p>\n","more":"","hash":"2220f02f2f6555d142c83d74fa93520f","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"usage-of-ts-transformer","slug":"post/usage-of-ts-transformer","path":"/post/usage-of-ts-transformer","title":"TS transformer 的使用","comments":true,"published":true,"date":"2020-01-26T13:07:08.000Z","updated":"","tags":[{"id":"558b544cf685f39d34e4903e39c38b67","name":"TypeScript","postCount":6,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"558b544cf685f39d34e4903e39c38b67","name":"TypeScript","slug":"categories/TypeScript","path":"/categories/TypeScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":4,"postIds":[]}],"excerpt":"<p><code>TS transformer</code> 简单来讲就像<a href=\"https://babeljs.io/docs/en/plugins/\">babel 插件</a>一样，只不过作用于 TypeScript 的编译过程。</p>\n<p>与 babel 插件不同的是，配置 transformer 的时候会有 <code>before</code>、<code>after</code>、<code>afterDeclarations</code> 这三种选项，如果不清楚他们之前的区别的话，使用的时候会充满困惑。</p>\n<p>本文只关注 transformer 的使用，对应的 demo 仓库：<a href=\"https://github.com/daief/usage-of-ts-transformer\">https://github.com/daief/usage-of-ts-transformer</a>。</p>\n","more":"","hash":"ebf4532a5cdcbd505c04ab8afbb336ae","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.f6204dfb.js"></script>
+    <link rel="modulepreload" href="/assets/vendor.cada02d7.js">
+    <link rel="stylesheet" href="/assets/index.2fa6ecca.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">自定义 webpack loader 来实现简单的站点生成器</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2020-01-11</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>本篇内容实际上在公司内部分享时有过讲解，通过编写一个自定义的 webpack loader，实现方便快速地构建一个文档类型的网站。现在重新实现了一下，并将这个部分的内容与 <code>jugg</code> 进行了结合，故自己再次整理一遍。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<p>目的：解析 Markdown 文件，生成页面；在过程中，同时对符合规则的代码块进行解析、执行，最终渲染出 demo。</p>
+<p>通篇的实现思路其实十分简单，重点是能够实现 <code>解析 Markdown 文件、解析其中代码块</code>，最后将这些解析的结果丢进项目中，渲染部分根据数据源可自由实现，最后打包、部署一下就完成了。</p>
+<blockquote>
+<p>这时候会想到 <code>mdx</code> 之类的实现，或是 docsify、Docusaurus、VuePress、bisheng 等优秀的开源站点生成器，但这都无法阻止自己想要折腾的心。</p>
+</blockquote>
+<h1 id="预览">预览<a name="预览" class="headerlink" href="#预览"></a></h1><p>效果预览地址：<a href="https://daief.tech/jugg/#/jugg-plugin-doc/packages/jugg-plugin-doc/demos">https://daief.tech/jugg/#/jugg-plugin-doc/packages/jugg-plugin-doc/demos</a>。</p>
+<p>项目目前的特点：</p>
+<ul>
+<li>主题风格来源于 <a href="https://ant.design/index-cn">Ant Design</a> 文档。</li>
+<li>基于 React、antd 编写</li>
+<li>可在 Markdown 中运行代码块，支持<ul>
+<li>普通的代码块</li>
+<li>渲染 React 组件</li>
+<li>渲染 Vue 组件</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>功能还在完善中...</p>
+</blockquote>
+<p>这里要十分感谢 Ant Design，因为这里的主题就是借鉴（<del>抄</del>）来的。</p>
+<h1 id="自定义 loader">自定义 loader<a name="自定义 loader" class="headerlink" href="#自定义 loader"></a></h1><p>目的：编写一个处理 Markdown 的 webpack loader —— md-loader，实现 Markdown 文件以及代码块的解析。</p>
+<p>关于 loader 的编写可参照官方文档：<a href="https://webpack.docschina.org/contribute/writing-a-loader/">https://webpack.docschina.org/contribute/writing-a-loader/</a>。值得一提的是，编写 loader 建议搭配 <code>loader-utils</code> 一起使用，使得开发更加方便且不容易出错。</p>
+<p>只记一些我的个人想法和实现，有的可能还与官方推荐的 <code>用法准则</code> 有所冲突。</p>
+<p>md-loader 并不算复杂，每个 Markdown 经过 md-loader 转换成 JS 能够处理的模块，它的结果看起来会像是下面这样：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> metadata = {
+  <span class="hljs-comment">// markdown 的元数据部分</span>
+};
+
+<span class="hljs-comment">// 整个 markdown 对应的 html 结果</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> html = <span class="hljs-string">`...`</span>;
+
+<span class="hljs-comment">// 可执行代码块的结果</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> [
+  {
+    <span class="hljs-comment">// 代码块标题</span>
+    <span class="hljs-attr">title</span>: <span class="hljs-string">&#x27;&#x27;</span>,
+    <span class="hljs-comment">// 代码块的描述部分</span>
+    <span class="hljs-attr">description</span>: <span class="hljs-string">&#x27;&#x27;</span>,
+    <span class="hljs-comment">// 代码块字符</span>
+    <span class="hljs-attr">code</span>: <span class="hljs-string">&#x27;&#x27;</span>,
+    <span class="hljs-comment">// 代码块 html 字符串，包含 highlight 标签</span>
+    <span class="hljs-attr">codeHtml</span>: <span class="hljs-string">&#x27;&#x27;</span>,
+    <span class="hljs-comment">// 代码块类型，TSX | VUE</span>
+    <span class="hljs-attr">demoType</span>: <span class="hljs-string">&#x27;TSX&#x27;</span>,
+    <span class="hljs-attr">module</span>: <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;/the-demo-path.tsx&#x27;</span>),
+  },
+  {
+    <span class="hljs-attr">title</span>: <span class="hljs-string">&#x27;&#x27;</span>,
+    <span class="hljs-attr">description</span>: <span class="hljs-string">&#x27;&#x27;</span>,
+    <span class="hljs-attr">code</span>: <span class="hljs-string">&#x27;&#x27;</span>,
+    <span class="hljs-attr">codeHtml</span>: <span class="hljs-string">&#x27;&#x27;</span>,
+    <span class="hljs-attr">demoType</span>: <span class="hljs-string">&#x27;VUE&#x27;</span>,
+    <span class="hljs-attr">module</span>: <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;/the-vue-demo-path.vue&#x27;</span>),
+  },
+];
+
+<span class="hljs-comment">// 其他需要的内容</span>
+<span class="hljs-comment">// export ...</span></code></pre><p>也就是说，接入 md-loader 之后，在代码中就可以这么写：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-comment">// 导出需要的内容</span>
+<span class="hljs-keyword">import</span> codeList, { metadata, html } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./your-markdown.md&#x27;</span>;</code></pre><p>最后写一下我自己不确定的部分，我不确定这是否是合理的实现方式，但目前为止这是我达到目的所用的最好方法了：</p>
+<ul>
+<li>将 Markdown 中的代码块解析出来，单独地生成一个文件，存放在一个缓存目录，文件类型可能是 <code>tsx?</code>、<code>vue</code> 或 <code>jsx?</code></li>
+<li>在代码块 <code>module</code> 字段通过 <code>require</code> 的方式重新引用回项目</li>
+</ul>
+<p><strong>好处：</strong></p>
+<ul>
+<li>不需要链式地配置 loader 进行处理、不需要考虑 demo 的文件类型</li>
+</ul>
+<p>即不需要出现下面这种配置：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-comment">// webpack.config.js</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-attr">module</span>: {
+    <span class="hljs-attr">rules</span>: [
+      {
+        <span class="hljs-attr">test</span>: <span class="hljs-regexp">/\.md/</span>,
+        <span class="hljs-attr">use</span>: [
+          <span class="hljs-string">&#x27;ts-loader&#x27;</span>
+          <span class="hljs-string">&#x27;md-loader&#x27;</span>,
+        ]
+      }
+    ]
+  }
+};</code></pre><p>只要对每种类型分别配置完即可生效：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-keyword">import</span> path <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;path&#x27;</span>;
+
+<span class="hljs-comment">// webpack.config.js</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-attr">module</span>: {
+    <span class="hljs-attr">rules</span>: [
+      {
+        <span class="hljs-attr">test</span>: <span class="hljs-regexp">/\.md$/</span>,
+        <span class="hljs-attr">use</span>: [path.<span class="hljs-title function_">resolve</span>(__dirname, <span class="hljs-string">&#x27;./loader/md&#x27;</span>)],
+      },
+      {
+        <span class="hljs-attr">test</span>: <span class="hljs-regexp">/\.tsx?$/</span>,
+        <span class="hljs-attr">use</span>: [<span class="hljs-string">&#x27;ts-loader&#x27;</span>],
+      },
+      {
+        <span class="hljs-attr">test</span>: <span class="hljs-regexp">/\.vue$/</span>,
+        <span class="hljs-attr">use</span>: [<span class="hljs-string">&#x27;vue-loader&#x27;</span>],
+      },
+    ],
+  },
+};</code></pre><h2 id="具体实现">具体实现<a name="具体实现" class="headerlink" href="#具体实现"></a></h2><p>具体的实现就不贴了，可以查看<a href="https://github.com/daief/jugg/blob/master/packages/jugg-plugin-doc/src/loader/md.ts">这里的实现</a>。</p>
+<h1 id="站点生成器">站点生成器<a name="站点生成器" class="headerlink" href="#站点生成器"></a></h1><p>我叫它这个名字只是因为这样看起来比较高级，刚好又具有了这样的功能。</p>
+<p>项目地址：<a href="https://github.com/daief/jugg/tree/master/packages/jugg-plugin-doc/site">jugg-plugin-doc/site</a>。</p>
+<p>该部分的内容大概如下：</p>
+<ul>
+<li>读取用户配置项，寻找出所有匹配的 Markdown 源文件列表</li>
+<li>根据源文件列表动态数据源文件： <code>site/mds.tsx</code></li>
+<li>搭建一个前端项目，根据数据源渲染出页面</li>
+<li>最后打包成静态文件就结束了</li>
+</ul>
+<h1 id="结语">结语<a name="结语" class="headerlink" href="#结语"></a></h1><p>因为，本篇内容在 <a href="https://github.com/daief/jugg/tree/master/packages/jugg-plugin-doc">Github 上有具体的实现</a>，所以细节都没有展开。另外实现思路也比较简单，所以通篇表现得比较简略。</p>
+<p>㊗ 新年快乐。</p>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/webpack" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> webpack</a><a href="/tags/loader" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> loader</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/year-end-summary-2019" class="unset">我的 2019</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/usage-of-ts-transformer" class="unset">TS transformer 的使用</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

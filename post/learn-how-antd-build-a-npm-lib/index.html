@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>简单学习 antd 的 build 步骤 | daief的个人日志</title><meta property="og:title" content="简单学习 antd 的 build 步骤 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"learn-how-antd-build-a-npm-lib","slug":"post/learn-how-antd-build-a-npm-lib","path":"/post/learn-how-antd-build-a-npm-lib","title":"简单学习 antd 的 build 步骤","comments":true,"published":true,"date":"2018-09-17T21:07:46.000Z","updated":"","tags":[{"id":"12f838097e88fad593facf1260572402","name":"antd","postCount":1,"postIds":[]},{"id":"bb30e85411b56df41296726ab445dc8f","name":"npm","postCount":2,"postIds":[]},{"id":"3dedcc7065e40f09291129b3fbe52f76","name":"gulp","postCount":1,"postIds":[]},{"id":"1b8e1e23264dc0a324a49c1e86a25eda","name":"antd-tools","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>想到去学习 antd 的打包步骤是因为自己学习制作 npm 模块时遇到了疑惑。查看<code>antd</code>（v3.9.2）的包，我们可以在目录下找到<code>dist/</code>、<code>lib/</code>、<code>es/</code>这三个目录，而且在<code>package.json</code>中指定的入口是<code>lib/</code>（<code>&quot;main&quot;: &quot;lib/index.js&quot;</code>）。然而我只会使用<code>webpack</code>打包出一个<code>dist/</code>目录，于是查看了 antd 的相关内容进行了学习。</p>\n","more":"\n\n<h1 id=\"查看 package.json 中的脚本\">查看 package.json 中的脚本<a name=\"查看 package.json 中的脚本\" class=\"headerlink\" href=\"#查看 package.json 中的脚本\"></a></h1><pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\">{\n  <span class=\"hljs-string\">&quot;name&quot;</span>: <span class=\"hljs-string\">&quot;antd&quot;</span>,\n  <span class=\"hljs-string\">&quot;version&quot;</span>: <span class=\"hljs-string\">&quot;3.9.2&quot;</span>,\n  <span class=\"hljs-string\">&quot;scripts&quot;</span>: {\n    <span class=\"hljs-string\">&quot;test&quot;</span>: <span class=\"hljs-string\">&quot;jest --config .jest.js&quot;</span>,\n    <span class=\"hljs-string\">&quot;test-node&quot;</span>: <span class=\"hljs-string\">&quot;jest --config .jest.node.js&quot;</span>,\n    <span class=\"hljs-string\">&quot;test-all&quot;</span>: <span class=\"hljs-string\">&quot;./scripts/test-all.sh&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint&quot;</span>: <span class=\"hljs-string\">&quot;npm run lint:ts &amp;&amp; npm run lint:es &amp;&amp; npm run lint:demo &amp;&amp; npm run lint:style&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint:ts&quot;</span>: <span class=\"hljs-string\">&quot;npm run tsc &amp;&amp; antd-tools run ts-lint&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint:es&quot;</span>: <span class=\"hljs-string\">&quot;eslint tests site scripts components ./.*.js ./webpack.config.js --ext &#x27;.js,.jsx&#x27;&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint:demo&quot;</span>: <span class=\"hljs-string\">&quot;cross-env RUN_ENV=DEMO eslint components/*/demo/*.md --ext &#x27;.md&#x27;&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint:style&quot;</span>: <span class=\"hljs-string\">&quot;stylelint \\&quot;{site,components}/**/*.less\\&quot; --syntax less&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint-fix:ts&quot;</span>: <span class=\"hljs-string\">&quot;npm run tsc &amp;&amp; antd-tools run ts-lint-fix&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint-fix&quot;</span>: <span class=\"hljs-string\">&quot;npm run lint-fix:code &amp;&amp; npm run lint-fix:demo&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint-fix:code&quot;</span>: <span class=\"hljs-string\">&quot;eslint --fix tests site scripts components ./.*.js ./webpack.config.js --ext &#x27;.js,.jsx&#x27;&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint-fix:demo&quot;</span>: <span class=\"hljs-string\">&quot;eslint-tinker ./components/*/demo/*.md&quot;</span>,\n    <span class=\"hljs-string\">&quot;sort-api&quot;</span>: <span class=\"hljs-string\">&quot;node ./scripts/sort-api-table.js&quot;</span>,\n    <span class=\"hljs-string\">&quot;dist&quot;</span>: <span class=\"hljs-string\">&quot;antd-tools run dist&quot;</span>,\n    <span class=\"hljs-string\">&quot;compile&quot;</span>: <span class=\"hljs-string\">&quot;antd-tools run compile&quot;</span>,\n    <span class=\"hljs-string\">&quot;tsc&quot;</span>: <span class=\"hljs-string\">&quot;tsc&quot;</span>,\n    <span class=\"hljs-string\">&quot;start&quot;</span>: <span class=\"hljs-string\">&quot;rimraf _site &amp;&amp; mkdir _site &amp;&amp; node ./scripts/generateColorLess.js &amp;&amp; cross-env NODE_ENV=development bisheng start -c ./site/bisheng.config.js&quot;</span>,\n    <span class=\"hljs-string\">&quot;start:preact&quot;</span>: <span class=\"hljs-string\">&quot;node ./scripts/generateColorLess.js &amp;&amp; cross-env NODE_ENV=development REACT_ENV=preact bisheng start -c ./site/bisheng.config.js&quot;</span>,\n    <span class=\"hljs-string\">&quot;site&quot;</span>: <span class=\"hljs-string\">&quot;cross-env NODE_ENV=production bisheng build --ssr -c ./site/bisheng.config.js &amp;&amp; node ./scripts/generateColorLess.js&quot;</span>,\n    <span class=\"hljs-string\">&quot;predeploy&quot;</span>: <span class=\"hljs-string\">&quot;antd-tools run clean &amp;&amp; npm run site &amp;&amp; cp netlify.toml _site &amp;&amp; cp -r .circleci _site&quot;</span>,\n    <span class=\"hljs-string\">&quot;deploy&quot;</span>: <span class=\"hljs-string\">&quot;bisheng gh-pages --push-only&quot;</span>,\n    <span class=\"hljs-string\">&quot;pub&quot;</span>: <span class=\"hljs-string\">&quot;antd-tools run pub&quot;</span>,\n    <span class=\"hljs-string\">&quot;prepublish&quot;</span>: <span class=\"hljs-string\">&quot;antd-tools run guard&quot;</span>,\n    <span class=\"hljs-string\">&quot;pre-publish&quot;</span>: <span class=\"hljs-string\">&quot;npm run test-all &amp;&amp; node ./scripts/prepub&quot;</span>,\n    <span class=\"hljs-string\">&quot;authors&quot;</span>: <span class=\"hljs-string\">&quot;git log --format=&#x27;%aN &lt;%aE&gt;&#x27; | sort -u | grep -v &#x27;users.noreply.github.com&#x27; | grep -v &#x27;gitter.im&#x27; | grep -v &#x27;.local&gt;&#x27; | grep -v &#x27;alibaba-inc.com&#x27; | grep -v &#x27;alipay.com&#x27; | grep -v &#x27;taobao.com&#x27; &gt; AUTHORS.txt&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint-staged&quot;</span>: <span class=\"hljs-string\">&quot;lint-staged&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint-staged:ts&quot;</span>: <span class=\"hljs-string\">&quot;tsc &amp;&amp; node node_modules/tslint/bin/tslint&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint-staged:es&quot;</span>: <span class=\"hljs-string\">&quot;eslint ./.*.js ./webpack.config.js&quot;</span>,\n    <span class=\"hljs-string\">&quot;lint-staged:demo&quot;</span>: <span class=\"hljs-string\">&quot;cross-env RUN_ENV=DEMO eslint --ext &#x27;.md&#x27;&quot;</span>\n  }\n}\n</code></pre><p>可以看到有非常多的脚本，但现在只关注打包、编译部分，发现都是借助了<code>antd-tools</code>：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-string\">&quot;dist&quot;</span>: <span class=\"hljs-string\">&quot;antd-tools run dist&quot;</span>\n<span class=\"hljs-string\">&quot;compile&quot;</span>: <span class=\"hljs-string\">&quot;antd-tools run compile&quot;</span></code></pre><h1 id=\"antd-tools\">antd-tools<a name=\"antd-tools\" class=\"headerlink\" href=\"#antd-tools\"></a></h1><p>此处<code>antd-tools</code>作为命令行工具使用，进入<code>node_modules</code>查看 package.json 中的<code>bin</code>字段：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-string\">&quot;bin&quot;</span>: {\n  <span class=\"hljs-string\">&quot;antd-tools&quot;</span>: <span class=\"hljs-string\">&quot;./bin/antd-tools.js&quot;</span>,\n  <span class=\"hljs-string\">&quot;antd-tools-run&quot;</span>: <span class=\"hljs-string\">&quot;./bin/antd-tools-run.js&quot;</span>\n},</code></pre><p>顺藤摸瓜，发现<code>antd-tools/lib/gulpfile.js</code>是核心文件，创建了相应的<code>gulp.task</code>，执行<code>antd-tools run compile</code>命令时真正执行的是<code>gulp</code>中的<code>compile</code>任务：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-comment\">// antd-tools/lib/gulpfile.js</span>\ngulp.<span class=\"hljs-title function_\">task</span>(<span class=\"hljs-string\">&quot;dist&quot;</span>, <span class=\"hljs-function\"><span class=\"hljs-params\">done</span> =&gt;</span> {\n  <span class=\"hljs-comment\">// dist 任务执行 dist 方法</span>\n  <span class=\"hljs-title function_\">dist</span>(done);\n});\n\n<span class=\"hljs-comment\">// 执行 compile 时会自动执行 compile-with-es 任务</span>\ngulp.<span class=\"hljs-title function_\">task</span>(<span class=\"hljs-string\">&quot;compile&quot;</span>, [<span class=\"hljs-string\">&quot;compile-with-es&quot;</span>], <span class=\"hljs-function\">() =&gt;</span> {\n  <span class=\"hljs-comment\">// compile 任务执行 compile 方法</span>\n  <span class=\"hljs-title function_\">compile</span>();\n});\n\ngulp.<span class=\"hljs-title function_\">task</span>(<span class=\"hljs-string\">&quot;compile-with-es&quot;</span>, <span class=\"hljs-function\">() =&gt;</span> {\n  <span class=\"hljs-title function_\">compile</span>(<span class=\"hljs-literal\">false</span>);\n});\n\n<span class=\"hljs-comment\">// antd-tools/lib/cli/run.js</span>\n<span class=\"hljs-comment\">// 执行任务</span>\n<span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&quot;../gulpfile&quot;</span>);\n\ngulp.<span class=\"hljs-title function_\">start</span>(task);</code></pre><h2 id=\"简单分析 dist 和 compile 任务\">简单分析 dist 和 compile 任务<a name=\"简单分析 dist 和 compile 任务\" class=\"headerlink\" href=\"#简单分析 dist 和 compile 任务\"></a></h2><h3 id=\"task dist\">task dist<a name=\"task dist\" class=\"headerlink\" href=\"#task dist\"></a></h3><p>使用 webpack 进行打包，输出到 dist/</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">dist</span>(<span class=\"hljs-params\">done</span>) {\n  <span class=\"hljs-comment\">// 删除 dist/</span>\n  rimraf.<span class=\"hljs-title function_\">sync</span>(path.<span class=\"hljs-title function_\">join</span>(cwd, <span class=\"hljs-string\">&quot;dist&quot;</span>));\n  <span class=\"hljs-comment\">// 设置自定义的环境变量</span>\n  process.<span class=\"hljs-property\">env</span>.<span class=\"hljs-property\">RUN_ENV</span> = <span class=\"hljs-string\">&quot;PRODUCTION&quot;</span>;\n  <span class=\"hljs-comment\">// 获取项目下 webpack 配置，ant-design/webpack.config.js</span>\n  <span class=\"hljs-keyword\">const</span> webpackConfig = <span class=\"hljs-built_in\">require</span>(path.<span class=\"hljs-title function_\">join</span>(cwd, <span class=\"hljs-string\">&quot;webpack.config.js&quot;</span>));\n  <span class=\"hljs-comment\">// 执行 webpack 打包行为</span>\n  <span class=\"hljs-title function_\">webpack</span>(webpackConfig, <span class=\"hljs-function\">(<span class=\"hljs-params\">err, stats</span>) =&gt;</span> {\n    <span class=\"hljs-comment\">// ......</span>\n    <span class=\"hljs-title function_\">done</span>(<span class=\"hljs-number\">0</span>);\n  });\n}</code></pre><h3 id=\"task compile\">task compile<a name=\"task compile\" class=\"headerlink\" href=\"#task compile\"></a></h3><p><code>es/</code>、<code>lib/</code>都是通过该方法生成</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">compile</span>(<span class=\"hljs-params\">modules</span>) {\n  rimraf.<span class=\"hljs-title function_\">sync</span>(modules !== <span class=\"hljs-literal\">false</span> ? libDir : esDir);\n  <span class=\"hljs-comment\">// 编译 less 文件至 css</span>\n  <span class=\"hljs-keyword\">const</span> less = gulp\n    .<span class=\"hljs-title function_\">src</span>([<span class=\"hljs-string\">&quot;components/**/*.less&quot;</span>])\n    .<span class=\"hljs-title function_\">pipe</span>(\n      through2.<span class=\"hljs-title function_\">obj</span>(<span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">file, encoding, next</span>) {\n        <span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-title function_\">push</span>(file.<span class=\"hljs-title function_\">clone</span>());\n        <span class=\"hljs-comment\">// ......</span>\n        <span class=\"hljs-title function_\">transformLess</span>(file.<span class=\"hljs-property\">path</span>);\n        <span class=\"hljs-comment\">// ......</span>\n      })\n    )\n    <span class=\"hljs-comment\">// 输出到 es/ 或是 lib/</span>\n    .<span class=\"hljs-title function_\">pipe</span>(gulp.<span class=\"hljs-title function_\">dest</span>(modules === <span class=\"hljs-literal\">false</span> ? esDir : libDir));\n\n  <span class=\"hljs-comment\">// 移动 assets 文件</span>\n  <span class=\"hljs-keyword\">const</span> assets = gulp\n    .<span class=\"hljs-title function_\">src</span>([<span class=\"hljs-string\">&quot;components/**/*.@(png|svg)&quot;</span>])\n    .<span class=\"hljs-title function_\">pipe</span>(gulp.<span class=\"hljs-title function_\">dest</span>(modules === <span class=\"hljs-literal\">false</span> ? esDir : libDir));\n\n  <span class=\"hljs-comment\">// 编译 ts、tsx 文件</span>\n  <span class=\"hljs-keyword\">let</span> error = <span class=\"hljs-number\">0</span>;\n  <span class=\"hljs-keyword\">const</span> source = [\n    <span class=\"hljs-string\">&quot;components/**/*.tsx&quot;</span>,\n    <span class=\"hljs-string\">&quot;components/**/*.ts&quot;</span>,\n    <span class=\"hljs-string\">&quot;typings/**/*.d.ts&quot;</span>\n  ];\n  <span class=\"hljs-comment\">// ts = require(&#x27;gulp-typescript&#x27;)</span>\n  <span class=\"hljs-comment\">// 追踪 tsConfig 可以发现只 tsc 只编译到 es6、preserve 的程度</span>\n  <span class=\"hljs-keyword\">const</span> tsResult = gulp.<span class=\"hljs-title function_\">src</span>(source).<span class=\"hljs-title function_\">pipe</span>(\n    <span class=\"hljs-title function_\">ts</span>(tsConfig, {\n      <span class=\"hljs-title function_\">error</span>(<span class=\"hljs-params\">e</span>) {\n        <span class=\"hljs-comment\">/* ... */</span>\n      },\n      <span class=\"hljs-attr\">finish</span>: tsDefaultReporter.<span class=\"hljs-property\">finish</span>\n    })\n  );\n\n  <span class=\"hljs-comment\">// jsx、es6+ 语法通过 babel 处理</span>\n  <span class=\"hljs-keyword\">const</span> tsFilesStream = <span class=\"hljs-title function_\">babelify</span>(tsResult.<span class=\"hljs-property\">js</span>, modules);\n  <span class=\"hljs-comment\">// ts 声明文件的输出</span>\n  <span class=\"hljs-keyword\">const</span> tsd = tsResult.<span class=\"hljs-property\">dts</span>.<span class=\"hljs-title function_\">pipe</span>(gulp.<span class=\"hljs-title function_\">dest</span>(modules === <span class=\"hljs-literal\">false</span> ? esDir : libDir));\n\n  <span class=\"hljs-keyword\">return</span> <span class=\"hljs-title function_\">merge2</span>([less, tsFilesStream, tsd, assets]);\n}</code></pre><h1 id=\"JavaScript/Node 工程的目录结构介绍\">JavaScript/Node 工程的目录结构介绍<a name=\"JavaScript/Node 工程的目录结构介绍\" class=\"headerlink\" href=\"#JavaScript/Node 工程的目录结构介绍\"></a></h1><blockquote>\n<p>以下结构不是绝对，但推荐去这么做，因为社区中大部分人遵循这样的约定。\n<a href=\"https://gist.github.com/tracker1/59f2c13044315f88bee9\">https://gist.github.com/tracker1/59f2c13044315f88bee9</a></p>\n</blockquote>\n<p>根据链接内容的自我翻译：</p>\n<ul>\n<li><code>lib/</code>是可运行的代码，前端开发中一般是已经经过<code>babel</code>降级处理过的</li>\n<li><code>src/</code>一般是源文件代码存放的目录</li>\n<li><code>build/</code>用于构建项目所需要的脚本或工具</li>\n<li><code>dist/</code>编译后的可用于与其他系统一起使用的模块</li>\n<li><code>bin/</code>用于任何可执行脚本，或编译后的二进制文件</li>\n<li><code>test/</code>用于项目的测试脚本</li>\n<li><code>unit/</code>单元测试的目录</li>\n<li><code>integration/</code>集成测试的目录</li>\n<li><code>env</code>用于测试所需要的环境</li>\n</ul>\n<hr>\n<p>相关内容：<a href=\"https://github.com/rollup/rollup\">rollup</a></p>\n<p>本文叙述较为简略，文中不妥之处，欢迎指出、补充，感谢阅读。</p>\n","hash":"a56450a468770f07b27ab0fcf76584fc","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"version-control-of-dependencies-in-package-json","slug":"post/version-control-of-dependencies-in-package-json","path":"/post/version-control-of-dependencies-in-package-json","title":"package.json 中依赖包的版本控制","comments":true,"published":true,"date":"2018-09-16T16:51:33.000Z","updated":"","tags":[{"id":"bb30e85411b56df41296726ab445dc8f","name":"npm","postCount":2,"postIds":[]},{"id":"b9cfc7f2cdf78a7f4b91a753d10865a2","name":"package.json","postCount":1,"postIds":[]},{"id":"7cbe8a17d291fd2ee3a83d2bd6ab023c","name":"语义化版本","postCount":1,"postIds":[]}],"categories":[{"id":"3b2819dd4c24eda2faf2052eef449551","name":"Node.js","slug":"categories/Node.js","path":"/categories/Node.js","parentId":"","postCount":2,"postIds":[]},{"id":"bb30e85411b56df41296726ab445dc8f","name":"npm","slug":"categories/npm","path":"/categories/npm","parentId":"3b2819dd4c24eda2faf2052eef449551","postCount":1,"postIds":[]}],"excerpt":"<p>在<code>package.json</code>中对依赖包的版本使用<code>^</code>、<code>~</code>等时需要注意的地方。\n<a href=\"https://docs.npmjs.com/files/package.json\">package.json 详细说明</a></p>\n","more":"","hash":"277d03204c743b8c2d27a4222af15ce9","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"transforming-concurrent-asynchronous-operations-into-serial-execution","slug":"post/transforming-concurrent-asynchronous-operations-into-serial-execution","path":"/post/transforming-concurrent-asynchronous-operations-into-serial-execution","title":"将并发的异步操作转化为串行执行","comments":true,"published":true,"date":"2018-09-25T22:46:20.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>情景还原：有一个用 Promise 封装的异步操作，用于 JS 与客户端交互以获取数据，但当出现并发调用获取数据的时候发现只有其中的一次操作有回调，而剩余的调用就像丢失了一样、后续的步骤（then）也得不到执行。实际上有多种解决方式，这里考虑将这些并发的调用转化为串行执行来确保每次的调用接收到回调。虽然感觉这样做可能意义不是很大，但感觉颇有意思。</p>\n","more":"","hash":"b2fd06a14a4b9e5de5788184f3c0d8bd","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.f6204dfb.js"></script>
+    <link rel="modulepreload" href="/assets/vendor.cada02d7.js">
+    <link rel="stylesheet" href="/assets/index.2fa6ecca.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">简单学习 antd 的 build 步骤</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2018-09-17</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>想到去学习 antd 的打包步骤是因为自己学习制作 npm 模块时遇到了疑惑。查看<code>antd</code>（v3.9.2）的包，我们可以在目录下找到<code>dist/</code>、<code>lib/</code>、<code>es/</code>这三个目录，而且在<code>package.json</code>中指定的入口是<code>lib/</code>（<code>&quot;main&quot;: &quot;lib/index.js&quot;</code>）。然而我只会使用<code>webpack</code>打包出一个<code>dist/</code>目录，于是查看了 antd 的相关内容进行了学习。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h1 id="查看 package.json 中的脚本">查看 package.json 中的脚本<a name="查看 package.json 中的脚本" class="headerlink" href="#查看 package.json 中的脚本"></a></h1><pre class="hljs language-js" hljs-language="js"><code style="display:block;">{
+  <span class="hljs-string">&quot;name&quot;</span>: <span class="hljs-string">&quot;antd&quot;</span>,
+  <span class="hljs-string">&quot;version&quot;</span>: <span class="hljs-string">&quot;3.9.2&quot;</span>,
+  <span class="hljs-string">&quot;scripts&quot;</span>: {
+    <span class="hljs-string">&quot;test&quot;</span>: <span class="hljs-string">&quot;jest --config .jest.js&quot;</span>,
+    <span class="hljs-string">&quot;test-node&quot;</span>: <span class="hljs-string">&quot;jest --config .jest.node.js&quot;</span>,
+    <span class="hljs-string">&quot;test-all&quot;</span>: <span class="hljs-string">&quot;./scripts/test-all.sh&quot;</span>,
+    <span class="hljs-string">&quot;lint&quot;</span>: <span class="hljs-string">&quot;npm run lint:ts &amp;&amp; npm run lint:es &amp;&amp; npm run lint:demo &amp;&amp; npm run lint:style&quot;</span>,
+    <span class="hljs-string">&quot;lint:ts&quot;</span>: <span class="hljs-string">&quot;npm run tsc &amp;&amp; antd-tools run ts-lint&quot;</span>,
+    <span class="hljs-string">&quot;lint:es&quot;</span>: <span class="hljs-string">&quot;eslint tests site scripts components ./.*.js ./webpack.config.js --ext &#x27;.js,.jsx&#x27;&quot;</span>,
+    <span class="hljs-string">&quot;lint:demo&quot;</span>: <span class="hljs-string">&quot;cross-env RUN_ENV=DEMO eslint components/*/demo/*.md --ext &#x27;.md&#x27;&quot;</span>,
+    <span class="hljs-string">&quot;lint:style&quot;</span>: <span class="hljs-string">&quot;stylelint \&quot;{site,components}/**/*.less\&quot; --syntax less&quot;</span>,
+    <span class="hljs-string">&quot;lint-fix:ts&quot;</span>: <span class="hljs-string">&quot;npm run tsc &amp;&amp; antd-tools run ts-lint-fix&quot;</span>,
+    <span class="hljs-string">&quot;lint-fix&quot;</span>: <span class="hljs-string">&quot;npm run lint-fix:code &amp;&amp; npm run lint-fix:demo&quot;</span>,
+    <span class="hljs-string">&quot;lint-fix:code&quot;</span>: <span class="hljs-string">&quot;eslint --fix tests site scripts components ./.*.js ./webpack.config.js --ext &#x27;.js,.jsx&#x27;&quot;</span>,
+    <span class="hljs-string">&quot;lint-fix:demo&quot;</span>: <span class="hljs-string">&quot;eslint-tinker ./components/*/demo/*.md&quot;</span>,
+    <span class="hljs-string">&quot;sort-api&quot;</span>: <span class="hljs-string">&quot;node ./scripts/sort-api-table.js&quot;</span>,
+    <span class="hljs-string">&quot;dist&quot;</span>: <span class="hljs-string">&quot;antd-tools run dist&quot;</span>,
+    <span class="hljs-string">&quot;compile&quot;</span>: <span class="hljs-string">&quot;antd-tools run compile&quot;</span>,
+    <span class="hljs-string">&quot;tsc&quot;</span>: <span class="hljs-string">&quot;tsc&quot;</span>,
+    <span class="hljs-string">&quot;start&quot;</span>: <span class="hljs-string">&quot;rimraf _site &amp;&amp; mkdir _site &amp;&amp; node ./scripts/generateColorLess.js &amp;&amp; cross-env NODE_ENV=development bisheng start -c ./site/bisheng.config.js&quot;</span>,
+    <span class="hljs-string">&quot;start:preact&quot;</span>: <span class="hljs-string">&quot;node ./scripts/generateColorLess.js &amp;&amp; cross-env NODE_ENV=development REACT_ENV=preact bisheng start -c ./site/bisheng.config.js&quot;</span>,
+    <span class="hljs-string">&quot;site&quot;</span>: <span class="hljs-string">&quot;cross-env NODE_ENV=production bisheng build --ssr -c ./site/bisheng.config.js &amp;&amp; node ./scripts/generateColorLess.js&quot;</span>,
+    <span class="hljs-string">&quot;predeploy&quot;</span>: <span class="hljs-string">&quot;antd-tools run clean &amp;&amp; npm run site &amp;&amp; cp netlify.toml _site &amp;&amp; cp -r .circleci _site&quot;</span>,
+    <span class="hljs-string">&quot;deploy&quot;</span>: <span class="hljs-string">&quot;bisheng gh-pages --push-only&quot;</span>,
+    <span class="hljs-string">&quot;pub&quot;</span>: <span class="hljs-string">&quot;antd-tools run pub&quot;</span>,
+    <span class="hljs-string">&quot;prepublish&quot;</span>: <span class="hljs-string">&quot;antd-tools run guard&quot;</span>,
+    <span class="hljs-string">&quot;pre-publish&quot;</span>: <span class="hljs-string">&quot;npm run test-all &amp;&amp; node ./scripts/prepub&quot;</span>,
+    <span class="hljs-string">&quot;authors&quot;</span>: <span class="hljs-string">&quot;git log --format=&#x27;%aN &lt;%aE&gt;&#x27; | sort -u | grep -v &#x27;users.noreply.github.com&#x27; | grep -v &#x27;gitter.im&#x27; | grep -v &#x27;.local&gt;&#x27; | grep -v &#x27;alibaba-inc.com&#x27; | grep -v &#x27;alipay.com&#x27; | grep -v &#x27;taobao.com&#x27; &gt; AUTHORS.txt&quot;</span>,
+    <span class="hljs-string">&quot;lint-staged&quot;</span>: <span class="hljs-string">&quot;lint-staged&quot;</span>,
+    <span class="hljs-string">&quot;lint-staged:ts&quot;</span>: <span class="hljs-string">&quot;tsc &amp;&amp; node node_modules/tslint/bin/tslint&quot;</span>,
+    <span class="hljs-string">&quot;lint-staged:es&quot;</span>: <span class="hljs-string">&quot;eslint ./.*.js ./webpack.config.js&quot;</span>,
+    <span class="hljs-string">&quot;lint-staged:demo&quot;</span>: <span class="hljs-string">&quot;cross-env RUN_ENV=DEMO eslint --ext &#x27;.md&#x27;&quot;</span>
+  }
+}
+</code></pre><p>可以看到有非常多的脚本，但现在只关注打包、编译部分，发现都是借助了<code>antd-tools</code>：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-string">&quot;dist&quot;</span>: <span class="hljs-string">&quot;antd-tools run dist&quot;</span>
+<span class="hljs-string">&quot;compile&quot;</span>: <span class="hljs-string">&quot;antd-tools run compile&quot;</span></code></pre><h1 id="antd-tools">antd-tools<a name="antd-tools" class="headerlink" href="#antd-tools"></a></h1><p>此处<code>antd-tools</code>作为命令行工具使用，进入<code>node_modules</code>查看 package.json 中的<code>bin</code>字段：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-string">&quot;bin&quot;</span>: {
+  <span class="hljs-string">&quot;antd-tools&quot;</span>: <span class="hljs-string">&quot;./bin/antd-tools.js&quot;</span>,
+  <span class="hljs-string">&quot;antd-tools-run&quot;</span>: <span class="hljs-string">&quot;./bin/antd-tools-run.js&quot;</span>
+},</code></pre><p>顺藤摸瓜，发现<code>antd-tools/lib/gulpfile.js</code>是核心文件，创建了相应的<code>gulp.task</code>，执行<code>antd-tools run compile</code>命令时真正执行的是<code>gulp</code>中的<code>compile</code>任务：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-comment">// antd-tools/lib/gulpfile.js</span>
+gulp.<span class="hljs-title function_">task</span>(<span class="hljs-string">&quot;dist&quot;</span>, <span class="hljs-function"><span class="hljs-params">done</span> =&gt;</span> {
+  <span class="hljs-comment">// dist 任务执行 dist 方法</span>
+  <span class="hljs-title function_">dist</span>(done);
+});
+
+<span class="hljs-comment">// 执行 compile 时会自动执行 compile-with-es 任务</span>
+gulp.<span class="hljs-title function_">task</span>(<span class="hljs-string">&quot;compile&quot;</span>, [<span class="hljs-string">&quot;compile-with-es&quot;</span>], <span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-comment">// compile 任务执行 compile 方法</span>
+  <span class="hljs-title function_">compile</span>();
+});
+
+gulp.<span class="hljs-title function_">task</span>(<span class="hljs-string">&quot;compile-with-es&quot;</span>, <span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-title function_">compile</span>(<span class="hljs-literal">false</span>);
+});
+
+<span class="hljs-comment">// antd-tools/lib/cli/run.js</span>
+<span class="hljs-comment">// 执行任务</span>
+<span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;../gulpfile&quot;</span>);
+
+gulp.<span class="hljs-title function_">start</span>(task);</code></pre><h2 id="简单分析 dist 和 compile 任务">简单分析 dist 和 compile 任务<a name="简单分析 dist 和 compile 任务" class="headerlink" href="#简单分析 dist 和 compile 任务"></a></h2><h3 id="task dist">task dist<a name="task dist" class="headerlink" href="#task dist"></a></h3><p>使用 webpack 进行打包，输出到 dist/</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-keyword">function</span> <span class="hljs-title function_">dist</span>(<span class="hljs-params">done</span>) {
+  <span class="hljs-comment">// 删除 dist/</span>
+  rimraf.<span class="hljs-title function_">sync</span>(path.<span class="hljs-title function_">join</span>(cwd, <span class="hljs-string">&quot;dist&quot;</span>));
+  <span class="hljs-comment">// 设置自定义的环境变量</span>
+  process.<span class="hljs-property">env</span>.<span class="hljs-property">RUN_ENV</span> = <span class="hljs-string">&quot;PRODUCTION&quot;</span>;
+  <span class="hljs-comment">// 获取项目下 webpack 配置，ant-design/webpack.config.js</span>
+  <span class="hljs-keyword">const</span> webpackConfig = <span class="hljs-built_in">require</span>(path.<span class="hljs-title function_">join</span>(cwd, <span class="hljs-string">&quot;webpack.config.js&quot;</span>));
+  <span class="hljs-comment">// 执行 webpack 打包行为</span>
+  <span class="hljs-title function_">webpack</span>(webpackConfig, <span class="hljs-function">(<span class="hljs-params">err, stats</span>) =&gt;</span> {
+    <span class="hljs-comment">// ......</span>
+    <span class="hljs-title function_">done</span>(<span class="hljs-number">0</span>);
+  });
+}</code></pre><h3 id="task compile">task compile<a name="task compile" class="headerlink" href="#task compile"></a></h3><p><code>es/</code>、<code>lib/</code>都是通过该方法生成</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-keyword">function</span> <span class="hljs-title function_">compile</span>(<span class="hljs-params">modules</span>) {
+  rimraf.<span class="hljs-title function_">sync</span>(modules !== <span class="hljs-literal">false</span> ? libDir : esDir);
+  <span class="hljs-comment">// 编译 less 文件至 css</span>
+  <span class="hljs-keyword">const</span> less = gulp
+    .<span class="hljs-title function_">src</span>([<span class="hljs-string">&quot;components/**/*.less&quot;</span>])
+    .<span class="hljs-title function_">pipe</span>(
+      through2.<span class="hljs-title function_">obj</span>(<span class="hljs-keyword">function</span>(<span class="hljs-params">file, encoding, next</span>) {
+        <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">push</span>(file.<span class="hljs-title function_">clone</span>());
+        <span class="hljs-comment">// ......</span>
+        <span class="hljs-title function_">transformLess</span>(file.<span class="hljs-property">path</span>);
+        <span class="hljs-comment">// ......</span>
+      })
+    )
+    <span class="hljs-comment">// 输出到 es/ 或是 lib/</span>
+    .<span class="hljs-title function_">pipe</span>(gulp.<span class="hljs-title function_">dest</span>(modules === <span class="hljs-literal">false</span> ? esDir : libDir));
+
+  <span class="hljs-comment">// 移动 assets 文件</span>
+  <span class="hljs-keyword">const</span> assets = gulp
+    .<span class="hljs-title function_">src</span>([<span class="hljs-string">&quot;components/**/*.@(png|svg)&quot;</span>])
+    .<span class="hljs-title function_">pipe</span>(gulp.<span class="hljs-title function_">dest</span>(modules === <span class="hljs-literal">false</span> ? esDir : libDir));
+
+  <span class="hljs-comment">// 编译 ts、tsx 文件</span>
+  <span class="hljs-keyword">let</span> error = <span class="hljs-number">0</span>;
+  <span class="hljs-keyword">const</span> source = [
+    <span class="hljs-string">&quot;components/**/*.tsx&quot;</span>,
+    <span class="hljs-string">&quot;components/**/*.ts&quot;</span>,
+    <span class="hljs-string">&quot;typings/**/*.d.ts&quot;</span>
+  ];
+  <span class="hljs-comment">// ts = require(&#x27;gulp-typescript&#x27;)</span>
+  <span class="hljs-comment">// 追踪 tsConfig 可以发现只 tsc 只编译到 es6、preserve 的程度</span>
+  <span class="hljs-keyword">const</span> tsResult = gulp.<span class="hljs-title function_">src</span>(source).<span class="hljs-title function_">pipe</span>(
+    <span class="hljs-title function_">ts</span>(tsConfig, {
+      <span class="hljs-title function_">error</span>(<span class="hljs-params">e</span>) {
+        <span class="hljs-comment">/* ... */</span>
+      },
+      <span class="hljs-attr">finish</span>: tsDefaultReporter.<span class="hljs-property">finish</span>
+    })
+  );
+
+  <span class="hljs-comment">// jsx、es6+ 语法通过 babel 处理</span>
+  <span class="hljs-keyword">const</span> tsFilesStream = <span class="hljs-title function_">babelify</span>(tsResult.<span class="hljs-property">js</span>, modules);
+  <span class="hljs-comment">// ts 声明文件的输出</span>
+  <span class="hljs-keyword">const</span> tsd = tsResult.<span class="hljs-property">dts</span>.<span class="hljs-title function_">pipe</span>(gulp.<span class="hljs-title function_">dest</span>(modules === <span class="hljs-literal">false</span> ? esDir : libDir));
+
+  <span class="hljs-keyword">return</span> <span class="hljs-title function_">merge2</span>([less, tsFilesStream, tsd, assets]);
+}</code></pre><h1 id="JavaScript/Node 工程的目录结构介绍">JavaScript/Node 工程的目录结构介绍<a name="JavaScript/Node 工程的目录结构介绍" class="headerlink" href="#JavaScript/Node 工程的目录结构介绍"></a></h1><blockquote>
+<p>以下结构不是绝对，但推荐去这么做，因为社区中大部分人遵循这样的约定。
+<a href="https://gist.github.com/tracker1/59f2c13044315f88bee9">https://gist.github.com/tracker1/59f2c13044315f88bee9</a></p>
+</blockquote>
+<p>根据链接内容的自我翻译：</p>
+<ul>
+<li><code>lib/</code>是可运行的代码，前端开发中一般是已经经过<code>babel</code>降级处理过的</li>
+<li><code>src/</code>一般是源文件代码存放的目录</li>
+<li><code>build/</code>用于构建项目所需要的脚本或工具</li>
+<li><code>dist/</code>编译后的可用于与其他系统一起使用的模块</li>
+<li><code>bin/</code>用于任何可执行脚本，或编译后的二进制文件</li>
+<li><code>test/</code>用于项目的测试脚本</li>
+<li><code>unit/</code>单元测试的目录</li>
+<li><code>integration/</code>集成测试的目录</li>
+<li><code>env</code>用于测试所需要的环境</li>
+</ul>
+<hr>
+<p>相关内容：<a href="https://github.com/rollup/rollup">rollup</a></p>
+<p>本文叙述较为简略，文中不妥之处，欢迎指出、补充，感谢阅读。</p>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/antd" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> antd</a><a href="/tags/npm" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> npm</a><a href="/tags/gulp" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> gulp</a><a href="/tags/antd-tools" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> antd-tools</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/version-control-of-dependencies-in-package-json" class="unset">package.json 中依赖包的版本控制</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/transforming-concurrent-asynchronous-operations-into-serial-execution" class="unset">将并发的异步操作转化为串行执行</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

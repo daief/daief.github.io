@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>输入法与 keydown 事件 | daief的个人日志</title><meta property="og:title" content="输入法与 keydown 事件 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"ime-and-keydown-event","slug":"post/ime-and-keydown-event","path":"/post/ime-and-keydown-event","title":"输入法与 keydown 事件","comments":true,"published":true,"date":"2022-10-20T17:01:39.000Z","updated":"","tags":[],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>输入、回车提交，这是一组在搜索场景中常见、友好的交互形式，但要将其做好以获得更好的用户体验，还需要关注其中的小小细节。</p>\n","more":"\n\n<h2 id=\"监听回车\">监听回车<a name=\"监听回车\" class=\"headerlink\" href=\"#监听回车\"></a></h2><p>所谓的细节就是关于“回车”的监听。因为输入法的存在，引入了文本合成现象，使得字符输入变得不再纯粹简单。</p>\n<p>若处理不当，就会出现在开着输入法的情况下，当只想使用回车输入字符时，却触发了提交动作。</p>\n<p>就像这样：</p>\n<p><img alt=\"github-search.webp\" loading=\"lazy\" title=\"github-search.webp\" class=\"post-image \" src=\"/images/482ba0080e8aa045c7946320cc766ceb.github-search.webp\" onerror=\"this.onerror=null;this.src='/images/image-error.jpg';\"></p>\n<p>大胆猜想一下，上面输入框的实现可能是这样的：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\">input.<span class=\"hljs-title function_\">addEventListener</span>(<span class=\"hljs-string\">&#x27;keydown&#x27;</span>, <span class=\"hljs-function\">(<span class=\"hljs-params\">e</span>) =&gt;</span> {\n  <span class=\"hljs-keyword\">if</span> (e.<span class=\"hljs-property\">code</span> !== <span class=\"hljs-string\">&#x27;Enter&#x27;</span>) <span class=\"hljs-keyword\">return</span>;\n  <span class=\"hljs-comment\">// ... submit</span>\n});</code></pre><p>问题的原因就很明显了，需要在判断回车的时候，考虑一下用户的输入模式。那么问题来了，如何区分用户是否处于输入法模式呢，又或者说是处于文本合成事件当中？</p>\n<p>回到 <code>keydown</code> 事件，探究 KeyboardEvent 对象上的几个属性：</p>\n<ul>\n<li>charCode：已废弃，Edge 106.0.1370.47 上读取的值总是 0</li>\n<li>code：表示键盘上的物理键，该值不会被键盘布局或修饰键的状态改变，例如有 ShiftLeft、Digit3、KeyD</li>\n<li>key：用户按下的物理按键的值，与 <code>shiftKey</code> 等调节性按键的状态和键盘的区域 / 和布局有关，例如有 D、d、shift、3、#</li>\n<li>keyCode：已废弃，Edge 106.0.1370.47 上还能使用</li>\n<li>isComposing：表示事件是否处于文本合成事件之间</li>\n</ul>\n<p><img alt=\"keydown.webp\" loading=\"lazy\" title=\"keydown.webp\" class=\"post-image \" src=\"/images/1cc89e55d3a33847a1bb78c4e27f66c0.keydown.webp\" onerror=\"this.onerror=null;this.src='/images/image-error.jpg';\"></p>\n<p>有了上述信息，结合 <code>isComposing</code> 就能很容易地判断出是否处于输入法模式了：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\">input.<span class=\"hljs-title function_\">addEventListener</span>(<span class=\"hljs-string\">&#x27;keydown&#x27;</span>, <span class=\"hljs-function\">(<span class=\"hljs-params\">e</span>) =&gt;</span> {\n  <span class=\"hljs-keyword\">if</span> (!e.<span class=\"hljs-property\">isComposing</span> &amp;&amp; e.<span class=\"hljs-property\">code</span> === <span class=\"hljs-string\">&#x27;Enter&#x27;</span>) {\n    <span class=\"hljs-comment\">// ... submit</span>\n  }\n});</code></pre><p>如此一来，搜索场景的用户体验就能做到完善了。</p>\n<h2 id=\"关于废弃的 keyCode\">关于废弃的 keyCode<a name=\"关于废弃的 keyCode\" class=\"headerlink\" href=\"#关于废弃的 keyCode\"></a></h2><p>keyCode 虽然被标记为废弃、原则上不应再去用，但依旧有在被使用（比如别人写的代码），所以需要具备一些相关的知识。</p>\n<p>简单来说，keyCode 是键盘字符映射的一个数字值，而 keyCode 被废弃的原因大概是某些键的映射值表现不一吧，比如在不同浏览器上会有值不同的情况。</p>\n<p>另外，keyCode 还有一个魔法值：<code>229</code>，表示正处于文本合成事件当中。</p>\n<h2 id=\"文本合成事件\">文本合成事件<a name=\"文本合成事件\" class=\"headerlink\" href=\"#文本合成事件\"></a></h2><p>浏览器有专门的文本合成事件用于监听，即：</p>\n<ul>\n<li>compositionstart</li>\n<li>compositionupdate</li>\n<li>compositionend</li>\n</ul>\n<p>通过该事件可获取处于合成事件中的文本，即输入法正在键入的字符：</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\">input.<span class=\"hljs-title function_\">addEventListener</span>(<span class=\"hljs-string\">&#x27;compositionupdate&#x27;</span>, <span class=\"hljs-function\">(<span class=\"hljs-params\">event</span>) =&gt;</span> {\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">`characters: <span class=\"hljs-subst\">${event.data}</span>`</span>);\n});</code></pre><h2 id=\"结语\">结语<a name=\"结语\" class=\"headerlink\" href=\"#结语\"></a></h2><p>简单介绍了与输入法相关的一些事件使用，简单的交互背后也有他的细节，做好了细节才能将一件事做到尽善尽美。</p>\n<p>相关资料：</p>\n<ul>\n<li><a href=\"https://developer.mozilla.org/zh-CN/docs/Web/API/Element/keydown_event\">Element: 键盘按下事件</a></li>\n<li><a href=\"https://developer.mozilla.org/zh-CN/docs/Web/API/KeyboardEvent\">KeyboardEvent</a></li>\n</ul>\n","hash":"1bd48204dba8dd8ca9efa567b07e63e0","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"react-state-management-based-on-react-hooks","slug":"post/react-state-management-based-on-react-hooks","path":"/post/react-state-management-based-on-react-hooks","title":"基于 React Hooks 的小型状态管理","comments":true,"published":true,"date":"2021-12-26T18:20:42.000Z","updated":"","tags":[{"id":"50ce2da63bea6a618e7578fa50690040","name":"React","postCount":2,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"50ce2da63bea6a618e7578fa50690040","name":"React","slug":"categories/React","path":"/categories/React","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":2,"postIds":[]}],"excerpt":"<p>一年又又又要过去了，在这 2021 年的尾巴，来写写 React 的状态管理。</p>\n<p>本文主要介绍一种基于 React Hooks 的状态共享方案，介绍其实现，并总结一下使用感受，目的是在状态管理方面提供多一种选择方式。</p>\n","more":"","hash":"7339a57fb5fac85352fa2dd99cdf25b9","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"further-knowledge-of-ssh-and-ssh-config","slug":"post/further-knowledge-of-ssh-and-ssh-config","path":"/post/further-knowledge-of-ssh-and-ssh-config","title":"进一步认识 SSH 和 SSH config","comments":true,"published":true,"date":"2022-12-22T10:53:04.000Z","updated":"","tags":[{"id":"765553e6c7ac8592c389acb9878a050a","name":"SSH","postCount":1,"postIds":[]}],"categories":[{"id":"edc9f0a5a5d57797bf68e37364743831","name":"Linux","slug":"categories/Linux","path":"/categories/Linux","parentId":"","postCount":4,"postIds":[]}],"excerpt":"<p>不知道有多少人和我一样，对 SSH key 的接触起始于 Git 的使用，反正是啥也不懂，跟着教程一顿敲：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ ssh-keygen -t rsa -b 2048 -C <span class=\"hljs-string\">&quot;xxxxxxxxxx@qq.com&quot;</span></code></pre><p>一路回车，然后把 <code>id_rsa.pub</code> 的内容填入到 Github/Gitlab 的设置里，就转头去使用 Git 了。</p>\n","more":"","hash":"764b88a83225c7530143ae3dec7d28ee","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.f6204dfb.js"></script>
+    <link rel="modulepreload" href="/assets/vendor.cada02d7.js">
+    <link rel="stylesheet" href="/assets/index.2fa6ecca.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">输入法与 keydown 事件</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2022-10-20</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>输入、回车提交，这是一组在搜索场景中常见、友好的交互形式，但要将其做好以获得更好的用户体验，还需要关注其中的小小细节。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h2 id="监听回车">监听回车<a name="监听回车" class="headerlink" href="#监听回车"></a></h2><p>所谓的细节就是关于“回车”的监听。因为输入法的存在，引入了文本合成现象，使得字符输入变得不再纯粹简单。</p>
+<p>若处理不当，就会出现在开着输入法的情况下，当只想使用回车输入字符时，却触发了提交动作。</p>
+<p>就像这样：</p>
+<p><img alt="github-search.webp" loading="lazy" title="github-search.webp" class="post-image " src="/images/482ba0080e8aa045c7946320cc766ceb.github-search.webp" onerror="this.onerror=null;this.src='/images/image-error.jpg';"></p>
+<p>大胆猜想一下，上面输入框的实现可能是这样的：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;">input.<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">&#x27;keydown&#x27;</span>, <span class="hljs-function">(<span class="hljs-params">e</span>) =&gt;</span> {
+  <span class="hljs-keyword">if</span> (e.<span class="hljs-property">code</span> !== <span class="hljs-string">&#x27;Enter&#x27;</span>) <span class="hljs-keyword">return</span>;
+  <span class="hljs-comment">// ... submit</span>
+});</code></pre><p>问题的原因就很明显了，需要在判断回车的时候，考虑一下用户的输入模式。那么问题来了，如何区分用户是否处于输入法模式呢，又或者说是处于文本合成事件当中？</p>
+<p>回到 <code>keydown</code> 事件，探究 KeyboardEvent 对象上的几个属性：</p>
+<ul>
+<li>charCode：已废弃，Edge 106.0.1370.47 上读取的值总是 0</li>
+<li>code：表示键盘上的物理键，该值不会被键盘布局或修饰键的状态改变，例如有 ShiftLeft、Digit3、KeyD</li>
+<li>key：用户按下的物理按键的值，与 <code>shiftKey</code> 等调节性按键的状态和键盘的区域 / 和布局有关，例如有 D、d、shift、3、#</li>
+<li>keyCode：已废弃，Edge 106.0.1370.47 上还能使用</li>
+<li>isComposing：表示事件是否处于文本合成事件之间</li>
+</ul>
+<p><img alt="keydown.webp" loading="lazy" title="keydown.webp" class="post-image " src="/images/1cc89e55d3a33847a1bb78c4e27f66c0.keydown.webp" onerror="this.onerror=null;this.src='/images/image-error.jpg';"></p>
+<p>有了上述信息，结合 <code>isComposing</code> 就能很容易地判断出是否处于输入法模式了：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;">input.<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">&#x27;keydown&#x27;</span>, <span class="hljs-function">(<span class="hljs-params">e</span>) =&gt;</span> {
+  <span class="hljs-keyword">if</span> (!e.<span class="hljs-property">isComposing</span> &amp;&amp; e.<span class="hljs-property">code</span> === <span class="hljs-string">&#x27;Enter&#x27;</span>) {
+    <span class="hljs-comment">// ... submit</span>
+  }
+});</code></pre><p>如此一来，搜索场景的用户体验就能做到完善了。</p>
+<h2 id="关于废弃的 keyCode">关于废弃的 keyCode<a name="关于废弃的 keyCode" class="headerlink" href="#关于废弃的 keyCode"></a></h2><p>keyCode 虽然被标记为废弃、原则上不应再去用，但依旧有在被使用（比如别人写的代码），所以需要具备一些相关的知识。</p>
+<p>简单来说，keyCode 是键盘字符映射的一个数字值，而 keyCode 被废弃的原因大概是某些键的映射值表现不一吧，比如在不同浏览器上会有值不同的情况。</p>
+<p>另外，keyCode 还有一个魔法值：<code>229</code>，表示正处于文本合成事件当中。</p>
+<h2 id="文本合成事件">文本合成事件<a name="文本合成事件" class="headerlink" href="#文本合成事件"></a></h2><p>浏览器有专门的文本合成事件用于监听，即：</p>
+<ul>
+<li>compositionstart</li>
+<li>compositionupdate</li>
+<li>compositionend</li>
+</ul>
+<p>通过该事件可获取处于合成事件中的文本，即输入法正在键入的字符：</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;">input.<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">&#x27;compositionupdate&#x27;</span>, <span class="hljs-function">(<span class="hljs-params">event</span>) =&gt;</span> {
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`characters: <span class="hljs-subst">${event.data}</span>`</span>);
+});</code></pre><h2 id="结语">结语<a name="结语" class="headerlink" href="#结语"></a></h2><p>简单介绍了与输入法相关的一些事件使用，简单的交互背后也有他的细节，做好了细节才能将一件事做到尽善尽美。</p>
+<p>相关资料：</p>
+<ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Element/keydown_event">Element: 键盘按下事件</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/KeyboardEvent">KeyboardEvent</a></li>
+</ul>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><!----></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/react-state-management-based-on-react-hooks" class="unset">基于 React Hooks 的小型状态管理</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/further-knowledge-of-ssh-and-ssh-config" class="unset">进一步认识 SSH 和 SSH config</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

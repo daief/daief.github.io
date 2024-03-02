@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Git 学习的简单记录 | daief的个人日志</title><meta property="og:title" content="Git 学习的简单记录 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"git-general-knowledge","slug":"post/git-general-knowledge","path":"/post/git-general-knowledge","title":"Git 学习的简单记录","comments":true,"published":true,"date":"2017-07-16T21:01:31.000Z","updated":"","tags":[{"id":"0bcc70105ad279503e31fe7b3f47b665","name":"Git","postCount":2,"postIds":[]},{"id":"d3b7c913cd04ebfec0e9ec32cb6fd58c","name":"GitHub","postCount":1,"postIds":[]}],"categories":[{"id":"0bcc70105ad279503e31fe7b3f47b665","name":"Git","slug":"categories/Git","path":"/categories/Git","parentId":"","postCount":2,"postIds":[]}],"excerpt":"<p>回想自己最初接触 git，先是在 GitHub 上注册账号，接着是下载 git bash，然后根据 GitHub 的提示建了个仓库，最后就不知道干嘛了，克隆仓库都不会，当时也没有再继续学习了。现在学会用了一点点，做个记录加深印象。</p>\n","more":"\n\n<p>首先推荐教程：<a href=\"https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000\">廖雪峰 Git 教程</a></p>\n<h3 id=\"Git 的一些使用（已经创建了 GitHub 账号以及下载了<a href=\"https://git-scm.com/downloads\">git 命令行工具</a>）\">Git 的一些使用（已经创建了 GitHub 账号以及下载了<a href=\"https://git-scm.com/downloads\">git 命令行工具</a>）<a name=\"Git 的一些使用（已经创建了 GitHub 账号以及下载了<a href=\"https://git-scm.com/downloads\">git 命令行工具</a>）\" class=\"headerlink\" href=\"#Git 的一些使用（已经创建了 GitHub 账号以及下载了<a href=\"https://git-scm.com/downloads\">git 命令行工具</a>）\"></a></h3><h3 id=\"配置本机的用户名和 Email 地址\">配置本机的用户名和 Email 地址<a name=\"配置本机的用户名和 Email 地址\" class=\"headerlink\" href=\"#配置本机的用户名和 Email 地址\"></a></h3><pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git config --global user.name <span class=\"hljs-string\">&quot;Your Name&quot;</span>\n$ git config --global user.email <span class=\"hljs-string\">&quot;email@example.com&quot;</span></code></pre><h3 id=\"生成 SSH 密钥\">生成 SSH 密钥<a name=\"生成 SSH 密钥\" class=\"headerlink\" href=\"#生成 SSH 密钥\"></a></h3><pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ ssh-keygen -t rsa -C <span class=\"hljs-string\">&quot;email@example.com&quot;</span>\nGenerating public/private rsa key pair.\nEnter file <span class=\"hljs-keyword\">in</span> <span class=\"hljs-built_in\">which</span> to save the key (/c/Users/Administrator/.ssh/id_rsa): ssh_file_name\n<span class=\"hljs-comment\">#ssh_file_name是密钥的文件名，括号内是密钥保存的路径(win7)，但本次产生的文件实际上在我打开git bash的目录下，原因暂时不明</span>\nEnter passphrase (empty <span class=\"hljs-keyword\">for</span> no passphrase):\nEnter same passphrase again:\nYour identification has been saved <span class=\"hljs-keyword\">in</span> ssh_file_name.\nYour public key has been saved <span class=\"hljs-keyword\">in</span> ssh_file_name.pub.\nThe key fingerprint is:\nSHA256:ZptcB8DkcM1z0NujOQ2ixEyOXpVzSQkJI4lMjxAoOqg email@example.com\nThe key<span class=\"hljs-string\">&#x27;s randomart image is:\n+---[RSA 2048]----+\n| .o+..o+*+oB.o   |\n|o  .oo.=ooO *    |\n|+   . .*...= o   |\n|+     . * ..o o  |\n|..   . oS....= . |\n|E     .+.+ .+ .  |\n|        +    .   |\n|                 |\n|                 |\n+----[SHA256]-----+\n</span></code></pre><h3 id=\"将 SSH 公钥添加到 git 服务器\">将 SSH 公钥添加到 git 服务器<a name=\"将 SSH 公钥添加到 git 服务器\" class=\"headerlink\" href=\"#将 SSH 公钥添加到 git 服务器\"></a></h3><p>上一步会生成两个文件，ssh_file_name 和 ssh_file_name.pub，打开 ssh_file_name.pub 复制其中所有的内容；\n打开<a href=\"https://github.com/\">GitHub</a>，登录自己的账号，找到 setting ==&gt; SSH and GPG keys ==&gt; New SSH key，将刚才复制的内容粘贴进去。\n其他 git 服务器类似，登录后找到 SSH 管理添加即可。</p>\n<h3 id=\"创建版本库（仓库、repository）\">创建版本库（仓库、repository）<a name=\"创建版本库（仓库、repository）\" class=\"headerlink\" href=\"#创建版本库（仓库、repository）\"></a></h3><p>选择一个空目录，建立本地仓库</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git init\nInitialized empty Git repository <span class=\"hljs-keyword\">in</span> C:/Users/Administrator/Desktop/ex/.git/</code></pre><h3 id=\"与远程仓库关联，关联的前提是已经添加了 SSH\">与远程仓库关联，关联的前提是已经添加了 SSH<a name=\"与远程仓库关联，关联的前提是已经添加了 SSH\" class=\"headerlink\" href=\"#与远程仓库关联，关联的前提是已经添加了 SSH\"></a></h3><p>先在 GitHub 上创建一个空仓库，然后选择一个空目录下进行 clone，关联的是空仓库，新开始的工作，没添加 SSH 的话只能克隆下来不能推送修改</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git <span class=\"hljs-built_in\">clone</span> git@github.com:daief/daief.github.io.git</code></pre><p>在 GitHub 建立 repository-name 仓库，然后将本地仓库添加到远程，本地仓库已经进行了一些工作，中途关联远程，没添加 SSH 的话不能添加</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git remote add origin git@github.com:username/repository-name.git</code></pre><h3 id=\"一次 git 推送的过程\">一次 git 推送的过程<a name=\"一次 git 推送的过程\" class=\"headerlink\" href=\"#一次 git 推送的过程\"></a></h3><pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git status    <span class=\"hljs-comment\">#查看状态，可以看到做出的改动</span>\nOn branch master\nYour branch is up-to-date with <span class=\"hljs-string\">&#x27;origin/master&#x27;</span>.\nChanges not staged <span class=\"hljs-keyword\">for</span> commit:\n  (use <span class=\"hljs-string\">&quot;git add &lt;file&gt;...&quot;</span> to update what will be committed)\n  (use <span class=\"hljs-string\">&quot;git checkout -- &lt;file&gt;...&quot;</span> to discard changes <span class=\"hljs-keyword\">in</span> working directory)\n\n        modified:   index.html        <span class=\"hljs-comment\">#可以看出index.html被修改了</span>\n\nno changes added to commit (use <span class=\"hljs-string\">&quot;git add&quot;</span> and/or <span class=\"hljs-string\">&quot;git commit -a&quot;</span>)\n<span class=\"hljs-comment\">#接着将修改过的文件添加到暂存区</span>\n$ git add index.html <span class=\"hljs-comment\">#或者使用git add . 添加所有文件</span>\n$ git status    <span class=\"hljs-comment\"># 再次查看状态</span>\nOn branch master\nYour branch is up-to-date with <span class=\"hljs-string\">&#x27;origin/master&#x27;</span>.\nChanges to be committed:\n  (use <span class=\"hljs-string\">&quot;git reset HEAD &lt;file&gt;...&quot;</span> to unstage)\n\n        modified:   index.html\n$ git commit -m <span class=\"hljs-string\">&#x27;描述做了什么改动&#x27;</span>    <span class=\"hljs-comment\">#将改动提交</span>\n 1 file changed, 1 insertion(+), 1 deletion(-)\n$ git push origin master     <span class=\"hljs-comment\">#推送到远端</span></code></pre><p><a href=\"https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/0013745374151782eb658c5a5ca454eaa451661275886c6000\">工作区和暂存区详见</a></p>\n<h3 id=\"推送冲突\">推送冲突<a name=\"推送冲突\" class=\"headerlink\" href=\"#推送冲突\"></a></h3><pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git push origin master    <span class=\"hljs-comment\"># 推送到远程仓库的master分支，被拒绝</span>\nTo git@git.oschina.net:defeng/graduation-project.git\n ! [rejected]        master -&gt; master (fetch first)\nerror: failed to push some refs to <span class=\"hljs-string\">&#x27;git@git.oschina.net:defeng/graduation-project.git&#x27;</span>\nhint: Updates were rejected because the remote contains work that you <span class=\"hljs-keyword\">do</span>\nhint: not have locally. This is usually caused by another repository pushing\nhint: to the same ref. You may want to first integrate the remote changes\nhint: (e.g., <span class=\"hljs-string\">&#x27;git pull ...&#x27;</span>) before pushing again.\nhint: See the <span class=\"hljs-string\">&#x27;Note about fast-forwards&#x27;</span> <span class=\"hljs-keyword\">in</span> <span class=\"hljs-string\">&#x27;git push --help&#x27;</span> <span class=\"hljs-keyword\">for</span> details.\n<span class=\"hljs-comment\"># git提示可以先pull下来处理后再push</span></code></pre><p>实际上，我模拟了一个双人合作的场景，有两个人对 readme.md 文件作出修改\n原来 readme.md 的内容：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">---\npaper\n===\n\n<span class=\"hljs-built_in\">test</span> text</code></pre><p>另一个小伙伴对其进行修改：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">---\npaper\n===\n\n<span class=\"hljs-built_in\">test</span> text\n\nadd 22222</code></pre><p>我对其进行的修改：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">---\npaper\n===\n\n<span class=\"hljs-built_in\">test</span> text\n\nadd 111</code></pre><p>这时候，小伙伴先行将修改 push 到了远端，之后我也尝试 push，这时候就出现了开始的情况，push 失败了，因为跟小伙伴推送的修改产生了冲突，那么接下来解决冲突</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git pull  <span class=\"hljs-comment\"># 先pull，如果pull失败可能需要指定分支名，git pull origin master</span>\nremote: Counting objects: 3, <span class=\"hljs-keyword\">done</span>.\nremote: Total 3 (delta 0), reused 0 (delta 0)\nUnpacking objects: 100% (3/3), <span class=\"hljs-keyword\">done</span>.\nFrom git.oschina.net:defeng/graduation-project\n   767915d..029e618  master     -&gt; origin/master\nAuto-merging readme.md <span class=\"hljs-comment\"># git提示自动合并了冲突，提醒解决冲突</span>\nCONFLICT (content): Merge conflict <span class=\"hljs-keyword\">in</span> readme.md\nAutomatic merge failed; fix conflicts and <span class=\"hljs-keyword\">then</span> commit the result.</code></pre><p>现在查看 readme.md 的内容，冲突的部分 git 使用&lt;&lt;&lt;&lt;&lt;&lt;&lt;、=======、&gt;&gt;&gt;&gt;&gt;&gt;&gt;标出：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">&lt;&lt;&lt;&lt;&lt;&lt;&lt; <span class=\"hljs-string\">HEAD    # 从这里开始是我做出的修改\n---\npaper\n===\n\ntest text\n\nadd 111\n=======     # 我的部分结束，以下开始小伙伴推送的修改\n---\npaper\n===\n\ntest text\n\nadd 22222\n&gt;&gt;&gt;&gt;&gt;&gt;&gt; 029e618cacf774f502e2d8b532b97d2b1b281d0d    # 小伙伴部分结束</span></code></pre><p>在冲突的文件中搜索&lt;&lt;&lt;&lt;&lt;&lt;&lt;、&gt;&gt;&gt;&gt;&gt;&gt;&gt;可快速找到冲突的部分，处理冲突后的 readme.md：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">---\npaper\n===\n\n<span class=\"hljs-built_in\">test</span> text\n\nadd 111,22222</code></pre><p>之后再次 add、commit、push 即可</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git add readme.md\nwarning: LF will be replaced by CRLF <span class=\"hljs-keyword\">in</span> readme.md.\nThe file will have its original line endings <span class=\"hljs-keyword\">in</span> your working directory.\n\n$ git commit -m <span class=\"hljs-string\">&#x27;解决冲突&#x27;</span>\n[master feb9f4f] 解决冲突\n\n$ git push origin master\nCounting objects: 6, <span class=\"hljs-keyword\">done</span>.\nDelta compression using up to 4 threads.\nCompressing objects: 100% (2/2), <span class=\"hljs-keyword\">done</span>.\nWriting objects: 100% (6/6), 558 bytes | 0 bytes/s, <span class=\"hljs-keyword\">done</span>.\nTotal 6 (delta 0), reused 0 (delta 0)\nTo git@git.oschina.net:defeng/graduation-project.git\n   029e618..feb9f4f  master -&gt; master</code></pre><h3 id=\"撤销更改\">撤销更改<a name=\"撤销更改\" class=\"headerlink\" href=\"#撤销更改\"></a></h3><h4 id=\"修改了工作区的内容，但是还没有进行 git add\">修改了工作区的内容，但是还没有进行 git add<a name=\"修改了工作区的内容，但是还没有进行 git add\" class=\"headerlink\" href=\"#修改了工作区的内容，但是还没有进行 git add\"></a></h4><p>编辑 readme.md：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">paper\n===\n\n<span class=\"hljs-built_in\">test</span> text\n\nadd 111,22222\n\nadd a new line</code></pre><p>查看状态：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git status\nOn branch master\nYour branch is up-to-date with <span class=\"hljs-string\">&#x27;origin/master&#x27;</span>.\nChanges not staged <span class=\"hljs-keyword\">for</span> commit:\n  (use <span class=\"hljs-string\">&quot;git add &lt;file&gt;...&quot;</span> to update what will be committed)\n  (use <span class=\"hljs-string\">&quot;git checkout -- &lt;file&gt;...&quot;</span> to discard changes <span class=\"hljs-keyword\">in</span> working directory)\n\n        modified:   readme.md\n\nno changes added to commit (use <span class=\"hljs-string\">&quot;git add&quot;</span> and/or <span class=\"hljs-string\">&quot;git commit -a&quot;</span>)</code></pre><p>Git 会告诉你，git checkout -- file 可以丢弃工作区的修改</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git checkout -- readme.md\n<span class=\"hljs-comment\"># 然后再查看状态</span>\n$ git status\nOn branch master\nYour branch is up-to-date with <span class=\"hljs-string\">&#x27;origin/master&#x27;</span>.\nnothing to commit, working directory clean</code></pre><p>现在查看 readme.md 的内容</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">---\npaper\n===\n\n<span class=\"hljs-built_in\">test</span> text\n\nadd 111,22222</code></pre><h4 id=\"修改了工作区的内容，执行了 git add\">修改了工作区的内容，执行了 git add<a name=\"修改了工作区的内容，执行了 git add\" class=\"headerlink\" href=\"#修改了工作区的内容，执行了 git add\"></a></h4><pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git add readme.md\n$ git status\nOn branch master\nYour branch is up-to-date with <span class=\"hljs-string\">&#x27;origin/master&#x27;</span>.\nChanges to be committed:\n  (use <span class=\"hljs-string\">&quot;git reset HEAD &lt;file&gt;...&quot;</span> to unstage)\n\n        modified:   readme.md\n</code></pre><p>git 同样提示可以使用<code>git reset HEAD &lt;file&gt;</code>来撤销</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git reset head readme.md\nUnstaged changes after reset:\nM       readme.md\n$ git checkout -- readme.md     <span class=\"hljs-comment\"># 撤销工作区的修改</span>\n$ git status\nOn branch master\nYour branch is up-to-date with <span class=\"hljs-string\">&#x27;origin/master&#x27;</span>.\nnothing to commit, working directory clean\n</code></pre><h4 id=\"修改了工作区的内容，并且 commit 了\">修改了工作区的内容，并且 commit 了<a name=\"修改了工作区的内容，并且 commit 了\" class=\"headerlink\" href=\"#修改了工作区的内容，并且 commit 了\"></a></h4><p>使用<code>git log</code>或&#39;git reflog<code>查看提交记录，然后也是使用</code>git reset <commit id><code>来跳到指定commit版本，提交记录过长按</code>q`可以退出</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git <span class=\"hljs-built_in\">log</span>\ncommit cc4de9b788bf3a23f035dc6f9d14b378d54e1569\nAuthor: DeFeNG &lt;1437931235@qq.com&gt;\nDate:   Sat Jul 22 21:14:58 2017 +0800\n\n    add a new line\n\ncommit feb9f4f66a0d3d1d5dc2ccb6ca3d3c081ac3dc0f\nMerge: 5425240 029e618\nAuthor: DeFeNG &lt;1437931235@qq.com&gt;\nDate:   Sat Jul 22 19:43:35 2017 +0800\n\n    解决冲突\n\ncommit 5425240257d32aff59da46477dd21156d76f2555\nAuthor: DeFeNG &lt;1437931235@qq.com&gt;\nDate:   Sat Jul 22 19:20:52 2017 +0800\n\n    add 111\n\n$ git reset feb9    <span class=\"hljs-comment\"># 指定版本号的前几位就行，但也不要太短避免重复</span>\nUnstaged changes after reset:\nM       readme.md\n</code></pre><h3 id=\"分支\">分支<a name=\"分支\" class=\"headerlink\" href=\"#分支\"></a></h3><p>分支相当于平行的世界线，之间互不影响，特定的时候可以让世界线接触（分支合并）。</p>\n<p>使用<code>git branch</code>可以查看分支,<code>*</code>指向当前所在的分支</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git branch\n* master\n</code></pre><p>创建分支 dev，然后切换到 dev</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git branch dev    <span class=\"hljs-comment\"># 创建分支dev</span>\n$ git checkout dev  <span class=\"hljs-comment\"># 切换到dev</span>\nM       readme.md\nSwitched to branch <span class=\"hljs-string\">&#x27;dev&#x27;</span>\n$ git branch\n* dev\n  master\n</code></pre><p>也可以使用<code>git checkout -b dev</code>，创建 dev 的同时切换到 dev，代替上述两条命令</p>\n<p>现在在 dev 分支修改 readme.md：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">---\npaper\n===\n\n<span class=\"hljs-built_in\">test</span> text\n\nadd 111,22222\n\nedit <span class=\"hljs-keyword\">in</span> dev</code></pre><p>然后提交修改</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git add readme.md\n$ git commit -m <span class=\"hljs-string\">&#x27;edit in dev&#x27;</span>\n[dev 6b23c0d] edit <span class=\"hljs-keyword\">in</span> dev\n 1 file changed, 2 insertions(+)\n</code></pre><p>现在切回 master 分支:</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git checkout master\nSwitched to branch <span class=\"hljs-string\">&#x27;master&#x27;</span>\nYour branch is up-to-date with <span class=\"hljs-string\">&#x27;origin/master&#x27;</span>.</code></pre><p>查看 readme.md：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">---\npaper\n===\n\n<span class=\"hljs-built_in\">test</span> text\n\nadd 111,22222\n</code></pre><p>可以看到在 dev 分支上的改动不会影响到 master 分支，现在让世界线碰撞一下，把 dev 上的内容合并到 master 上：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git merge dev\nUpdating feb9f4f..6b23c0d\nFast-forward\n readme.md | 2 ++\n 1 file changed, 2 insertions(+)\n</code></pre><p>查看 readme.md，可以看到与 dev 合并了<code>git merge dev</code>将指定分支合并到当前分支：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">---\npaper\n===\n\n<span class=\"hljs-built_in\">test</span> text\n\nadd 111,22222\n\nedit <span class=\"hljs-keyword\">in</span> dev</code></pre><p>接着可以删除 dev 分支：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git branch -d dev\nDeleted branch dev (was 6b23c0d).\n\n$ git branch\n* master\n</code></pre><p>你在本地创建了新的分支，没有 push 到远端别人是看不见的。\n通常，协作的时候每个人都会在自己的分支上进行工作，然后将自己的修改统一推送到比如 dev 分支，所以这时候想要推送自己的修改的时候一般是<code>将本地修改commit</code>==&gt;<code>将dev分支合并到自己的分支</code>==&gt;<code>处理冲突</code>==&gt;<code>提交修改</code>==&gt;<code>推送到远端dev</code></p>\n<p>删除远程<code>dev</code>分支：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git push origin --delete dev</code></pre><h3 id=\".gitignore 文件\">.gitignore 文件<a name=\".gitignore 文件\" class=\"headerlink\" href=\"#.gitignore 文件\"></a></h3><p>在仓库的根目录下创建.gitignore 文件，可以告诉 git 哪些文件不需要追踪管理，使用<code>git add .</code>的时候也会自动忽略。\n.gitignore 文件的内容参考如下，忽略日志、public 目录下的文件：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">*.<span class=\"hljs-built_in\">log</span>\npublic/</code></pre><p>当然我们可以使用<code>git add -f &lt;file&gt;</code>来强制添加指定的文件进行提交。</p>\n<h3 id=\"让 git 取消对指定文件的管理\">让 git 取消对指定文件的管理<a name=\"让 git 取消对指定文件的管理\" class=\"headerlink\" href=\"#让 git 取消对指定文件的管理\"></a></h3><p>有时候我们中途发现有些文件不需要让 git 管理，比如<code>node_modules/</code>，我们可以将其从 git 中移除，不会删除磁盘上的文件</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git rm -r -n --cached &lt;file&gt;    <span class=\"hljs-comment\"># 加上-n可以查看将会移除的文件</span>\n$ git rm -r --cached &lt;file&gt;       <span class=\"hljs-comment\"># 会真正执行移除跟踪操作</span>\n$ git rm -r &lt;file&gt;                <span class=\"hljs-comment\"># 注意:删除磁盘上的文件</span></code></pre><p>移除之后在.gitignore 文件中添加 node_modules/，以后 git 就不会对其进行追踪修改。</p>\n<p>移除版本跟踪并删除远程文件</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git rm -r --cached out/\n\n$ git commit -m <span class=\"hljs-string\">&#x27;remove&#x27;</span>\n\n$ git push origin master</code></pre><h3 id=\"更改关联的远程仓库\">更改关联的远程仓库<a name=\"更改关联的远程仓库\" class=\"headerlink\" href=\"#更改关联的远程仓库\"></a></h3><p>方式一，更改 <code>.git/config</code> 中的 <code>url</code>。</p>\n<p>方式二，使用命令更改：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git remote set-url origin &lt;url&gt;</code></pre><h3 id=\"比较更改\">比较更改<a name=\"比较更改\" class=\"headerlink\" href=\"#比较更改\"></a></h3><p>比较两个分支的更改差异：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\"><span class=\"hljs-comment\"># --stat 是显示文件列表, 否则显示更改内容</span>\n$ git diff branch1 branch2 --<span class=\"hljs-built_in\">stat</span></code></pre><h3 id=\"merge 部分文件？\">merge 部分文件？<a name=\"merge 部分文件？\" class=\"headerlink\" href=\"#merge 部分文件？\"></a></h3><p>没有直接 merge 部分文件的功能，可通过以下方式实现。这条命令可理解为覆盖，将 <code>branch</code> 上的 <code>files</code> 文件覆盖到当前分支上。</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git checkout &lt;branch&gt;  &lt;files&gt;\n</code></pre>","hash":"919447367b541b6de09b69af50ee3858","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"start-on-a-journey","slug":"post/start-on-a-journey","path":"/post/start-on-a-journey","title":"开始","comments":true,"published":true,"date":"2017-07-16T20:00:00.000Z","updated":"","tags":[{"id":"aefcbfca08c840aeb8bd72dc1c8ff7f9","name":"生活","postCount":2,"postIds":[]}],"categories":[{"id":"aefcbfca08c840aeb8bd72dc1c8ff7f9","name":"生活","slug":"categories/生活","path":"/categories/生活","parentId":"","postCount":3,"postIds":[]}],"excerpt":"<p><img alt=\"jiegeng.jpg\" loading=\"lazy\" title=\"jiegeng.jpg\" class=\"post-image \" src=\"/images/ceed988c471a28f261be0882b036ba21.jiegeng.jpg\" onerror=\"this.onerror=null;this.src='/images/image-error.jpg';\"></p>\n","more":"","hash":"8e221e0d4ac986a7ccce11bd50cd3bd6","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"build-a-vue-project","slug":"post/build-a-vue-project","path":"/post/build-a-vue-project","title":"Vue, vue-router, vuex项目构建","comments":true,"published":true,"date":"2017-07-20T16:48:54.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"2d8ec58babcec05d3fe8f712968de749","name":"Vue","postCount":5,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<blockquote>\n<p>Vue.js（读音 /vjuː/，类似于 view） 是一套构建用户界面的渐进式框架。与其他重量级框架不同的是，Vue 采用自底向上增量开发的设计。Vue 的核心库只关注视图层，它不仅易于上手，还便于与第三方库或既有项目整合。另一方面，当与单文件组件和 Vue 生态系统支持的库结合使用时，Vue 也完全能够为复杂的单页应用程序提供驱动。\n本篇记录如何构建 vue，vue-router，vuex 项目的步骤。</p>\n</blockquote>\n","more":"","hash":"6a4e1d1ce772d100ae5a55e2165b3f0c","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.f6204dfb.js"></script>
+    <link rel="modulepreload" href="/assets/vendor.cada02d7.js">
+    <link rel="stylesheet" href="/assets/index.2fa6ecca.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">Git 学习的简单记录</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2017-07-16</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/Git" class="unset">Git</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>回想自己最初接触 git，先是在 GitHub 上注册账号，接着是下载 git bash，然后根据 GitHub 的提示建了个仓库，最后就不知道干嘛了，克隆仓库都不会，当时也没有再继续学习了。现在学会用了一点点，做个记录加深印象。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<p>首先推荐教程：<a href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000">廖雪峰 Git 教程</a></p>
+<h3 id="Git 的一些使用（已经创建了 GitHub 账号以及下载了<a href="https://git-scm.com/downloads">git 命令行工具</a>）">Git 的一些使用（已经创建了 GitHub 账号以及下载了<a href="https://git-scm.com/downloads">git 命令行工具</a>）<a name="Git 的一些使用（已经创建了 GitHub 账号以及下载了<a href="https://git-scm.com/downloads">git 命令行工具</a>）" class="headerlink" href="#Git 的一些使用（已经创建了 GitHub 账号以及下载了<a href="https://git-scm.com/downloads">git 命令行工具</a>）"></a></h3><h3 id="配置本机的用户名和 Email 地址">配置本机的用户名和 Email 地址<a name="配置本机的用户名和 Email 地址" class="headerlink" href="#配置本机的用户名和 Email 地址"></a></h3><pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git config --global user.name <span class="hljs-string">&quot;Your Name&quot;</span>
+$ git config --global user.email <span class="hljs-string">&quot;email@example.com&quot;</span></code></pre><h3 id="生成 SSH 密钥">生成 SSH 密钥<a name="生成 SSH 密钥" class="headerlink" href="#生成 SSH 密钥"></a></h3><pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ ssh-keygen -t rsa -C <span class="hljs-string">&quot;email@example.com&quot;</span>
+Generating public/private rsa key pair.
+Enter file <span class="hljs-keyword">in</span> <span class="hljs-built_in">which</span> to save the key (/c/Users/Administrator/.ssh/id_rsa): ssh_file_name
+<span class="hljs-comment">#ssh_file_name是密钥的文件名，括号内是密钥保存的路径(win7)，但本次产生的文件实际上在我打开git bash的目录下，原因暂时不明</span>
+Enter passphrase (empty <span class="hljs-keyword">for</span> no passphrase):
+Enter same passphrase again:
+Your identification has been saved <span class="hljs-keyword">in</span> ssh_file_name.
+Your public key has been saved <span class="hljs-keyword">in</span> ssh_file_name.pub.
+The key fingerprint is:
+SHA256:ZptcB8DkcM1z0NujOQ2ixEyOXpVzSQkJI4lMjxAoOqg email@example.com
+The key<span class="hljs-string">&#x27;s randomart image is:
++---[RSA 2048]----+
+| .o+..o+*+oB.o   |
+|o  .oo.=ooO *    |
+|+   . .*...= o   |
+|+     . * ..o o  |
+|..   . oS....= . |
+|E     .+.+ .+ .  |
+|        +    .   |
+|                 |
+|                 |
++----[SHA256]-----+
+</span></code></pre><h3 id="将 SSH 公钥添加到 git 服务器">将 SSH 公钥添加到 git 服务器<a name="将 SSH 公钥添加到 git 服务器" class="headerlink" href="#将 SSH 公钥添加到 git 服务器"></a></h3><p>上一步会生成两个文件，ssh_file_name 和 ssh_file_name.pub，打开 ssh_file_name.pub 复制其中所有的内容；
+打开<a href="https://github.com/">GitHub</a>，登录自己的账号，找到 setting ==&gt; SSH and GPG keys ==&gt; New SSH key，将刚才复制的内容粘贴进去。
+其他 git 服务器类似，登录后找到 SSH 管理添加即可。</p>
+<h3 id="创建版本库（仓库、repository）">创建版本库（仓库、repository）<a name="创建版本库（仓库、repository）" class="headerlink" href="#创建版本库（仓库、repository）"></a></h3><p>选择一个空目录，建立本地仓库</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git init
+Initialized empty Git repository <span class="hljs-keyword">in</span> C:/Users/Administrator/Desktop/ex/.git/</code></pre><h3 id="与远程仓库关联，关联的前提是已经添加了 SSH">与远程仓库关联，关联的前提是已经添加了 SSH<a name="与远程仓库关联，关联的前提是已经添加了 SSH" class="headerlink" href="#与远程仓库关联，关联的前提是已经添加了 SSH"></a></h3><p>先在 GitHub 上创建一个空仓库，然后选择一个空目录下进行 clone，关联的是空仓库，新开始的工作，没添加 SSH 的话只能克隆下来不能推送修改</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git <span class="hljs-built_in">clone</span> git@github.com:daief/daief.github.io.git</code></pre><p>在 GitHub 建立 repository-name 仓库，然后将本地仓库添加到远程，本地仓库已经进行了一些工作，中途关联远程，没添加 SSH 的话不能添加</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git remote add origin git@github.com:username/repository-name.git</code></pre><h3 id="一次 git 推送的过程">一次 git 推送的过程<a name="一次 git 推送的过程" class="headerlink" href="#一次 git 推送的过程"></a></h3><pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git status    <span class="hljs-comment">#查看状态，可以看到做出的改动</span>
+On branch master
+Your branch is up-to-date with <span class="hljs-string">&#x27;origin/master&#x27;</span>.
+Changes not staged <span class="hljs-keyword">for</span> commit:
+  (use <span class="hljs-string">&quot;git add &lt;file&gt;...&quot;</span> to update what will be committed)
+  (use <span class="hljs-string">&quot;git checkout -- &lt;file&gt;...&quot;</span> to discard changes <span class="hljs-keyword">in</span> working directory)
+
+        modified:   index.html        <span class="hljs-comment">#可以看出index.html被修改了</span>
+
+no changes added to commit (use <span class="hljs-string">&quot;git add&quot;</span> and/or <span class="hljs-string">&quot;git commit -a&quot;</span>)
+<span class="hljs-comment">#接着将修改过的文件添加到暂存区</span>
+$ git add index.html <span class="hljs-comment">#或者使用git add . 添加所有文件</span>
+$ git status    <span class="hljs-comment"># 再次查看状态</span>
+On branch master
+Your branch is up-to-date with <span class="hljs-string">&#x27;origin/master&#x27;</span>.
+Changes to be committed:
+  (use <span class="hljs-string">&quot;git reset HEAD &lt;file&gt;...&quot;</span> to unstage)
+
+        modified:   index.html
+$ git commit -m <span class="hljs-string">&#x27;描述做了什么改动&#x27;</span>    <span class="hljs-comment">#将改动提交</span>
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+$ git push origin master     <span class="hljs-comment">#推送到远端</span></code></pre><p><a href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/0013745374151782eb658c5a5ca454eaa451661275886c6000">工作区和暂存区详见</a></p>
+<h3 id="推送冲突">推送冲突<a name="推送冲突" class="headerlink" href="#推送冲突"></a></h3><pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git push origin master    <span class="hljs-comment"># 推送到远程仓库的master分支，被拒绝</span>
+To git@git.oschina.net:defeng/graduation-project.git
+ ! [rejected]        master -&gt; master (fetch first)
+error: failed to push some refs to <span class="hljs-string">&#x27;git@git.oschina.net:defeng/graduation-project.git&#x27;</span>
+hint: Updates were rejected because the remote contains work that you <span class="hljs-keyword">do</span>
+hint: not have locally. This is usually caused by another repository pushing
+hint: to the same ref. You may want to first integrate the remote changes
+hint: (e.g., <span class="hljs-string">&#x27;git pull ...&#x27;</span>) before pushing again.
+hint: See the <span class="hljs-string">&#x27;Note about fast-forwards&#x27;</span> <span class="hljs-keyword">in</span> <span class="hljs-string">&#x27;git push --help&#x27;</span> <span class="hljs-keyword">for</span> details.
+<span class="hljs-comment"># git提示可以先pull下来处理后再push</span></code></pre><p>实际上，我模拟了一个双人合作的场景，有两个人对 readme.md 文件作出修改
+原来 readme.md 的内容：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">---
+paper
+===
+
+<span class="hljs-built_in">test</span> text</code></pre><p>另一个小伙伴对其进行修改：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">---
+paper
+===
+
+<span class="hljs-built_in">test</span> text
+
+add 22222</code></pre><p>我对其进行的修改：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">---
+paper
+===
+
+<span class="hljs-built_in">test</span> text
+
+add 111</code></pre><p>这时候，小伙伴先行将修改 push 到了远端，之后我也尝试 push，这时候就出现了开始的情况，push 失败了，因为跟小伙伴推送的修改产生了冲突，那么接下来解决冲突</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git pull  <span class="hljs-comment"># 先pull，如果pull失败可能需要指定分支名，git pull origin master</span>
+remote: Counting objects: 3, <span class="hljs-keyword">done</span>.
+remote: Total 3 (delta 0), reused 0 (delta 0)
+Unpacking objects: 100% (3/3), <span class="hljs-keyword">done</span>.
+From git.oschina.net:defeng/graduation-project
+   767915d..029e618  master     -&gt; origin/master
+Auto-merging readme.md <span class="hljs-comment"># git提示自动合并了冲突，提醒解决冲突</span>
+CONFLICT (content): Merge conflict <span class="hljs-keyword">in</span> readme.md
+Automatic merge failed; fix conflicts and <span class="hljs-keyword">then</span> commit the result.</code></pre><p>现在查看 readme.md 的内容，冲突的部分 git 使用&lt;&lt;&lt;&lt;&lt;&lt;&lt;、=======、&gt;&gt;&gt;&gt;&gt;&gt;&gt;标出：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">&lt;&lt;&lt;&lt;&lt;&lt;&lt; <span class="hljs-string">HEAD    # 从这里开始是我做出的修改
+---
+paper
+===
+
+test text
+
+add 111
+=======     # 我的部分结束，以下开始小伙伴推送的修改
+---
+paper
+===
+
+test text
+
+add 22222
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; 029e618cacf774f502e2d8b532b97d2b1b281d0d    # 小伙伴部分结束</span></code></pre><p>在冲突的文件中搜索&lt;&lt;&lt;&lt;&lt;&lt;&lt;、&gt;&gt;&gt;&gt;&gt;&gt;&gt;可快速找到冲突的部分，处理冲突后的 readme.md：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">---
+paper
+===
+
+<span class="hljs-built_in">test</span> text
+
+add 111,22222</code></pre><p>之后再次 add、commit、push 即可</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git add readme.md
+warning: LF will be replaced by CRLF <span class="hljs-keyword">in</span> readme.md.
+The file will have its original line endings <span class="hljs-keyword">in</span> your working directory.
+
+$ git commit -m <span class="hljs-string">&#x27;解决冲突&#x27;</span>
+[master feb9f4f] 解决冲突
+
+$ git push origin master
+Counting objects: 6, <span class="hljs-keyword">done</span>.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (2/2), <span class="hljs-keyword">done</span>.
+Writing objects: 100% (6/6), 558 bytes | 0 bytes/s, <span class="hljs-keyword">done</span>.
+Total 6 (delta 0), reused 0 (delta 0)
+To git@git.oschina.net:defeng/graduation-project.git
+   029e618..feb9f4f  master -&gt; master</code></pre><h3 id="撤销更改">撤销更改<a name="撤销更改" class="headerlink" href="#撤销更改"></a></h3><h4 id="修改了工作区的内容，但是还没有进行 git add">修改了工作区的内容，但是还没有进行 git add<a name="修改了工作区的内容，但是还没有进行 git add" class="headerlink" href="#修改了工作区的内容，但是还没有进行 git add"></a></h4><p>编辑 readme.md：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">paper
+===
+
+<span class="hljs-built_in">test</span> text
+
+add 111,22222
+
+add a new line</code></pre><p>查看状态：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git status
+On branch master
+Your branch is up-to-date with <span class="hljs-string">&#x27;origin/master&#x27;</span>.
+Changes not staged <span class="hljs-keyword">for</span> commit:
+  (use <span class="hljs-string">&quot;git add &lt;file&gt;...&quot;</span> to update what will be committed)
+  (use <span class="hljs-string">&quot;git checkout -- &lt;file&gt;...&quot;</span> to discard changes <span class="hljs-keyword">in</span> working directory)
+
+        modified:   readme.md
+
+no changes added to commit (use <span class="hljs-string">&quot;git add&quot;</span> and/or <span class="hljs-string">&quot;git commit -a&quot;</span>)</code></pre><p>Git 会告诉你，git checkout -- file 可以丢弃工作区的修改</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git checkout -- readme.md
+<span class="hljs-comment"># 然后再查看状态</span>
+$ git status
+On branch master
+Your branch is up-to-date with <span class="hljs-string">&#x27;origin/master&#x27;</span>.
+nothing to commit, working directory clean</code></pre><p>现在查看 readme.md 的内容</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">---
+paper
+===
+
+<span class="hljs-built_in">test</span> text
+
+add 111,22222</code></pre><h4 id="修改了工作区的内容，执行了 git add">修改了工作区的内容，执行了 git add<a name="修改了工作区的内容，执行了 git add" class="headerlink" href="#修改了工作区的内容，执行了 git add"></a></h4><pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git add readme.md
+$ git status
+On branch master
+Your branch is up-to-date with <span class="hljs-string">&#x27;origin/master&#x27;</span>.
+Changes to be committed:
+  (use <span class="hljs-string">&quot;git reset HEAD &lt;file&gt;...&quot;</span> to unstage)
+
+        modified:   readme.md
+</code></pre><p>git 同样提示可以使用<code>git reset HEAD &lt;file&gt;</code>来撤销</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git reset head readme.md
+Unstaged changes after reset:
+M       readme.md
+$ git checkout -- readme.md     <span class="hljs-comment"># 撤销工作区的修改</span>
+$ git status
+On branch master
+Your branch is up-to-date with <span class="hljs-string">&#x27;origin/master&#x27;</span>.
+nothing to commit, working directory clean
+</code></pre><h4 id="修改了工作区的内容，并且 commit 了">修改了工作区的内容，并且 commit 了<a name="修改了工作区的内容，并且 commit 了" class="headerlink" href="#修改了工作区的内容，并且 commit 了"></a></h4><p>使用<code>git log</code>或&#39;git reflog<code>查看提交记录，然后也是使用</code>git reset <commit id><code>来跳到指定commit版本，提交记录过长按</code>q`可以退出</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git <span class="hljs-built_in">log</span>
+commit cc4de9b788bf3a23f035dc6f9d14b378d54e1569
+Author: DeFeNG &lt;1437931235@qq.com&gt;
+Date:   Sat Jul 22 21:14:58 2017 +0800
+
+    add a new line
+
+commit feb9f4f66a0d3d1d5dc2ccb6ca3d3c081ac3dc0f
+Merge: 5425240 029e618
+Author: DeFeNG &lt;1437931235@qq.com&gt;
+Date:   Sat Jul 22 19:43:35 2017 +0800
+
+    解决冲突
+
+commit 5425240257d32aff59da46477dd21156d76f2555
+Author: DeFeNG &lt;1437931235@qq.com&gt;
+Date:   Sat Jul 22 19:20:52 2017 +0800
+
+    add 111
+
+$ git reset feb9    <span class="hljs-comment"># 指定版本号的前几位就行，但也不要太短避免重复</span>
+Unstaged changes after reset:
+M       readme.md
+</code></pre><h3 id="分支">分支<a name="分支" class="headerlink" href="#分支"></a></h3><p>分支相当于平行的世界线，之间互不影响，特定的时候可以让世界线接触（分支合并）。</p>
+<p>使用<code>git branch</code>可以查看分支,<code>*</code>指向当前所在的分支</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git branch
+* master
+</code></pre><p>创建分支 dev，然后切换到 dev</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git branch dev    <span class="hljs-comment"># 创建分支dev</span>
+$ git checkout dev  <span class="hljs-comment"># 切换到dev</span>
+M       readme.md
+Switched to branch <span class="hljs-string">&#x27;dev&#x27;</span>
+$ git branch
+* dev
+  master
+</code></pre><p>也可以使用<code>git checkout -b dev</code>，创建 dev 的同时切换到 dev，代替上述两条命令</p>
+<p>现在在 dev 分支修改 readme.md：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">---
+paper
+===
+
+<span class="hljs-built_in">test</span> text
+
+add 111,22222
+
+edit <span class="hljs-keyword">in</span> dev</code></pre><p>然后提交修改</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git add readme.md
+$ git commit -m <span class="hljs-string">&#x27;edit in dev&#x27;</span>
+[dev 6b23c0d] edit <span class="hljs-keyword">in</span> dev
+ 1 file changed, 2 insertions(+)
+</code></pre><p>现在切回 master 分支:</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git checkout master
+Switched to branch <span class="hljs-string">&#x27;master&#x27;</span>
+Your branch is up-to-date with <span class="hljs-string">&#x27;origin/master&#x27;</span>.</code></pre><p>查看 readme.md：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">---
+paper
+===
+
+<span class="hljs-built_in">test</span> text
+
+add 111,22222
+</code></pre><p>可以看到在 dev 分支上的改动不会影响到 master 分支，现在让世界线碰撞一下，把 dev 上的内容合并到 master 上：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git merge dev
+Updating feb9f4f..6b23c0d
+Fast-forward
+ readme.md | 2 ++
+ 1 file changed, 2 insertions(+)
+</code></pre><p>查看 readme.md，可以看到与 dev 合并了<code>git merge dev</code>将指定分支合并到当前分支：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">---
+paper
+===
+
+<span class="hljs-built_in">test</span> text
+
+add 111,22222
+
+edit <span class="hljs-keyword">in</span> dev</code></pre><p>接着可以删除 dev 分支：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git branch -d dev
+Deleted branch dev (was 6b23c0d).
+
+$ git branch
+* master
+</code></pre><p>你在本地创建了新的分支，没有 push 到远端别人是看不见的。
+通常，协作的时候每个人都会在自己的分支上进行工作，然后将自己的修改统一推送到比如 dev 分支，所以这时候想要推送自己的修改的时候一般是<code>将本地修改commit</code>==&gt;<code>将dev分支合并到自己的分支</code>==&gt;<code>处理冲突</code>==&gt;<code>提交修改</code>==&gt;<code>推送到远端dev</code></p>
+<p>删除远程<code>dev</code>分支：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git push origin --delete dev</code></pre><h3 id=".gitignore 文件">.gitignore 文件<a name=".gitignore 文件" class="headerlink" href="#.gitignore 文件"></a></h3><p>在仓库的根目录下创建.gitignore 文件，可以告诉 git 哪些文件不需要追踪管理，使用<code>git add .</code>的时候也会自动忽略。
+.gitignore 文件的内容参考如下，忽略日志、public 目录下的文件：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">*.<span class="hljs-built_in">log</span>
+public/</code></pre><p>当然我们可以使用<code>git add -f &lt;file&gt;</code>来强制添加指定的文件进行提交。</p>
+<h3 id="让 git 取消对指定文件的管理">让 git 取消对指定文件的管理<a name="让 git 取消对指定文件的管理" class="headerlink" href="#让 git 取消对指定文件的管理"></a></h3><p>有时候我们中途发现有些文件不需要让 git 管理，比如<code>node_modules/</code>，我们可以将其从 git 中移除，不会删除磁盘上的文件</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git rm -r -n --cached &lt;file&gt;    <span class="hljs-comment"># 加上-n可以查看将会移除的文件</span>
+$ git rm -r --cached &lt;file&gt;       <span class="hljs-comment"># 会真正执行移除跟踪操作</span>
+$ git rm -r &lt;file&gt;                <span class="hljs-comment"># 注意:删除磁盘上的文件</span></code></pre><p>移除之后在.gitignore 文件中添加 node_modules/，以后 git 就不会对其进行追踪修改。</p>
+<p>移除版本跟踪并删除远程文件</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git rm -r --cached out/
+
+$ git commit -m <span class="hljs-string">&#x27;remove&#x27;</span>
+
+$ git push origin master</code></pre><h3 id="更改关联的远程仓库">更改关联的远程仓库<a name="更改关联的远程仓库" class="headerlink" href="#更改关联的远程仓库"></a></h3><p>方式一，更改 <code>.git/config</code> 中的 <code>url</code>。</p>
+<p>方式二，使用命令更改：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git remote set-url origin &lt;url&gt;</code></pre><h3 id="比较更改">比较更改<a name="比较更改" class="headerlink" href="#比较更改"></a></h3><p>比较两个分支的更改差异：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;"><span class="hljs-comment"># --stat 是显示文件列表, 否则显示更改内容</span>
+$ git diff branch1 branch2 --<span class="hljs-built_in">stat</span></code></pre><h3 id="merge 部分文件？">merge 部分文件？<a name="merge 部分文件？" class="headerlink" href="#merge 部分文件？"></a></h3><p>没有直接 merge 部分文件的功能，可通过以下方式实现。这条命令可理解为覆盖，将 <code>branch</code> 上的 <code>files</code> 文件覆盖到当前分支上。</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git checkout &lt;branch&gt;  &lt;files&gt;
+</code></pre></div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/Git" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> Git</a><a href="/tags/GitHub" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> GitHub</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/start-on-a-journey" class="unset">开始</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/build-a-vue-project" class="unset">Vue, vue-router, vuex项目构建</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>将并发的异步操作转化为串行执行 | daief的个人日志</title><meta property="og:title" content="将并发的异步操作转化为串行执行 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"transforming-concurrent-asynchronous-operations-into-serial-execution","slug":"post/transforming-concurrent-asynchronous-operations-into-serial-execution","path":"/post/transforming-concurrent-asynchronous-operations-into-serial-execution","title":"将并发的异步操作转化为串行执行","comments":true,"published":true,"date":"2018-09-25T22:46:20.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>情景还原：有一个用 Promise 封装的异步操作，用于 JS 与客户端交互以获取数据，但当出现并发调用获取数据的时候发现只有其中的一次操作有回调，而剩余的调用就像丢失了一样、后续的步骤（then）也得不到执行。实际上有多种解决方式，这里考虑将这些并发的调用转化为串行执行来确保每次的调用接收到回调。虽然感觉这样做可能意义不是很大，但感觉颇有意思。</p>\n","more":"\n<hr>\n<p>直接上码：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">Log</span> = (<span class=\"hljs-params\">...params</span>) =&gt; <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(...params)\n\n<span class=\"hljs-comment\">// 异步方法</span>\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">getData</span> = (<span class=\"hljs-params\">...params</span>) =&gt; <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Promise</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">resolve</span> =&gt;</span> {\n  <span class=\"hljs-built_in\">setTimeout</span>(<span class=\"hljs-function\">() =&gt;</span> {\n    <span class=\"hljs-title function_\">resolve</span>(params)\n  }, <span class=\"hljs-number\">500</span>)\n})\n\n\n<span class=\"hljs-keyword\">const</span> stack = []\n<span class=\"hljs-keyword\">let</span> isLock = <span class=\"hljs-literal\">false</span>\n\n<span class=\"hljs-keyword\">const</span> handler = <span class=\"hljs-keyword\">async</span> ({args, call}) =&gt; {\n  stack.<span class=\"hljs-title function_\">push</span>({ call, args })\n\n  <span class=\"hljs-keyword\">if</span> (isLock) { <span class=\"hljs-keyword\">return</span> }\n\n  isLock = <span class=\"hljs-literal\">true</span>\n  <span class=\"hljs-keyword\">while</span> (stack.<span class=\"hljs-property\">length</span>) {\n    <span class=\"hljs-keyword\">const</span> {call, args} = stack.<span class=\"hljs-title function_\">shift</span>()\n    <span class=\"hljs-keyword\">let</span> err = <span class=\"hljs-literal\">null</span>\n    <span class=\"hljs-comment\">// 每次异步执行完毕再进行下一次</span>\n    <span class=\"hljs-keyword\">const</span> rs = <span class=\"hljs-keyword\">await</span> <span class=\"hljs-title function_\">getData</span>(...args).<span class=\"hljs-title function_\">catch</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">e</span> =&gt;</span> (err = e))\n    <span class=\"hljs-comment\">// 回调结果</span>\n    <span class=\"hljs-title function_\">call</span>(rs, err)\n  }\n  isLock = <span class=\"hljs-literal\">false</span>\n}\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">operate</span> = (<span class=\"hljs-params\">...args</span>) =&gt; {\n  <span class=\"hljs-keyword\">return</span> <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Promise</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">resolve, reject</span>) =&gt;</span> {\n    <span class=\"hljs-title function_\">handler</span>({\n      args,\n      <span class=\"hljs-attr\">call</span>: <span class=\"hljs-function\">(<span class=\"hljs-params\">rs, err</span>) =&gt;</span> {\n        <span class=\"hljs-keyword\">if</span> (err) {\n          <span class=\"hljs-title function_\">reject</span>(err)\n        } <span class=\"hljs-keyword\">else</span> {\n          <span class=\"hljs-title function_\">resolve</span>(rs)\n        }\n      },\n    })\n  })\n}\n\n<span class=\"hljs-comment\">// 并发执行比较</span>\n<span class=\"hljs-title function_\">getData</span>(<span class=\"hljs-string\">&#x27;a1&#x27;</span>, <span class=\"hljs-string\">&#x27;a11&#x27;</span>).<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">r</span> =&gt;</span> <span class=\"hljs-title class_\">Log</span>(r, <span class=\"hljs-title class_\">Date</span>.<span class=\"hljs-title function_\">now</span>()))\n<span class=\"hljs-title function_\">getData</span>(<span class=\"hljs-string\">&#x27;a2&#x27;</span>).<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">r</span> =&gt;</span> <span class=\"hljs-title class_\">Log</span>(r, <span class=\"hljs-title class_\">Date</span>.<span class=\"hljs-title function_\">now</span>()))\n<span class=\"hljs-title function_\">getData</span>(<span class=\"hljs-string\">&#x27;a3&#x27;</span>).<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">r</span> =&gt;</span> <span class=\"hljs-title class_\">Log</span>(r, <span class=\"hljs-title class_\">Date</span>.<span class=\"hljs-title function_\">now</span>()))\n<span class=\"hljs-title function_\">getData</span>(<span class=\"hljs-string\">&#x27;a4&#x27;</span>).<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">r</span> =&gt;</span> <span class=\"hljs-title class_\">Log</span>(r, <span class=\"hljs-title class_\">Date</span>.<span class=\"hljs-title function_\">now</span>()))\n\n<span class=\"hljs-title function_\">operate</span>(<span class=\"hljs-string\">&#x27;b1&#x27;</span>, <span class=\"hljs-string\">&#x27;b11&#x27;</span>).<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">r</span> =&gt;</span> <span class=\"hljs-title class_\">Log</span>(r, <span class=\"hljs-title class_\">Date</span>.<span class=\"hljs-title function_\">now</span>()))\n<span class=\"hljs-title function_\">operate</span>(<span class=\"hljs-string\">&#x27;b2&#x27;</span>).<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">r</span> =&gt;</span> <span class=\"hljs-title class_\">Log</span>(r, <span class=\"hljs-title class_\">Date</span>.<span class=\"hljs-title function_\">now</span>()))\n<span class=\"hljs-title function_\">operate</span>(<span class=\"hljs-string\">&#x27;b3&#x27;</span>).<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">r</span> =&gt;</span> <span class=\"hljs-title class_\">Log</span>(r, <span class=\"hljs-title class_\">Date</span>.<span class=\"hljs-title function_\">now</span>()))\n<span class=\"hljs-title function_\">operate</span>(<span class=\"hljs-string\">&#x27;b3&#x27;</span>).<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">r</span> =&gt;</span> <span class=\"hljs-title class_\">Log</span>(r, <span class=\"hljs-title class_\">Date</span>.<span class=\"hljs-title function_\">now</span>()))\n</code></pre><p>结果：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">[<span class=\"hljs-string\">&quot;a1&quot;</span>, <span class=\"hljs-string\">&quot;a11&quot;</span>] 1540999894238\n[<span class=\"hljs-string\">&quot;a2&quot;</span>] 1540999894239\n[<span class=\"hljs-string\">&quot;a3&quot;</span>] 1540999894239\n[<span class=\"hljs-string\">&quot;a4&quot;</span>] 1540999894239\n\n[<span class=\"hljs-string\">&quot;b1&quot;</span>, <span class=\"hljs-string\">&quot;b11&quot;</span>] 1540999894247\n[<span class=\"hljs-string\">&quot;b2&quot;</span>] 1540999894748\n[<span class=\"hljs-string\">&quot;b3&quot;</span>] 1540999895251\n[<span class=\"hljs-string\">&quot;b3&quot;</span>] 1540999895754</code></pre><hr>\n<p>codepen：</p>\n<iframe height='312' scrolling='no' title='transforming concurrent asynchronous operations into serial execution' src='//codepen.io/daief/embed/bmPzwe/?height=312&theme-id=dark&default-tab=js' frameborder='no' allowtransparency='true' allowfullscreen='true' style='width: 100%;'>See the Pen <a href='https://codepen.io/daief/pen/bmPzwe/'>transforming concurrent asynchronous operations into serial execution</a> by daief (<a href='https://codepen.io/daief'>@daief</a>) on <a href='https://codepen.io'>CodePen</a>.\n</iframe>\n","hash":"b2fd06a14a4b9e5de5788184f3c0d8bd","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"learn-how-antd-build-a-npm-lib","slug":"post/learn-how-antd-build-a-npm-lib","path":"/post/learn-how-antd-build-a-npm-lib","title":"简单学习 antd 的 build 步骤","comments":true,"published":true,"date":"2018-09-17T21:07:46.000Z","updated":"","tags":[{"id":"12f838097e88fad593facf1260572402","name":"antd","postCount":1,"postIds":[]},{"id":"bb30e85411b56df41296726ab445dc8f","name":"npm","postCount":2,"postIds":[]},{"id":"3dedcc7065e40f09291129b3fbe52f76","name":"gulp","postCount":1,"postIds":[]},{"id":"1b8e1e23264dc0a324a49c1e86a25eda","name":"antd-tools","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>想到去学习 antd 的打包步骤是因为自己学习制作 npm 模块时遇到了疑惑。查看<code>antd</code>（v3.9.2）的包，我们可以在目录下找到<code>dist/</code>、<code>lib/</code>、<code>es/</code>这三个目录，而且在<code>package.json</code>中指定的入口是<code>lib/</code>（<code>&quot;main&quot;: &quot;lib/index.js&quot;</code>）。然而我只会使用<code>webpack</code>打包出一个<code>dist/</code>目录，于是查看了 antd 的相关内容进行了学习。</p>\n","more":"","hash":"a56450a468770f07b27ab0fcf76584fc","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"try-to-improve-spa-load-performance","slug":"post/try-to-improve-spa-load-performance","path":"/post/try-to-improve-spa-load-performance","title":"记一次单页应用的加载优化","comments":true,"published":true,"date":"2018-12-25T23:54:23.000Z","updated":"","tags":[{"id":"aa491df98d63f0894f18087bb142d472","name":"SPA","postCount":1,"postIds":[]},{"id":"c05f6c233521207f6fe311afef550c3c","name":"performance","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>如今的前端页面越来越丰富了，承载着各种功能。而随之增长的则是相应的代码量，加上三方 SDK 的接入以及单页应用（SPA）的特性，一次页面访问会出现慢的感觉，是时候来关注页面的加载优化了。</p>\n<p>本文简略描述关于 React 单页应用的加载优化，下文所指加载一般包括下载、执行两个步骤。</p>\n","more":"","hash":"841f07f21ec8a4a0ad4e99cd03c03680","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.f6204dfb.js"></script>
+    <link rel="modulepreload" href="/assets/vendor.cada02d7.js">
+    <link rel="stylesheet" href="/assets/index.2fa6ecca.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">将并发的异步操作转化为串行执行</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2018-09-25</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span>，</span><!--]--><!--[--><a href="/categories/JavaScript" class="unset">JavaScript</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>情景还原：有一个用 Promise 封装的异步操作，用于 JS 与客户端交互以获取数据，但当出现并发调用获取数据的时候发现只有其中的一次操作有回调，而剩余的调用就像丢失了一样、后续的步骤（then）也得不到执行。实际上有多种解决方式，这里考虑将这些并发的调用转化为串行执行来确保每次的调用接收到回调。虽然感觉这样做可能意义不是很大，但感觉颇有意思。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+<hr>
+<p>直接上码：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-keyword">const</span> <span class="hljs-title function_">Log</span> = (<span class="hljs-params">...params</span>) =&gt; <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(...params)
+
+<span class="hljs-comment">// 异步方法</span>
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">getData</span> = (<span class="hljs-params">...params</span>) =&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">Promise</span>(<span class="hljs-function"><span class="hljs-params">resolve</span> =&gt;</span> {
+  <span class="hljs-built_in">setTimeout</span>(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-title function_">resolve</span>(params)
+  }, <span class="hljs-number">500</span>)
+})
+
+
+<span class="hljs-keyword">const</span> stack = []
+<span class="hljs-keyword">let</span> isLock = <span class="hljs-literal">false</span>
+
+<span class="hljs-keyword">const</span> handler = <span class="hljs-keyword">async</span> ({args, call}) =&gt; {
+  stack.<span class="hljs-title function_">push</span>({ call, args })
+
+  <span class="hljs-keyword">if</span> (isLock) { <span class="hljs-keyword">return</span> }
+
+  isLock = <span class="hljs-literal">true</span>
+  <span class="hljs-keyword">while</span> (stack.<span class="hljs-property">length</span>) {
+    <span class="hljs-keyword">const</span> {call, args} = stack.<span class="hljs-title function_">shift</span>()
+    <span class="hljs-keyword">let</span> err = <span class="hljs-literal">null</span>
+    <span class="hljs-comment">// 每次异步执行完毕再进行下一次</span>
+    <span class="hljs-keyword">const</span> rs = <span class="hljs-keyword">await</span> <span class="hljs-title function_">getData</span>(...args).<span class="hljs-title function_">catch</span>(<span class="hljs-function"><span class="hljs-params">e</span> =&gt;</span> (err = e))
+    <span class="hljs-comment">// 回调结果</span>
+    <span class="hljs-title function_">call</span>(rs, err)
+  }
+  isLock = <span class="hljs-literal">false</span>
+}
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">operate</span> = (<span class="hljs-params">...args</span>) =&gt; {
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve, reject</span>) =&gt;</span> {
+    <span class="hljs-title function_">handler</span>({
+      args,
+      <span class="hljs-attr">call</span>: <span class="hljs-function">(<span class="hljs-params">rs, err</span>) =&gt;</span> {
+        <span class="hljs-keyword">if</span> (err) {
+          <span class="hljs-title function_">reject</span>(err)
+        } <span class="hljs-keyword">else</span> {
+          <span class="hljs-title function_">resolve</span>(rs)
+        }
+      },
+    })
+  })
+}
+
+<span class="hljs-comment">// 并发执行比较</span>
+<span class="hljs-title function_">getData</span>(<span class="hljs-string">&#x27;a1&#x27;</span>, <span class="hljs-string">&#x27;a11&#x27;</span>).<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">r</span> =&gt;</span> <span class="hljs-title class_">Log</span>(r, <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()))
+<span class="hljs-title function_">getData</span>(<span class="hljs-string">&#x27;a2&#x27;</span>).<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">r</span> =&gt;</span> <span class="hljs-title class_">Log</span>(r, <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()))
+<span class="hljs-title function_">getData</span>(<span class="hljs-string">&#x27;a3&#x27;</span>).<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">r</span> =&gt;</span> <span class="hljs-title class_">Log</span>(r, <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()))
+<span class="hljs-title function_">getData</span>(<span class="hljs-string">&#x27;a4&#x27;</span>).<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">r</span> =&gt;</span> <span class="hljs-title class_">Log</span>(r, <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()))
+
+<span class="hljs-title function_">operate</span>(<span class="hljs-string">&#x27;b1&#x27;</span>, <span class="hljs-string">&#x27;b11&#x27;</span>).<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">r</span> =&gt;</span> <span class="hljs-title class_">Log</span>(r, <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()))
+<span class="hljs-title function_">operate</span>(<span class="hljs-string">&#x27;b2&#x27;</span>).<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">r</span> =&gt;</span> <span class="hljs-title class_">Log</span>(r, <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()))
+<span class="hljs-title function_">operate</span>(<span class="hljs-string">&#x27;b3&#x27;</span>).<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">r</span> =&gt;</span> <span class="hljs-title class_">Log</span>(r, <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()))
+<span class="hljs-title function_">operate</span>(<span class="hljs-string">&#x27;b3&#x27;</span>).<span class="hljs-title function_">then</span>(<span class="hljs-function"><span class="hljs-params">r</span> =&gt;</span> <span class="hljs-title class_">Log</span>(r, <span class="hljs-title class_">Date</span>.<span class="hljs-title function_">now</span>()))
+</code></pre><p>结果：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">[<span class="hljs-string">&quot;a1&quot;</span>, <span class="hljs-string">&quot;a11&quot;</span>] 1540999894238
+[<span class="hljs-string">&quot;a2&quot;</span>] 1540999894239
+[<span class="hljs-string">&quot;a3&quot;</span>] 1540999894239
+[<span class="hljs-string">&quot;a4&quot;</span>] 1540999894239
+
+[<span class="hljs-string">&quot;b1&quot;</span>, <span class="hljs-string">&quot;b11&quot;</span>] 1540999894247
+[<span class="hljs-string">&quot;b2&quot;</span>] 1540999894748
+[<span class="hljs-string">&quot;b3&quot;</span>] 1540999895251
+[<span class="hljs-string">&quot;b3&quot;</span>] 1540999895754</code></pre><hr>
+<p>codepen：</p>
+<iframe height='312' scrolling='no' title='transforming concurrent asynchronous operations into serial execution' src='//codepen.io/daief/embed/bmPzwe/?height=312&theme-id=dark&default-tab=js' frameborder='no' allowtransparency='true' allowfullscreen='true' style='width: 100%;'>See the Pen <a href='https://codepen.io/daief/pen/bmPzwe/'>transforming concurrent asynchronous operations into serial execution</a> by daief (<a href='https://codepen.io/daief'>@daief</a>) on <a href='https://codepen.io'>CodePen</a>.
+</iframe>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/JavaScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> JavaScript</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/learn-how-antd-build-a-npm-lib" class="unset">简单学习 antd 的 build 步骤</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/try-to-improve-spa-load-performance" class="unset">记一次单页应用的加载优化</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

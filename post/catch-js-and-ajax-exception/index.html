@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>前端错误捕获以及ajax监听 | daief的个人日志</title><meta property="og:title" content="前端错误捕获以及ajax监听 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"catch-js-and-ajax-exception","slug":"post/catch-js-and-ajax-exception","path":"/post/catch-js-and-ajax-exception","title":"前端错误捕获以及ajax监听","comments":true,"published":true,"date":"2017-12-20T20:44:10.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"c1a751336da265287229972389952205","name":"前端日志","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>上线的项目难免会有错误，通过分析日志能够有效、准确地定位、重现并解决错误，从而提升产品体验。以下是根据资料以及目前需求所实现的一个前端日志采集的方案。</p>\n","more":"\n\n<h3 id=\"前端代码异常（错误）\">前端代码异常（错误）<a name=\"前端代码异常（错误）\" class=\"headerlink\" href=\"#前端代码异常（错误）\"></a></h3><ol>\n<li>使用 js 的 <code>try { } catch (e) { }</code>：\n在可能出现错误的地方主动进行捕获，上传。</li>\n</ol>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">try</span> {\n  <span class=\"hljs-comment\">// 代码块</span>\n  <span class=\"hljs-keyword\">var</span> a = <span class=\"hljs-number\">1</span>;\n  a.<span class=\"hljs-property\">a</span>.<span class=\"hljs-property\">a</span>;\n} <span class=\"hljs-keyword\">catch</span> (e) {\n  <span class=\"hljs-comment\">// 捕获的错误</span>\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(err);\n  <span class=\"hljs-comment\">// TypeError: Cannot read property &#x27;a&#x27; of undefined at test.html:33</span>\n  <span class=\"hljs-comment\">// 上报信息</span>\n  <span class=\"hljs-comment\">// ajax upload (err)</span>\n}</code></pre><p>  这种方式加上好的捕获处理，能够让程序不至于因为错误而崩溃。\n  但是，需要包裹代码块，这点可以用一个入口函数来解决：</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">try</span> {\n  <span class=\"hljs-title function_\">init</span>();\n} <span class=\"hljs-keyword\">catch</span> (err) {\n  <span class=\"hljs-comment\">// ajax upload (err)</span>\n}</code></pre><p>  即便如此也不能保证捕获所有错误：</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">init</span>(<span class=\"hljs-params\"></span>) {\n  <span class=\"hljs-comment\">//...</span>\n  $(<span class=\"hljs-string\">&quot;button&quot;</span>).<span class=\"hljs-title function_\">click</span>(<span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n    <span class=\"hljs-keyword\">var</span> a = <span class=\"hljs-number\">1</span>;\n    a.<span class=\"hljs-property\">a</span>.<span class=\"hljs-property\">a</span>;\n  });\n  <span class=\"hljs-comment\">//...</span>\n}\n\n<span class=\"hljs-keyword\">try</span> {\n  <span class=\"hljs-title function_\">init</span>();\n} <span class=\"hljs-keyword\">catch</span> (err) {\n  <span class=\"hljs-comment\">// 此处不能捕获到错误</span>\n}\n\n<span class=\"hljs-comment\">// 而是控制台报未捕获的错误：Uncaught TypeError: Cannot read property &#x27;a&#x27; of undefined</span></code></pre><p>  想要使用<code>try ... catch</code>捕获异步代码的错误，就要在代码执行的地方进行捕获：</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">init</span>(<span class=\"hljs-params\"></span>) {\n  <span class=\"hljs-comment\">//...</span>\n  $(<span class=\"hljs-string\">&quot;button&quot;</span>).<span class=\"hljs-title function_\">click</span>(<span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n    <span class=\"hljs-keyword\">try</span> {\n      <span class=\"hljs-keyword\">var</span> a = <span class=\"hljs-number\">1</span>;\n      a.<span class=\"hljs-property\">a</span>.<span class=\"hljs-property\">a</span>;\n    } <span class=\"hljs-keyword\">catch</span> (e) {\n      <span class=\"hljs-comment\">// 捕获错误</span>\n    }\n  });\n  <span class=\"hljs-comment\">//...</span>\n}\n\n<span class=\"hljs-title function_\">init</span>();</code></pre><ol start=\"2\">\n<li>通过<code>window.onerror</code>监听页面错误</li>\n</ol>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-comment\">/**\n* <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">String</span>}  msg         错误信息\n* <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">String</span>}  scripturl   出错脚本的url\n* <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">Long</span>}    line        错误行号\n* <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">Long</span>}    col         错误列号\n* <span class=\"hljs-doctag\">@param</span> {<span class=\"hljs-type\">Object</span>}  error       错误的详细信息\n*/</span>\n<span class=\"hljs-variable language_\">window</span>.<span class=\"hljs-property\">onerror</span> = <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">msg, scripturl, line, col, error</span>) {\n  <span class=\"hljs-comment\">// return true; 可屏蔽 console 报错显示，此处依旧选择显示</span>\n  <span class=\"hljs-comment\">// 跨域脚本的错误，捕获的结果是 Script error.</span>\n  <span class=\"hljs-comment\">// 可通过使用 crossorigin 信任</span>\n  <span class=\"hljs-keyword\">if</span> (msg == <span class=\"hljs-string\">&quot;Script error.&quot;</span>) {\n    <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">false</span>;\n  }\n\n  <span class=\"hljs-comment\">// 采用异步的方式</span>\n  <span class=\"hljs-comment\">// 参考的使用异步的方式，避免阻塞，没遇见过也不想遇到</span>\n  <span class=\"hljs-built_in\">setTimeout</span>(<span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n    <span class=\"hljs-keyword\">var</span> data = {};\n    data.<span class=\"hljs-property\">scripturl</span> = scripturl;\n    data.<span class=\"hljs-property\">line</span> = line;\n    <span class=\"hljs-comment\">// 不一定所有浏览器都支持col参数</span>\n    data.<span class=\"hljs-property\">col</span> = col || (<span class=\"hljs-variable language_\">window</span>.<span class=\"hljs-property\">event</span> &amp;&amp; <span class=\"hljs-variable language_\">window</span>.<span class=\"hljs-property\">event</span>.<span class=\"hljs-property\">errorCharacter</span>) || <span class=\"hljs-number\">0</span>;\n    <span class=\"hljs-keyword\">if</span> (!!error &amp;&amp; !!error.<span class=\"hljs-property\">stack</span>) {\n      <span class=\"hljs-comment\">// 如果浏览器有堆栈信息</span>\n      <span class=\"hljs-comment\">// 直接使用</span>\n      data.<span class=\"hljs-property\">msg</span> = error.<span class=\"hljs-property\">stack</span>.<span class=\"hljs-title function_\">toString</span>();\n    } <span class=\"hljs-keyword\">else</span> {\n      <span class=\"hljs-comment\">// 参考资料中有通过 arguments.callee.caller 获取错误信息</span>\n      <span class=\"hljs-comment\">// 但是严格模式下不允许访问 arguments.callee</span>\n      <span class=\"hljs-comment\">// 故此处无法获取错误信息</span>\n      data.<span class=\"hljs-property\">msg</span> = <span class=\"hljs-string\">&quot;无法获取详细信息&quot;</span>;\n    }\n    <span class=\"hljs-comment\">// 把 data 错误信息上报到后台</span>\n  }, <span class=\"hljs-number\">0</span>);\n\n  <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">false</span>;\n};</code></pre><p>  这种方式相对<code>try...catch</code>显得方便多了，能够实现全局监听错误，有一点要注意的是实现监听最好放在前面，以免因为错误导致 js 中断从而根本没有绑定上监听事件。</p>\n<h3 id=\"同时收集 ajax 信息，协助错误定位\">同时收集 ajax 信息，协助错误定位<a name=\"同时收集 ajax 信息，协助错误定位\" class=\"headerlink\" href=\"#同时收集 ajax 信息，协助错误定位\"></a></h3><p>通过重写<code>XMLHttpRequest</code>对象的<code>open</code>、<code>send</code>方法进行信息收集。</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">var</span> xhrArray = [];\n<span class=\"hljs-keyword\">var</span> xhrlog = {\n  <span class=\"hljs-comment\">// 记录请求的 url</span>\n  <span class=\"hljs-attr\">reqUrl</span>: <span class=\"hljs-string\">&quot;&quot;</span>,\n  <span class=\"hljs-comment\">// 记录请求的方法</span>\n  <span class=\"hljs-attr\">reqMethod</span>: <span class=\"hljs-string\">&quot;&quot;</span>,\n  <span class=\"hljs-comment\">// 保存原生的 open 方法</span>\n  <span class=\"hljs-attr\">xhrOpen</span>: XMLHttpRequest.<span class=\"hljs-property\"><span class=\"hljs-keyword\">prototype</span></span>.<span class=\"hljs-property\">open</span>,\n  <span class=\"hljs-comment\">// 保存原生的 send 方法</span>\n  <span class=\"hljs-attr\">xhrSend</span>: XMLHttpRequest.<span class=\"hljs-property\"><span class=\"hljs-keyword\">prototype</span></span>.<span class=\"hljs-property\">send</span>,\n  <span class=\"hljs-attr\">init</span>: <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n    <span class=\"hljs-keyword\">var</span> _self = <span class=\"hljs-variable language_\">this</span>;\n\n    <span class=\"hljs-comment\">// 重写 open</span>\n    XMLHttpRequest.<span class=\"hljs-property\"><span class=\"hljs-keyword\">prototype</span></span>.<span class=\"hljs-property\">open</span> = <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n      <span class=\"hljs-comment\">// 先在此处取得请求的url、method</span>\n      _self.<span class=\"hljs-property\">reqUrl</span> = <span class=\"hljs-variable language_\">arguments</span>[<span class=\"hljs-number\">1</span>];\n      _self.<span class=\"hljs-property\">reqMethod</span> = <span class=\"hljs-variable language_\">arguments</span>[<span class=\"hljs-number\">0</span>];\n      <span class=\"hljs-comment\">// 在调用原生 open 实现重写</span>\n      _self.<span class=\"hljs-property\">xhrOpen</span>.<span class=\"hljs-title function_\">apply</span>(<span class=\"hljs-variable language_\">this</span>, <span class=\"hljs-variable language_\">arguments</span>);\n    };\n\n    <span class=\"hljs-comment\">// 重写 send</span>\n    XMLHttpRequest.<span class=\"hljs-property\"><span class=\"hljs-keyword\">prototype</span></span>.<span class=\"hljs-property\">send</span> = <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n      <span class=\"hljs-comment\">// 记录xhr</span>\n      <span class=\"hljs-keyword\">var</span> xhrmsg = {\n        <span class=\"hljs-attr\">url</span>: _self.<span class=\"hljs-property\">reqUrl</span>,\n        <span class=\"hljs-attr\">type</span>: _self.<span class=\"hljs-property\">reqMethod</span>,\n        <span class=\"hljs-comment\">// 此处可以取得 ajax 的请求参数</span>\n        <span class=\"hljs-attr\">data</span>: <span class=\"hljs-variable language_\">arguments</span>[<span class=\"hljs-number\">0</span>] || {}\n      };\n\n      <span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-title function_\">addEventListener</span>(<span class=\"hljs-string\">&quot;readystatechange&quot;</span>, <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\"></span>) {\n        <span class=\"hljs-keyword\">if</span> (<span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-property\">readyState</span> === <span class=\"hljs-number\">4</span>) {\n          <span class=\"hljs-comment\">// 此处可以取得一些响应信息</span>\n          <span class=\"hljs-comment\">// 响应信息</span>\n          xhrmsg[<span class=\"hljs-string\">&quot;res&quot;</span>] = <span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-property\">response</span>;\n          xhrmsg[<span class=\"hljs-string\">&quot;status&quot;</span>] = <span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-property\">status</span>;\n          <span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-property\">status</span> &gt;= <span class=\"hljs-number\">200</span> &amp;&amp; <span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-property\">status</span> &lt; <span class=\"hljs-number\">400</span>\n            ? (xhrmsg[<span class=\"hljs-string\">&quot;level&quot;</span>] = <span class=\"hljs-string\">&quot;success&quot;</span>)\n            : (xhrmsg[<span class=\"hljs-string\">&quot;level&quot;</span>] = <span class=\"hljs-string\">&quot;error&quot;</span>);\n          xhrArray.<span class=\"hljs-title function_\">push</span>(xhrmsg);\n        }\n      });\n\n      _self.<span class=\"hljs-property\">xhrSend</span>.<span class=\"hljs-title function_\">apply</span>(<span class=\"hljs-variable language_\">this</span>, <span class=\"hljs-variable language_\">arguments</span>);\n    };\n  }\n};\n\n<span class=\"hljs-comment\">// 初始化，重写 xhr 方法</span>\nxhrlog.<span class=\"hljs-title function_\">init</span>();\n\n<span class=\"hljs-comment\">// 至此，xhrArray 中就记录着当前页面的请求信息</span></code></pre><p>至此，稍加修改、组合，就是一个简单而又实用的前端日志收集工具了，还是十分有意义的。</p>\n<p><del>// 截止目前这份系统还没显露出威力，那，一定是因为我们的代码写的稳啊 (￣ ▽ ￣)／</del></p>\n<h3 id=\"参考资料\">参考资料<a name=\"参考资料\" class=\"headerlink\" href=\"#参考资料\"></a></h3><blockquote>\n<p><a href=\"http://rapheal.sinaapp.com/2014/11/06/javascript-error-monitor/\">前端代码异常监控</a>\n<a href=\"https://github.com/eshengsky/lajax\">:rocket: lajax - 前端日志解决方案</a>\n<a href=\"https://www.cnblogs.com/hustskyking/p/fe-monitor.html\">前端代码异常日志收集与监控</a>\n<a href=\"https://www.liaoxuefeng.com/wiki/001434446689867b27157e896e74d51a89c25cc8b43bdb3000/001481157421687632cbe98b0094e96ba12c45c411f59ac000\">JavaScript 错误处理</a></p>\n</blockquote>\n","hash":"4fde60b5f6d05bd28be27a1768267868","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"js-variable-promotion","slug":"post/js-variable-promotion","path":"/post/js-variable-promotion","title":"JS变量提升","comments":true,"published":true,"date":"2017-12-11T22:26:18.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>变量提升即将变量声明提升到它所在作用域的最开始的部分，ES6 之前 JS 只有全局作用域和函数作用域，ES6 加入了块级作用域，用一对花括号{}包裹的部分。变量提升会将函数声明和部分变量声明提升到作用域顶端。例子如下：</p>\n","more":"","hash":"9f8b1b280ccc51937299876f1ea0d989","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"what-is-currying","slug":"post/what-is-currying","path":"/post/what-is-currying","title":"认识柯里化（currying）","comments":true,"published":true,"date":"2018-01-04T22:29:17.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"f1317ebe11b75f3ced6f0fb9773d50a6","name":"currying","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>看文章的时候发现了<code>柯里化</code>一词，然而心中毫无概念，于是就查阅了相关资料有了些许认识。</p>\n","more":"","hash":"9b83a01ba830820907f20c330ac493fc","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.f6204dfb.js"></script>
+    <link rel="modulepreload" href="/assets/vendor.cada02d7.js">
+    <link rel="stylesheet" href="/assets/index.2fa6ecca.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">前端错误捕获以及ajax监听</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2017-12-20</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span>，</span><!--]--><!--[--><a href="/categories/JavaScript" class="unset">JavaScript</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>上线的项目难免会有错误，通过分析日志能够有效、准确地定位、重现并解决错误，从而提升产品体验。以下是根据资料以及目前需求所实现的一个前端日志采集的方案。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h3 id="前端代码异常（错误）">前端代码异常（错误）<a name="前端代码异常（错误）" class="headerlink" href="#前端代码异常（错误）"></a></h3><ol>
+<li>使用 js 的 <code>try { } catch (e) { }</code>：
+在可能出现错误的地方主动进行捕获，上传。</li>
+</ol>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">try</span> {
+  <span class="hljs-comment">// 代码块</span>
+  <span class="hljs-keyword">var</span> a = <span class="hljs-number">1</span>;
+  a.<span class="hljs-property">a</span>.<span class="hljs-property">a</span>;
+} <span class="hljs-keyword">catch</span> (e) {
+  <span class="hljs-comment">// 捕获的错误</span>
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(err);
+  <span class="hljs-comment">// TypeError: Cannot read property &#x27;a&#x27; of undefined at test.html:33</span>
+  <span class="hljs-comment">// 上报信息</span>
+  <span class="hljs-comment">// ajax upload (err)</span>
+}</code></pre><p>  这种方式加上好的捕获处理，能够让程序不至于因为错误而崩溃。
+  但是，需要包裹代码块，这点可以用一个入口函数来解决：</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">try</span> {
+  <span class="hljs-title function_">init</span>();
+} <span class="hljs-keyword">catch</span> (err) {
+  <span class="hljs-comment">// ajax upload (err)</span>
+}</code></pre><p>  即便如此也不能保证捕获所有错误：</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">function</span> <span class="hljs-title function_">init</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-comment">//...</span>
+  $(<span class="hljs-string">&quot;button&quot;</span>).<span class="hljs-title function_">click</span>(<span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">var</span> a = <span class="hljs-number">1</span>;
+    a.<span class="hljs-property">a</span>.<span class="hljs-property">a</span>;
+  });
+  <span class="hljs-comment">//...</span>
+}
+
+<span class="hljs-keyword">try</span> {
+  <span class="hljs-title function_">init</span>();
+} <span class="hljs-keyword">catch</span> (err) {
+  <span class="hljs-comment">// 此处不能捕获到错误</span>
+}
+
+<span class="hljs-comment">// 而是控制台报未捕获的错误：Uncaught TypeError: Cannot read property &#x27;a&#x27; of undefined</span></code></pre><p>  想要使用<code>try ... catch</code>捕获异步代码的错误，就要在代码执行的地方进行捕获：</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">function</span> <span class="hljs-title function_">init</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-comment">//...</span>
+  $(<span class="hljs-string">&quot;button&quot;</span>).<span class="hljs-title function_">click</span>(<span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">var</span> a = <span class="hljs-number">1</span>;
+      a.<span class="hljs-property">a</span>.<span class="hljs-property">a</span>;
+    } <span class="hljs-keyword">catch</span> (e) {
+      <span class="hljs-comment">// 捕获错误</span>
+    }
+  });
+  <span class="hljs-comment">//...</span>
+}
+
+<span class="hljs-title function_">init</span>();</code></pre><ol start="2">
+<li>通过<code>window.onerror</code>监听页面错误</li>
+</ol>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-comment">/**
+* <span class="hljs-doctag">@param</span> {<span class="hljs-type">String</span>}  msg         错误信息
+* <span class="hljs-doctag">@param</span> {<span class="hljs-type">String</span>}  scripturl   出错脚本的url
+* <span class="hljs-doctag">@param</span> {<span class="hljs-type">Long</span>}    line        错误行号
+* <span class="hljs-doctag">@param</span> {<span class="hljs-type">Long</span>}    col         错误列号
+* <span class="hljs-doctag">@param</span> {<span class="hljs-type">Object</span>}  error       错误的详细信息
+*/</span>
+<span class="hljs-variable language_">window</span>.<span class="hljs-property">onerror</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">msg, scripturl, line, col, error</span>) {
+  <span class="hljs-comment">// return true; 可屏蔽 console 报错显示，此处依旧选择显示</span>
+  <span class="hljs-comment">// 跨域脚本的错误，捕获的结果是 Script error.</span>
+  <span class="hljs-comment">// 可通过使用 crossorigin 信任</span>
+  <span class="hljs-keyword">if</span> (msg == <span class="hljs-string">&quot;Script error.&quot;</span>) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+  }
+
+  <span class="hljs-comment">// 采用异步的方式</span>
+  <span class="hljs-comment">// 参考的使用异步的方式，避免阻塞，没遇见过也不想遇到</span>
+  <span class="hljs-built_in">setTimeout</span>(<span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">var</span> data = {};
+    data.<span class="hljs-property">scripturl</span> = scripturl;
+    data.<span class="hljs-property">line</span> = line;
+    <span class="hljs-comment">// 不一定所有浏览器都支持col参数</span>
+    data.<span class="hljs-property">col</span> = col || (<span class="hljs-variable language_">window</span>.<span class="hljs-property">event</span> &amp;&amp; <span class="hljs-variable language_">window</span>.<span class="hljs-property">event</span>.<span class="hljs-property">errorCharacter</span>) || <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">if</span> (!!error &amp;&amp; !!error.<span class="hljs-property">stack</span>) {
+      <span class="hljs-comment">// 如果浏览器有堆栈信息</span>
+      <span class="hljs-comment">// 直接使用</span>
+      data.<span class="hljs-property">msg</span> = error.<span class="hljs-property">stack</span>.<span class="hljs-title function_">toString</span>();
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-comment">// 参考资料中有通过 arguments.callee.caller 获取错误信息</span>
+      <span class="hljs-comment">// 但是严格模式下不允许访问 arguments.callee</span>
+      <span class="hljs-comment">// 故此处无法获取错误信息</span>
+      data.<span class="hljs-property">msg</span> = <span class="hljs-string">&quot;无法获取详细信息&quot;</span>;
+    }
+    <span class="hljs-comment">// 把 data 错误信息上报到后台</span>
+  }, <span class="hljs-number">0</span>);
+
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+};</code></pre><p>  这种方式相对<code>try...catch</code>显得方便多了，能够实现全局监听错误，有一点要注意的是实现监听最好放在前面，以免因为错误导致 js 中断从而根本没有绑定上监听事件。</p>
+<h3 id="同时收集 ajax 信息，协助错误定位">同时收集 ajax 信息，协助错误定位<a name="同时收集 ajax 信息，协助错误定位" class="headerlink" href="#同时收集 ajax 信息，协助错误定位"></a></h3><p>通过重写<code>XMLHttpRequest</code>对象的<code>open</code>、<code>send</code>方法进行信息收集。</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">var</span> xhrArray = [];
+<span class="hljs-keyword">var</span> xhrlog = {
+  <span class="hljs-comment">// 记录请求的 url</span>
+  <span class="hljs-attr">reqUrl</span>: <span class="hljs-string">&quot;&quot;</span>,
+  <span class="hljs-comment">// 记录请求的方法</span>
+  <span class="hljs-attr">reqMethod</span>: <span class="hljs-string">&quot;&quot;</span>,
+  <span class="hljs-comment">// 保存原生的 open 方法</span>
+  <span class="hljs-attr">xhrOpen</span>: XMLHttpRequest.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">open</span>,
+  <span class="hljs-comment">// 保存原生的 send 方法</span>
+  <span class="hljs-attr">xhrSend</span>: XMLHttpRequest.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">send</span>,
+  <span class="hljs-attr">init</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">var</span> _self = <span class="hljs-variable language_">this</span>;
+
+    <span class="hljs-comment">// 重写 open</span>
+    XMLHttpRequest.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">open</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+      <span class="hljs-comment">// 先在此处取得请求的url、method</span>
+      _self.<span class="hljs-property">reqUrl</span> = <span class="hljs-variable language_">arguments</span>[<span class="hljs-number">1</span>];
+      _self.<span class="hljs-property">reqMethod</span> = <span class="hljs-variable language_">arguments</span>[<span class="hljs-number">0</span>];
+      <span class="hljs-comment">// 在调用原生 open 实现重写</span>
+      _self.<span class="hljs-property">xhrOpen</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-variable language_">arguments</span>);
+    };
+
+    <span class="hljs-comment">// 重写 send</span>
+    XMLHttpRequest.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">send</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+      <span class="hljs-comment">// 记录xhr</span>
+      <span class="hljs-keyword">var</span> xhrmsg = {
+        <span class="hljs-attr">url</span>: _self.<span class="hljs-property">reqUrl</span>,
+        <span class="hljs-attr">type</span>: _self.<span class="hljs-property">reqMethod</span>,
+        <span class="hljs-comment">// 此处可以取得 ajax 的请求参数</span>
+        <span class="hljs-attr">data</span>: <span class="hljs-variable language_">arguments</span>[<span class="hljs-number">0</span>] || {}
+      };
+
+      <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">&quot;readystatechange&quot;</span>, <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+        <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-property">readyState</span> === <span class="hljs-number">4</span>) {
+          <span class="hljs-comment">// 此处可以取得一些响应信息</span>
+          <span class="hljs-comment">// 响应信息</span>
+          xhrmsg[<span class="hljs-string">&quot;res&quot;</span>] = <span class="hljs-variable language_">this</span>.<span class="hljs-property">response</span>;
+          xhrmsg[<span class="hljs-string">&quot;status&quot;</span>] = <span class="hljs-variable language_">this</span>.<span class="hljs-property">status</span>;
+          <span class="hljs-variable language_">this</span>.<span class="hljs-property">status</span> &gt;= <span class="hljs-number">200</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-property">status</span> &lt; <span class="hljs-number">400</span>
+            ? (xhrmsg[<span class="hljs-string">&quot;level&quot;</span>] = <span class="hljs-string">&quot;success&quot;</span>)
+            : (xhrmsg[<span class="hljs-string">&quot;level&quot;</span>] = <span class="hljs-string">&quot;error&quot;</span>);
+          xhrArray.<span class="hljs-title function_">push</span>(xhrmsg);
+        }
+      });
+
+      _self.<span class="hljs-property">xhrSend</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-variable language_">arguments</span>);
+    };
+  }
+};
+
+<span class="hljs-comment">// 初始化，重写 xhr 方法</span>
+xhrlog.<span class="hljs-title function_">init</span>();
+
+<span class="hljs-comment">// 至此，xhrArray 中就记录着当前页面的请求信息</span></code></pre><p>至此，稍加修改、组合，就是一个简单而又实用的前端日志收集工具了，还是十分有意义的。</p>
+<p><del>// 截止目前这份系统还没显露出威力，那，一定是因为我们的代码写的稳啊 (￣ ▽ ￣)／</del></p>
+<h3 id="参考资料">参考资料<a name="参考资料" class="headerlink" href="#参考资料"></a></h3><blockquote>
+<p><a href="http://rapheal.sinaapp.com/2014/11/06/javascript-error-monitor/">前端代码异常监控</a>
+<a href="https://github.com/eshengsky/lajax">:rocket: lajax - 前端日志解决方案</a>
+<a href="https://www.cnblogs.com/hustskyking/p/fe-monitor.html">前端代码异常日志收集与监控</a>
+<a href="https://www.liaoxuefeng.com/wiki/001434446689867b27157e896e74d51a89c25cc8b43bdb3000/001481157421687632cbe98b0094e96ba12c45c411f59ac000">JavaScript 错误处理</a></p>
+</blockquote>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/JavaScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> JavaScript</a><a href="/tags/前端日志" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> 前端日志</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/js-variable-promotion" class="unset">JS变量提升</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/what-is-currying" class="unset">认识柯里化（currying）</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>
