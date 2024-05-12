@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>认识柯里化（currying） | daief的个人日志</title><meta property="og:title" content="认识柯里化（currying） | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"what-is-currying","slug":"post/what-is-currying","path":"/post/what-is-currying","title":"认识柯里化（currying）","comments":true,"published":true,"date":"2018-01-04T22:29:17.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"f1317ebe11b75f3ced6f0fb9773d50a6","name":"currying","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>看文章的时候发现了<code>柯里化</code>一词，然而心中毫无概念，于是就查阅了相关资料有了些许认识。</p>\n","more":"\n\n<h3 id=\"概念\">概念<a name=\"概念\" class=\"headerlink\" href=\"#概念\"></a></h3><p>柯里化（Currying）是把接受多个参数的函数变换成接受一个单一参数(最初函数的第一个参数)的函数，并且返回接受余下的参数且返回结果的新函数的技术。</p>\n<p>概念初次看起来比较抽象。</p>\n<h3 id=\"实现\">实现<a name=\"实现\" class=\"headerlink\" href=\"#实现\"></a></h3><pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-comment\">// 柯里化</span>\n<span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">currying</span>(<span class=\"hljs-params\">fn</span>) {\n  <span class=\"hljs-comment\">// 提取数组原型的slice方法</span>\n  <span class=\"hljs-keyword\">var</span> slice = <span class=\"hljs-title class_\">Array</span>.<span class=\"hljs-property\"><span class=\"hljs-keyword\">prototype</span></span>.<span class=\"hljs-property\">slice</span>,\n    <span class=\"hljs-comment\">// 取fn之后的参数并转化为数组</span>\n    __args = slice.<span class=\"hljs-title function_\">call</span>(<span class=\"hljs-variable language_\">arguments</span>, <span class=\"hljs-number\">1</span>);\n  <span class=\"hljs-keyword\">return</span> <span class=\"hljs-keyword\">function</span> (<span class=\"hljs-params\"></span>) {\n    <span class=\"hljs-comment\">// 将具有length属性的对象（arguments）转成数组</span>\n    <span class=\"hljs-keyword\">var</span> __inargs = slice.<span class=\"hljs-title function_\">call</span>(<span class=\"hljs-variable language_\">arguments</span>);\n    <span class=\"hljs-comment\">// 合并参数并调用fn</span>\n    <span class=\"hljs-keyword\">return</span> fn.<span class=\"hljs-title function_\">apply</span>(<span class=\"hljs-literal\">null</span>, __args.<span class=\"hljs-title function_\">concat</span>(__inargs));\n  };\n}</code></pre><p>使用举例：</p>\n<p>我们定义了一个多参的函数<code>foo</code>：</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">foo</span>(<span class=\"hljs-params\">a, b, c</span>) {\n  <span class=\"hljs-comment\">// ...</span>\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(a, b, c);\n  <span class=\"hljs-comment\">// ...</span>\n}\n\n<span class=\"hljs-comment\">// 使用的时候</span>\n<span class=\"hljs-title function_\">foo</span>(<span class=\"hljs-number\">1</span>, <span class=\"hljs-number\">2</span>, <span class=\"hljs-number\">3</span>); <span class=\"hljs-comment\">// 1 2 3</span>\n<span class=\"hljs-title function_\">foo</span>(<span class=\"hljs-number\">1</span>, <span class=\"hljs-number\">3</span>, <span class=\"hljs-number\">6</span>); <span class=\"hljs-comment\">// 1 3 6</span></code></pre><p>将其进行柯里化<strong>固定首位参数</strong>：</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-comment\">// 将foo的首位参数固定为1，得到新的函数foo1</span>\n<span class=\"hljs-keyword\">var</span> foo1 = <span class=\"hljs-title function_\">currying</span>(foo, <span class=\"hljs-number\">1</span>);\n\n<span class=\"hljs-comment\">// 之后我们使用foo1</span>\n<span class=\"hljs-title function_\">foo1</span>(<span class=\"hljs-number\">2</span>, <span class=\"hljs-number\">3</span>); <span class=\"hljs-comment\">// 1 2 3</span>\n<span class=\"hljs-title function_\">foo1</span>(<span class=\"hljs-number\">3</span>, <span class=\"hljs-number\">6</span>); <span class=\"hljs-comment\">// 1 3 6</span></code></pre><p>这种情况就很利于当参数<code>a=1</code>的时候，通过柯里化固定参数<code>a</code>，之后使用的时候就不必重复传入<code>1</code>。\n上述<code>foo1(b, c)</code>相当于<code>foo(1, b, c)</code>。\n<a href=\"https://www.zhihu.com/question/40374792/answer/86268208\">借用某位老哥一句话</a>，感觉十分助于认识柯里化：</p>\n<blockquote>\n<p>柯里化可看成一种对高阶函数的降阶处理。\n把原本：\nfunction(arg1,arg2) 变成 function(arg1)(arg2)\nfunction(arg1,arg2,arg3) 变成 function(arg1)(arg2)(arg3)\nfunction(arg1,arg2,arg3,arg4) 变成 function(arg1)(arg2)(arg3)(arg4)\n……</p>\n</blockquote>\n<p>再看一下固定两位参数：</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-comment\">// 柯里化，固定参数a，b（固定两个个参数），使用foo2只需要传入参数c</span>\n<span class=\"hljs-keyword\">var</span> foo2 = <span class=\"hljs-title function_\">currying</span>(foo, <span class=\"hljs-string\">&#x27;A&#x27;</span>, <span class=\"hljs-string\">&#x27;B&#x27;</span>);\n<span class=\"hljs-title function_\">foo2</span>(<span class=\"hljs-string\">&#x27;C&#x27;</span>); <span class=\"hljs-comment\">// A B C</span>\n<span class=\"hljs-title function_\">foo2</span>(<span class=\"hljs-string\">&#x27;C1&#x27;</span>); <span class=\"hljs-comment\">// A B C1</span></code></pre><p>这些就是目前对于柯里化初步的认识。</p>\n<p>最后，看着柯里化的作用也有了些许理解。</p>\n<blockquote>\n<p>柯里化其实本身是固定一个可以预期的参数，并返回一个特定的函数，处理批特定的需求。这增加了函数的适用性，但同时也降低了函数的适用范围。\n函数柯里化，是固定部分参数，返回一个接受剩余参数的函数，也称为部分计算函数，目的是为了缩小适用范围，创建一个针对性更强的函数。</p>\n</blockquote>\n","hash":"9b83a01ba830820907f20c330ac493fc","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"catch-js-and-ajax-exception","slug":"post/catch-js-and-ajax-exception","path":"/post/catch-js-and-ajax-exception","title":"前端错误捕获以及ajax监听","comments":true,"published":true,"date":"2017-12-20T20:44:10.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"c1a751336da265287229972389952205","name":"前端日志","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>上线的项目难免会有错误，通过分析日志能够有效、准确地定位、重现并解决错误，从而提升产品体验。以下是根据资料以及目前需求所实现的一个前端日志采集的方案。</p>\n","more":"","hash":"4fde60b5f6d05bd28be27a1768267868","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"encapsulate-setTimeout-with-promise","slug":"post/encapsulate-setTimeout-with-promise","path":"/post/encapsulate-setTimeout-with-promise","title":"使用promise封装setTimeout","comments":true,"published":true,"date":"2018-08-21T22:17:59.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"a5a3f0f287a448982aac520cffe4779a","name":"Promise","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>使用 Promise 对 setTimeout 进行封装，从而支持链式的调用。</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">delay</span> = (<span class=\"hljs-params\">func, millisec, options</span>) =&gt; {\n  <span class=\"hljs-keyword\">let</span> timer = <span class=\"hljs-number\">0</span>\n  <span class=\"hljs-keyword\">let</span> reject = <span class=\"hljs-literal\">null</span>\n  <span class=\"hljs-keyword\">const</span> promise = <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Promise</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">resolve, _reject</span>) =&gt;</span> {\n    reject = _reject\n    timer = <span class=\"hljs-built_in\">setTimeout</span>(<span class=\"hljs-function\">() =&gt;</span> {\n      <span class=\"hljs-title function_\">resolve</span>(<span class=\"hljs-title function_\">func</span>(options))\n    }, millisec)\n  })\n\n  <span class=\"hljs-keyword\">return</span> {\n    <span class=\"hljs-keyword\">get</span> <span class=\"hljs-title function_\">promise</span>() {\n      <span class=\"hljs-keyword\">return</span> promise\n    },\n    <span class=\"hljs-title function_\">cancel</span>(<span class=\"hljs-params\"></span>) {\n      <span class=\"hljs-keyword\">if</span> (timer) {\n        <span class=\"hljs-built_in\">clearTimeout</span>(timer)\n        timer = <span class=\"hljs-number\">0</span>\n        <span class=\"hljs-title function_\">reject</span>(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Error</span>(<span class=\"hljs-string\">&#x27;timer is cancelled&#x27;</span>))\n        reject = <span class=\"hljs-literal\">null</span>\n      }\n    },\n  }\n}</code></pre><p>使用🌰：</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> d = <span class=\"hljs-title function_\">delay</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">{a, b}</span>) =&gt;</span> {\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(a, b)\n  <span class=\"hljs-keyword\">return</span> a + b\n}, <span class=\"hljs-number\">2000</span>, {<span class=\"hljs-attr\">a</span>: <span class=\"hljs-number\">1</span>, <span class=\"hljs-attr\">b</span>: <span class=\"hljs-number\">3</span>})\n\nd.<span class=\"hljs-property\">promise</span>.<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">result</span>) =&gt;</span> {\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&#x27;result&#x27;</span>, result)\n}).<span class=\"hljs-title function_\">catch</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">err</span>) =&gt;</span> {\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(err)\n})\n\n<span class=\"hljs-comment\">// cancel</span>\n<span class=\"hljs-comment\">// setTimeout(() =&gt; {</span>\n<span class=\"hljs-comment\">//   d.cancel()</span>\n<span class=\"hljs-comment\">// }, 1000)</span></code></pre>","more":"","hash":"9ba631ac47c7a3d0d8944d90e3b28661","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">认识柯里化（currying）</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2018-01-04</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span>，</span><!--]--><!--[--><a href="/categories/JavaScript" class="unset">JavaScript</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>看文章的时候发现了<code>柯里化</code>一词，然而心中毫无概念，于是就查阅了相关资料有了些许认识。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h3 id="概念">概念<a name="概念" class="headerlink" href="#概念"></a></h3><p>柯里化（Currying）是把接受多个参数的函数变换成接受一个单一参数(最初函数的第一个参数)的函数，并且返回接受余下的参数且返回结果的新函数的技术。</p>
+<p>概念初次看起来比较抽象。</p>
+<h3 id="实现">实现<a name="实现" class="headerlink" href="#实现"></a></h3><pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-comment">// 柯里化</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">currying</span>(<span class="hljs-params">fn</span>) {
+  <span class="hljs-comment">// 提取数组原型的slice方法</span>
+  <span class="hljs-keyword">var</span> slice = <span class="hljs-title class_">Array</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">slice</span>,
+    <span class="hljs-comment">// 取fn之后的参数并转化为数组</span>
+    __args = slice.<span class="hljs-title function_">call</span>(<span class="hljs-variable language_">arguments</span>, <span class="hljs-number">1</span>);
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) {
+    <span class="hljs-comment">// 将具有length属性的对象（arguments）转成数组</span>
+    <span class="hljs-keyword">var</span> __inargs = slice.<span class="hljs-title function_">call</span>(<span class="hljs-variable language_">arguments</span>);
+    <span class="hljs-comment">// 合并参数并调用fn</span>
+    <span class="hljs-keyword">return</span> fn.<span class="hljs-title function_">apply</span>(<span class="hljs-literal">null</span>, __args.<span class="hljs-title function_">concat</span>(__inargs));
+  };
+}</code></pre><p>使用举例：</p>
+<p>我们定义了一个多参的函数<code>foo</code>：</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">function</span> <span class="hljs-title function_">foo</span>(<span class="hljs-params">a, b, c</span>) {
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(a, b, c);
+  <span class="hljs-comment">// ...</span>
+}
+
+<span class="hljs-comment">// 使用的时候</span>
+<span class="hljs-title function_">foo</span>(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>); <span class="hljs-comment">// 1 2 3</span>
+<span class="hljs-title function_">foo</span>(<span class="hljs-number">1</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>); <span class="hljs-comment">// 1 3 6</span></code></pre><p>将其进行柯里化<strong>固定首位参数</strong>：</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-comment">// 将foo的首位参数固定为1，得到新的函数foo1</span>
+<span class="hljs-keyword">var</span> foo1 = <span class="hljs-title function_">currying</span>(foo, <span class="hljs-number">1</span>);
+
+<span class="hljs-comment">// 之后我们使用foo1</span>
+<span class="hljs-title function_">foo1</span>(<span class="hljs-number">2</span>, <span class="hljs-number">3</span>); <span class="hljs-comment">// 1 2 3</span>
+<span class="hljs-title function_">foo1</span>(<span class="hljs-number">3</span>, <span class="hljs-number">6</span>); <span class="hljs-comment">// 1 3 6</span></code></pre><p>这种情况就很利于当参数<code>a=1</code>的时候，通过柯里化固定参数<code>a</code>，之后使用的时候就不必重复传入<code>1</code>。
+上述<code>foo1(b, c)</code>相当于<code>foo(1, b, c)</code>。
+<a href="https://www.zhihu.com/question/40374792/answer/86268208">借用某位老哥一句话</a>，感觉十分助于认识柯里化：</p>
+<blockquote>
+<p>柯里化可看成一种对高阶函数的降阶处理。
+把原本：
+function(arg1,arg2) 变成 function(arg1)(arg2)
+function(arg1,arg2,arg3) 变成 function(arg1)(arg2)(arg3)
+function(arg1,arg2,arg3,arg4) 变成 function(arg1)(arg2)(arg3)(arg4)
+……</p>
+</blockquote>
+<p>再看一下固定两位参数：</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-comment">// 柯里化，固定参数a，b（固定两个个参数），使用foo2只需要传入参数c</span>
+<span class="hljs-keyword">var</span> foo2 = <span class="hljs-title function_">currying</span>(foo, <span class="hljs-string">&#x27;A&#x27;</span>, <span class="hljs-string">&#x27;B&#x27;</span>);
+<span class="hljs-title function_">foo2</span>(<span class="hljs-string">&#x27;C&#x27;</span>); <span class="hljs-comment">// A B C</span>
+<span class="hljs-title function_">foo2</span>(<span class="hljs-string">&#x27;C1&#x27;</span>); <span class="hljs-comment">// A B C1</span></code></pre><p>这些就是目前对于柯里化初步的认识。</p>
+<p>最后，看着柯里化的作用也有了些许理解。</p>
+<blockquote>
+<p>柯里化其实本身是固定一个可以预期的参数，并返回一个特定的函数，处理批特定的需求。这增加了函数的适用性，但同时也降低了函数的适用范围。
+函数柯里化，是固定部分参数，返回一个接受剩余参数的函数，也称为部分计算函数，目的是为了缩小适用范围，创建一个针对性更强的函数。</p>
+</blockquote>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/JavaScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> JavaScript</a><a href="/tags/currying" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> currying</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/catch-js-and-ajax-exception" class="unset">前端错误捕获以及ajax监听</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/encapsulate-setTimeout-with-promise" class="unset">使用promise封装setTimeout</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

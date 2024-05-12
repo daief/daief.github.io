@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Git Subtree 的使用 | daief的个人日志</title><meta property="og:title" content="Git Subtree 的使用 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"git-subtree","slug":"post/git-subtree","path":"/post/git-subtree","title":"Git Subtree 的使用","comments":true,"published":true,"date":"2021-08-15T21:07:02.000Z","updated":"","tags":[{"id":"0bcc70105ad279503e31fe7b3f47b665","name":"Git","postCount":2,"postIds":[]}],"categories":[{"id":"0bcc70105ad279503e31fe7b3f47b665","name":"Git","slug":"categories/Git","path":"/categories/Git","parentId":"","postCount":2,"postIds":[]}],"excerpt":"<p>git 的 <code>subtree</code> 是一种复用源代码的方式，可以让多个仓库引用某个仓库的代码，也可以将仓库中的某个目录拆分成一个子仓库以供其他仓库使用。</p>\n<p>相较于 git 的 <code>submodule</code>，目前社区中多更推崇 subtree，自己在使用了一段时间后总体也是认为 subtree 会更好用一些。</p>\n<p>但同时，两者都有各自的一些问题，而 subtree 的问题目前有其他方式规避，整体用起来比较流畅，所以最终选择了 subtree。</p>\n<blockquote>\n<p>实际上 subtree 命令需要在某个版本的 git 之后才被支持，但目前 git 的常用版本是完全足够的，所以也没去深究过。</p>\n</blockquote>\n","more":"\n\n<h2 id=\"为什么？\">为什么？<a name=\"为什么？\" class=\"headerlink\" href=\"#为什么？\"></a></h2><p>在前端领域都有 npm 了，即使不想去做 npm 包的版本管理，也还有 script 直接引入的方式，为何还需要折腾 subtree 或是 submodule？</p>\n<p>首先需要认清的是，subtree 并不是为了取代已有的一些模式，而是为了弥补上述方式不能很好解决的一些场景。</p>\n<p>假设所在的业务线上，有两个产品 α、β，分别由两个仓库 A、B 维护，两个产品背后的业务逻辑有诸多相似，会存在一些共同的业务组件、方法或是更大的功能模块，同时这些内容可能会需要快速、同步地迭代。</p>\n<p>虽说这样的场景可能会比较少，但确实是我最近的处境。在此之前最初的解决方式就是拷贝，简单而直接；再后来迭代更新地多了，就蛋疼了，于是转成 npm 包的方式，好歹不再复制粘贴了；过了一段时间，又厌烦了，写业务代码的时候，需要把逻辑拆到另一个包里，还得去维护 npm 包的版本，完了依赖方得进行相应地升级，开发体验还是不流畅，往往最终又回归拷贝。</p>\n<p>想要表达的是，实际开发中会存在一些或零碎、或具备特定业务的特性、或需要快速更迭的内容，如何用合理的方式去复用，如何能保持开发的流畅性，如何尽可能多地解决问题，这些是现在所思考的问题。</p>\n<blockquote>\n<p>想起来这样的一个场景应该会是更常见，也是比较适合使用 subtree：原本一直在某个仓库上开发，时间久了自然会有一些仓库的沉淀（方法、组件），偶然有一天组里立项了一个新的项目，建了一个新的仓库，对于一个全新的仓库，你想使用之前的沉淀，这个时候该怎么办呢？（现实中遇到这种问题往往是通过拷贝，在多个仓库中能见到完全一样的代码，说明这种场景的代码复用实际上算是一个问题）</p>\n</blockquote>\n<p>现在，私以为通过 subtree 能较好地解决上述的问题。</p>\n<h2 id=\"Subtree 的使用\">Subtree 的使用<a name=\"Subtree 的使用\" class=\"headerlink\" href=\"#Subtree 的使用\"></a></h2><p>如何在已有仓库中引用另一个仓库，例如想要在 repo-a 中引用 sub-repo，且假定仓库的信息如下：</p>\n<ul>\n<li>repo-a：<a href=\"http://example.com/repo-a.git\">http://example.com/repo-a.git</a></li>\n<li>sub-repo：<a href=\"http://example.com/sub-repo.git\">http://example.com/sub-repo.git</a></li>\n</ul>\n<h3 id=\"添加\">添加<a name=\"添加\" class=\"headerlink\" href=\"#添加\"></a></h3><p>首先需要在 repo-a 中添加子仓库 sub-repo，该命令只需在首次执行：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ <span class=\"hljs-built_in\">cd</span> repo-a\n$ git subtree add --prefix=subtrees/sub-repo http://example.com/sub-repo.git master\n<span class=\"hljs-comment\"># 可以添加 squash 参数压缩自仓库的提交</span>\n$ git subtree add --prefix=subtrees/sub-repo http://example.com/sub-repo.git master --squash</code></pre><p>该命令表示将 <code>http://example.com/sub-repo.git</code> 仓库 <code>master</code> 分支的内容添加到 <code>repo-a</code> 仓库的 <code>subtrees/sub-repo</code> 目录。</p>\n<p>subtree 的一个好处开始体现了，对于 <code>repo-a</code> 的 <code>subtrees/sub-repo</code> 目录，在日常使用中不需要特殊对待，它就是一个普通的目录，可以正常修改其中的内容、正常提交、正常地切分支、回滚或是 revert 等等。</p>\n<h3 id=\"拉取更新 subtree\">拉取更新 subtree<a name=\"拉取更新 subtree\" class=\"headerlink\" href=\"#拉取更新 subtree\"></a></h3><p>当需要拉取子仓库的内容时，需要使用 <code>git subtree pull</code> 命令：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\"><span class=\"hljs-comment\"># 同样支持 squash 参数</span>\n$ git subtree pull --prefix=subtrees/sub-repo http://example.com/sub-repo.git master --squash</code></pre><p>该命令会将远端 <code>http://example.com/sub-repo.git</code> 仓库 <code>master</code> 分支的内容同步到当前 <code>repo-a</code> 仓库的 <code>subtrees/sub-repo</code> 目录。</p>\n<h3 id=\"删除子仓库\">删除子仓库<a name=\"删除子仓库\" class=\"headerlink\" href=\"#删除子仓库\"></a></h3><p>直接删除 <code>subtrees/sub-repo</code> 目录，将删除操作提交。</p>\n<h3 id=\"推送本地对子仓库的更新\">推送本地对子仓库的更新<a name=\"推送本地对子仓库的更新\" class=\"headerlink\" href=\"#推送本地对子仓库的更新\"></a></h3><p>subtree 也提供了原生的推送命令，但我个人并不推荐直接使用，不过还是得先记录下原生的用法。</p>\n<p>当需要将本地 <code>subtrees/sub-repo</code> 的更新推送到源仓库的时候，可以使用 push 命令：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ git subtree push --prefix=subtrees/sub-repo http://example.com/sub-repo.git master</code></pre><p>该命令会将本地仓库 <code>subtrees/sub-repo</code> 目录下的内容推送到 <code>http://example.com/sub-repo.git</code> 的 <code>master</code> 分支。</p>\n<p><strong>当执行 <code>git subtree push</code> 的时候，git 会去遍历当前所有的 commit，计算出其中对 <code>subtrees/sub-repo</code> 目录的修改，再将这些 commit 推送到子仓库去</strong>。</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\"><span class=\"hljs-comment\"># 上述命令的输出，该仓库有 1470 个提交</span>\n1451/  1470 (1450) [19]</code></pre><p>除了这个一千多提交的仓库，另一个我实际在日常迭代的仓库已达到了三千多的提交，这导致在 push 子仓库的时候就很痛苦，每次 push 都需要耗费大量时间来计算提交。</p>\n<p>像这种三千多提交的大仓库，git 在执行计算的时候还可能因为性能问题直接抛出异常中断操作，原因可能是内存超过了操作系统给到这个程序的内存空间。该异常的错误信息常带有 <code>Segmentation fault: 11</code> 字样。</p>\n<p>总之，我对 subtree 原生的 push 命令是拒绝的。为了解决推送的问题，我选择自定义脚本的方式去实现，过程就是每次推送的时候进入子目录，初始化一个临时的仓库，将子目录的仓库进行提交并推送即可，脚本的大概内容如下：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-comment\">// subtrees/sub-repo/scripts/push.js</span>\n<span class=\"hljs-keyword\">const</span> path = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;path&#x27;</span>);\n<span class=\"hljs-keyword\">const</span> fs = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;fs&#x27;</span>);\n<span class=\"hljs-keyword\">const</span> { exec } = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;child_process&#x27;</span>);\n<span class=\"hljs-keyword\">const</span> dayjs = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;dayjs&#x27;</span>);\n\n<span class=\"hljs-keyword\">const</span> baseRoot = path.<span class=\"hljs-title function_\">resolve</span>(__dirname, <span class=\"hljs-string\">&#x27;..&#x27;</span>);\n<span class=\"hljs-keyword\">const</span> baseGit = path.<span class=\"hljs-title function_\">resolve</span>(baseRoot, <span class=\"hljs-string\">&#x27;.git&#x27;</span>);\n\n<span class=\"hljs-keyword\">const</span> hasGit = (<span class=\"hljs-function\">() =&gt;</span> {\n  <span class=\"hljs-keyword\">try</span> {\n    <span class=\"hljs-keyword\">return</span> fs.<span class=\"hljs-title function_\">statSync</span>(baseGit).<span class=\"hljs-title function_\">isDirectory</span>();\n  } <span class=\"hljs-keyword\">catch</span> (error) {\n    <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">false</span>;\n  }\n})();\n\n<span class=\"hljs-keyword\">const</span> now = <span class=\"hljs-title function_\">dayjs</span>();\n<span class=\"hljs-keyword\">const</span> branchName = <span class=\"hljs-string\">`script/<span class=\"hljs-subst\">${now.format(<span class=\"hljs-string\">&#x27;YYYY-MM-DD_HH_mm&#x27;</span>)}</span>`</span>;\n\n<span class=\"hljs-keyword\">const</span> commands = [\n  ...(hasGit\n    ? []\n    : [\n        <span class=\"hljs-string\">&#x27;git init&#x27;</span>,\n        <span class=\"hljs-string\">&#x27;git remote add origin http://example.com/sub-repo.git&#x27;</span>,\n        <span class=\"hljs-string\">`git checkout -b <span class=\"hljs-subst\">${branchName}</span>`</span>,\n      ]),\n  <span class=\"hljs-string\">&#x27;git add .&#x27;</span>,\n  <span class=\"hljs-string\">`git commit -m &quot;script: <span class=\"hljs-subst\">${now.format(<span class=\"hljs-string\">&#x27;YYYY-MM-DD HH:mm:ss&#x27;</span>)}</span>&quot; -n`</span>,\n  <span class=\"hljs-string\">&#x27;git pull origin master --allow-unrelated-histories&#x27;</span>,\n  <span class=\"hljs-string\">`git push origin HEAD:<span class=\"hljs-subst\">${branchName}</span>`</span>,\n];\n\n<span class=\"hljs-title function_\">exec</span>(\n  commands.<span class=\"hljs-title function_\">join</span>(<span class=\"hljs-string\">&#x27; &amp;&amp; &#x27;</span>),\n  {\n    <span class=\"hljs-attr\">cwd</span>: baseRoot,\n  },\n  <span class=\"hljs-function\">(<span class=\"hljs-params\">error, stdout, stderr</span>) =&gt;</span> {\n    <span class=\"hljs-keyword\">if</span> (error) {\n      <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">error</span>(error);\n      <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&#x27;Error:\\n&#x27;</span>, stderr);\n    } <span class=\"hljs-keyword\">else</span> {\n      <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(stdout);\n      <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&#x27;\\n&#x27;</span>, stderr);\n      <span class=\"hljs-title function_\">exec</span>(<span class=\"hljs-string\">`rm -r <span class=\"hljs-subst\">${baseGit}</span>`</span>);\n    }\n  },\n);</code></pre><p>这样一来，需要 push 的时候只需执行 <code>node subtrees/sub-repo/scripts/push.js</code>，完成之后会在远端新建一个临时分支，真正合并的时候在 gitlab 或 github 提交 MR 即可，这样一来子仓库的改动也能经过团队的评审。</p>\n<p>push 的脚本里会自动拉取同步一下 master 分支，可能会出现冲突的情况，此时只需在本地解决冲突，进行提交，再次执行 <code>push.js</code> 脚本即可。</p>\n<p>使用这种推送方式，就不再有上述“遍历 commit”的问题，心情都舒畅了。不过这种方式会导致子仓库的提交信息被丢失，但实际上问题不大，因为主仓库中会包含子仓库的相关文件的改动。</p>\n<h3 id=\"从当前仓库拆分出子仓库\">从当前仓库拆分出子仓库<a name=\"从当前仓库拆分出子仓库\" class=\"headerlink\" href=\"#从当前仓库拆分出子仓库\"></a></h3><p>另一种情况是需要在一个已有的主仓库中拆离出一个子仓库，此时可以使用 <code>git subtree split</code>：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\"><span class=\"hljs-comment\"># 先执行 split 生成临时分支 subtree/split-tmp</span>\n$ git subtree <span class=\"hljs-built_in\">split</span> --prefix=subtrees/sub-repo --rejoin --branch subtree/split-tmp\n<span class=\"hljs-comment\"># 再将临时分支 subtree/split-tmp 推送到子仓库的 master</span>\n$ git push http://example.com/sub-repo.git subtree/split-tmp:master</code></pre><p>命令 <code>git subtree split</code> 相当于将目录拆分为独立的分支，即子树拆分。拆分后形成的分支可以通过推送到新的版本库实现原版本库的目录独立为一个新的版本库。</p>\n<h2 id=\"结语\">结语<a name=\"结语\" class=\"headerlink\" href=\"#结语\"></a></h2><p>submodule 我也简单使用过，它和 subtree 很大的不同就是在一个项目中会同时存在多个 git 仓库，在使用的过程中需要要关心改动是在父仓库、还是在子仓库。而 subtree 除了在与子仓库交互的时候（add、pull、push），其他情况完全可以抛弃 subtree 的概念，所谓子仓库就是仓库中的一个目录，对于切分支、回滚等操作都很友好，推送的问题也能使用简单的方式进行规避，所以我也更推崇 subtree。</p>\n<p>参考资料：</p>\n<ul>\n<li><a href=\"https://juejin.cn/post/6881580754854215687\">Git subtree 用法与常见问题分析</a></li>\n<li><a href=\"https://juejin.cn/post/6936459179049615397\">Git SubTree 使用</a></li>\n<li><a href=\"https://tech.youzan.com/git-subtree/\">用 Git Subtree 在多个 Git 项目间双向同步子项目，附简明使用手册</a></li>\n<li><a href=\"https://www.worldhello.net/gotgit/04-git-model/050-subtree-model.html#git-subtree-split\">4.5 子树合并</a></li>\n</ul>\n","hash":"3a609768a9270469788f7c56233a2ed6","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"site-engine-gugu","slug":"post/site-engine-gugu","path":"/post/site-engine-gugu","title":"博客框架 —— gugu","comments":true,"published":true,"date":"2021-07-25T22:18:00.000Z","updated":"","tags":[{"id":"be8df1f28c0abc85a0ed0c6860e5d832","name":"Blog","postCount":3,"postIds":[]},{"id":"1d9db1ebcf1c30ffc9485e981aec4f04","name":"Vite","postCount":1,"postIds":[]},{"id":"79dcf464d3e1b41635e194883d0c939a","name":"Vue3","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>很久之就一直想把博客改成单页的，而中间发生了不少咕咕咕（<del>懂得都懂，不懂的我也不用再说了 🐶</del>）的事情，别说改造了，连文都没更新。在咕了大半年之后，终于完成了大改造，将原来使用的 <a href=\"https://hexo.io/\">Hexo</a> 替换成了个人实现的博客框架 <a href=\"https://github.com/daief/blog/tree/master/packages/gugu\">gugu</a>。</p>\n","more":"","hash":"a8a32cd67619054f427012f0acc946d0","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"blog-link-card","slug":"post/blog-link-card","path":"/post/blog-link-card","title":"在博客中添加卡片式链接","comments":true,"published":true,"date":"2021-08-21T14:27:25.000Z","updated":"","tags":[{"id":"be8df1f28c0abc85a0ed0c6860e5d832","name":"Blog","postCount":3,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>最近升级了的企业微信，发现发送链接信息的时候，企信会自动拉取链接的标题、描述和图片信息，并组合成卡片的形式进行展示，给人的感觉就很棒，既传递了更多的信息，又显得美观，就想着在博客里也加上这个功能。</p>\n<p>效果是下面这样的，如果展示的还是链接，那可能是还没加载出来或者背后的服务挂了（白嫖不易）：<a data-layout=\"card\" href=\"https://github.com\">Github</a></p>\n<p>截图效果如下：</p>\n<p><img alt=\"卡片截图\" loading=\"lazy\" width=\"390px\" title=\"卡片截图\" class=\"post-image \" src=\"/images/c45ab84aae2e07bf5593e504cc2394ef.blog-link-card.png\" onerror=\"this.onerror=null;this.src='/images/image-error.jpg';\"></p>\n","more":"","hash":"957d422fedf0b641b5ee56d1ac9e676b","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">Git Subtree 的使用</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2021-08-15</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/Git" class="unset">Git</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>git 的 <code>subtree</code> 是一种复用源代码的方式，可以让多个仓库引用某个仓库的代码，也可以将仓库中的某个目录拆分成一个子仓库以供其他仓库使用。</p>
+<p>相较于 git 的 <code>submodule</code>，目前社区中多更推崇 subtree，自己在使用了一段时间后总体也是认为 subtree 会更好用一些。</p>
+<p>但同时，两者都有各自的一些问题，而 subtree 的问题目前有其他方式规避，整体用起来比较流畅，所以最终选择了 subtree。</p>
+<blockquote>
+<p>实际上 subtree 命令需要在某个版本的 git 之后才被支持，但目前 git 的常用版本是完全足够的，所以也没去深究过。</p>
+</blockquote>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h2 id="为什么？">为什么？<a name="为什么？" class="headerlink" href="#为什么？"></a></h2><p>在前端领域都有 npm 了，即使不想去做 npm 包的版本管理，也还有 script 直接引入的方式，为何还需要折腾 subtree 或是 submodule？</p>
+<p>首先需要认清的是，subtree 并不是为了取代已有的一些模式，而是为了弥补上述方式不能很好解决的一些场景。</p>
+<p>假设所在的业务线上，有两个产品 α、β，分别由两个仓库 A、B 维护，两个产品背后的业务逻辑有诸多相似，会存在一些共同的业务组件、方法或是更大的功能模块，同时这些内容可能会需要快速、同步地迭代。</p>
+<p>虽说这样的场景可能会比较少，但确实是我最近的处境。在此之前最初的解决方式就是拷贝，简单而直接；再后来迭代更新地多了，就蛋疼了，于是转成 npm 包的方式，好歹不再复制粘贴了；过了一段时间，又厌烦了，写业务代码的时候，需要把逻辑拆到另一个包里，还得去维护 npm 包的版本，完了依赖方得进行相应地升级，开发体验还是不流畅，往往最终又回归拷贝。</p>
+<p>想要表达的是，实际开发中会存在一些或零碎、或具备特定业务的特性、或需要快速更迭的内容，如何用合理的方式去复用，如何能保持开发的流畅性，如何尽可能多地解决问题，这些是现在所思考的问题。</p>
+<blockquote>
+<p>想起来这样的一个场景应该会是更常见，也是比较适合使用 subtree：原本一直在某个仓库上开发，时间久了自然会有一些仓库的沉淀（方法、组件），偶然有一天组里立项了一个新的项目，建了一个新的仓库，对于一个全新的仓库，你想使用之前的沉淀，这个时候该怎么办呢？（现实中遇到这种问题往往是通过拷贝，在多个仓库中能见到完全一样的代码，说明这种场景的代码复用实际上算是一个问题）</p>
+</blockquote>
+<p>现在，私以为通过 subtree 能较好地解决上述的问题。</p>
+<h2 id="Subtree 的使用">Subtree 的使用<a name="Subtree 的使用" class="headerlink" href="#Subtree 的使用"></a></h2><p>如何在已有仓库中引用另一个仓库，例如想要在 repo-a 中引用 sub-repo，且假定仓库的信息如下：</p>
+<ul>
+<li>repo-a：<a href="http://example.com/repo-a.git">http://example.com/repo-a.git</a></li>
+<li>sub-repo：<a href="http://example.com/sub-repo.git">http://example.com/sub-repo.git</a></li>
+</ul>
+<h3 id="添加">添加<a name="添加" class="headerlink" href="#添加"></a></h3><p>首先需要在 repo-a 中添加子仓库 sub-repo，该命令只需在首次执行：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ <span class="hljs-built_in">cd</span> repo-a
+$ git subtree add --prefix=subtrees/sub-repo http://example.com/sub-repo.git master
+<span class="hljs-comment"># 可以添加 squash 参数压缩自仓库的提交</span>
+$ git subtree add --prefix=subtrees/sub-repo http://example.com/sub-repo.git master --squash</code></pre><p>该命令表示将 <code>http://example.com/sub-repo.git</code> 仓库 <code>master</code> 分支的内容添加到 <code>repo-a</code> 仓库的 <code>subtrees/sub-repo</code> 目录。</p>
+<p>subtree 的一个好处开始体现了，对于 <code>repo-a</code> 的 <code>subtrees/sub-repo</code> 目录，在日常使用中不需要特殊对待，它就是一个普通的目录，可以正常修改其中的内容、正常提交、正常地切分支、回滚或是 revert 等等。</p>
+<h3 id="拉取更新 subtree">拉取更新 subtree<a name="拉取更新 subtree" class="headerlink" href="#拉取更新 subtree"></a></h3><p>当需要拉取子仓库的内容时，需要使用 <code>git subtree pull</code> 命令：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;"><span class="hljs-comment"># 同样支持 squash 参数</span>
+$ git subtree pull --prefix=subtrees/sub-repo http://example.com/sub-repo.git master --squash</code></pre><p>该命令会将远端 <code>http://example.com/sub-repo.git</code> 仓库 <code>master</code> 分支的内容同步到当前 <code>repo-a</code> 仓库的 <code>subtrees/sub-repo</code> 目录。</p>
+<h3 id="删除子仓库">删除子仓库<a name="删除子仓库" class="headerlink" href="#删除子仓库"></a></h3><p>直接删除 <code>subtrees/sub-repo</code> 目录，将删除操作提交。</p>
+<h3 id="推送本地对子仓库的更新">推送本地对子仓库的更新<a name="推送本地对子仓库的更新" class="headerlink" href="#推送本地对子仓库的更新"></a></h3><p>subtree 也提供了原生的推送命令，但我个人并不推荐直接使用，不过还是得先记录下原生的用法。</p>
+<p>当需要将本地 <code>subtrees/sub-repo</code> 的更新推送到源仓库的时候，可以使用 push 命令：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ git subtree push --prefix=subtrees/sub-repo http://example.com/sub-repo.git master</code></pre><p>该命令会将本地仓库 <code>subtrees/sub-repo</code> 目录下的内容推送到 <code>http://example.com/sub-repo.git</code> 的 <code>master</code> 分支。</p>
+<p><strong>当执行 <code>git subtree push</code> 的时候，git 会去遍历当前所有的 commit，计算出其中对 <code>subtrees/sub-repo</code> 目录的修改，再将这些 commit 推送到子仓库去</strong>。</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;"><span class="hljs-comment"># 上述命令的输出，该仓库有 1470 个提交</span>
+1451/  1470 (1450) [19]</code></pre><p>除了这个一千多提交的仓库，另一个我实际在日常迭代的仓库已达到了三千多的提交，这导致在 push 子仓库的时候就很痛苦，每次 push 都需要耗费大量时间来计算提交。</p>
+<p>像这种三千多提交的大仓库，git 在执行计算的时候还可能因为性能问题直接抛出异常中断操作，原因可能是内存超过了操作系统给到这个程序的内存空间。该异常的错误信息常带有 <code>Segmentation fault: 11</code> 字样。</p>
+<p>总之，我对 subtree 原生的 push 命令是拒绝的。为了解决推送的问题，我选择自定义脚本的方式去实现，过程就是每次推送的时候进入子目录，初始化一个临时的仓库，将子目录的仓库进行提交并推送即可，脚本的大概内容如下：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-comment">// subtrees/sub-repo/scripts/push.js</span>
+<span class="hljs-keyword">const</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;path&#x27;</span>);
+<span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;fs&#x27;</span>);
+<span class="hljs-keyword">const</span> { exec } = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;child_process&#x27;</span>);
+<span class="hljs-keyword">const</span> dayjs = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;dayjs&#x27;</span>);
+
+<span class="hljs-keyword">const</span> baseRoot = path.<span class="hljs-title function_">resolve</span>(__dirname, <span class="hljs-string">&#x27;..&#x27;</span>);
+<span class="hljs-keyword">const</span> baseGit = path.<span class="hljs-title function_">resolve</span>(baseRoot, <span class="hljs-string">&#x27;.git&#x27;</span>);
+
+<span class="hljs-keyword">const</span> hasGit = (<span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">return</span> fs.<span class="hljs-title function_">statSync</span>(baseGit).<span class="hljs-title function_">isDirectory</span>();
+  } <span class="hljs-keyword">catch</span> (error) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+  }
+})();
+
+<span class="hljs-keyword">const</span> now = <span class="hljs-title function_">dayjs</span>();
+<span class="hljs-keyword">const</span> branchName = <span class="hljs-string">`script/<span class="hljs-subst">${now.format(<span class="hljs-string">&#x27;YYYY-MM-DD_HH_mm&#x27;</span>)}</span>`</span>;
+
+<span class="hljs-keyword">const</span> commands = [
+  ...(hasGit
+    ? []
+    : [
+        <span class="hljs-string">&#x27;git init&#x27;</span>,
+        <span class="hljs-string">&#x27;git remote add origin http://example.com/sub-repo.git&#x27;</span>,
+        <span class="hljs-string">`git checkout -b <span class="hljs-subst">${branchName}</span>`</span>,
+      ]),
+  <span class="hljs-string">&#x27;git add .&#x27;</span>,
+  <span class="hljs-string">`git commit -m &quot;script: <span class="hljs-subst">${now.format(<span class="hljs-string">&#x27;YYYY-MM-DD HH:mm:ss&#x27;</span>)}</span>&quot; -n`</span>,
+  <span class="hljs-string">&#x27;git pull origin master --allow-unrelated-histories&#x27;</span>,
+  <span class="hljs-string">`git push origin HEAD:<span class="hljs-subst">${branchName}</span>`</span>,
+];
+
+<span class="hljs-title function_">exec</span>(
+  commands.<span class="hljs-title function_">join</span>(<span class="hljs-string">&#x27; &amp;&amp; &#x27;</span>),
+  {
+    <span class="hljs-attr">cwd</span>: baseRoot,
+  },
+  <span class="hljs-function">(<span class="hljs-params">error, stdout, stderr</span>) =&gt;</span> {
+    <span class="hljs-keyword">if</span> (error) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">error</span>(error);
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&#x27;Error:\n&#x27;</span>, stderr);
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(stdout);
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&#x27;\n&#x27;</span>, stderr);
+      <span class="hljs-title function_">exec</span>(<span class="hljs-string">`rm -r <span class="hljs-subst">${baseGit}</span>`</span>);
+    }
+  },
+);</code></pre><p>这样一来，需要 push 的时候只需执行 <code>node subtrees/sub-repo/scripts/push.js</code>，完成之后会在远端新建一个临时分支，真正合并的时候在 gitlab 或 github 提交 MR 即可，这样一来子仓库的改动也能经过团队的评审。</p>
+<p>push 的脚本里会自动拉取同步一下 master 分支，可能会出现冲突的情况，此时只需在本地解决冲突，进行提交，再次执行 <code>push.js</code> 脚本即可。</p>
+<p>使用这种推送方式，就不再有上述“遍历 commit”的问题，心情都舒畅了。不过这种方式会导致子仓库的提交信息被丢失，但实际上问题不大，因为主仓库中会包含子仓库的相关文件的改动。</p>
+<h3 id="从当前仓库拆分出子仓库">从当前仓库拆分出子仓库<a name="从当前仓库拆分出子仓库" class="headerlink" href="#从当前仓库拆分出子仓库"></a></h3><p>另一种情况是需要在一个已有的主仓库中拆离出一个子仓库，此时可以使用 <code>git subtree split</code>：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;"><span class="hljs-comment"># 先执行 split 生成临时分支 subtree/split-tmp</span>
+$ git subtree <span class="hljs-built_in">split</span> --prefix=subtrees/sub-repo --rejoin --branch subtree/split-tmp
+<span class="hljs-comment"># 再将临时分支 subtree/split-tmp 推送到子仓库的 master</span>
+$ git push http://example.com/sub-repo.git subtree/split-tmp:master</code></pre><p>命令 <code>git subtree split</code> 相当于将目录拆分为独立的分支，即子树拆分。拆分后形成的分支可以通过推送到新的版本库实现原版本库的目录独立为一个新的版本库。</p>
+<h2 id="结语">结语<a name="结语" class="headerlink" href="#结语"></a></h2><p>submodule 我也简单使用过，它和 subtree 很大的不同就是在一个项目中会同时存在多个 git 仓库，在使用的过程中需要要关心改动是在父仓库、还是在子仓库。而 subtree 除了在与子仓库交互的时候（add、pull、push），其他情况完全可以抛弃 subtree 的概念，所谓子仓库就是仓库中的一个目录，对于切分支、回滚等操作都很友好，推送的问题也能使用简单的方式进行规避，所以我也更推崇 subtree。</p>
+<p>参考资料：</p>
+<ul>
+<li><a href="https://juejin.cn/post/6881580754854215687">Git subtree 用法与常见问题分析</a></li>
+<li><a href="https://juejin.cn/post/6936459179049615397">Git SubTree 使用</a></li>
+<li><a href="https://tech.youzan.com/git-subtree/">用 Git Subtree 在多个 Git 项目间双向同步子项目，附简明使用手册</a></li>
+<li><a href="https://www.worldhello.net/gotgit/04-git-model/050-subtree-model.html#git-subtree-split">4.5 子树合并</a></li>
+</ul>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/Git" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> Git</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/site-engine-gugu" class="unset">博客框架 —— gugu</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/blog-link-card" class="unset">在博客中添加卡片式链接</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

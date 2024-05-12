@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>简单的前端脚手架 | daief的个人日志</title><meta property="og:title" content="简单的前端脚手架 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"a-simple-cli","slug":"post/a-simple-cli","path":"/post/a-simple-cli","title":"简单的前端脚手架","comments":true,"published":true,"date":"2018-08-31T22:53:34.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"3b2819dd4c24eda2faf2052eef449551","name":"Node.js","postCount":3,"postIds":[]},{"id":"91af5705f16502125e8b2187e64202c0","name":"CLI","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>从零搭建一个简单的脚手架工具，像<code>vue-cli</code>一样，一个命令就能变出一个完整结构的初始项目。流行的脚手架工具有很多实用的功能，这里要说的是最基本的一项：通过一个命令快速创建出初始项目。</p>\n","more":"\n\n<h1 id=\"简单的思路\">简单的思路<a name=\"简单的思路\" class=\"headerlink\" href=\"#简单的思路\"></a></h1><ol>\n<li>借助 Node.js 实现命令行的交互，读取使用者输入，可以做一些生成项目时的配置；</li>\n<li>复制预设的模板文件，根据用户输入做出一些配置，最后粘贴到指定位置。</li>\n</ol>\n<h1 id=\"初始化项目\">初始化项目<a name=\"初始化项目\" class=\"headerlink\" href=\"#初始化项目\"></a></h1><p>创建空目录<code>simple-cli</code>并初始化：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ <span class=\"hljs-built_in\">mkdir</span> simple-cli &amp;&amp; <span class=\"hljs-built_in\">cd</span> simple-cli &amp;&amp; yarn init -y</code></pre><p>安装相关依赖：</p>\n<ol>\n<li><a href=\"https://github.com/tj/commander.js/\">commander</a>：一个快速开发 Node.js 命令行工具的库；</li>\n<li><a href=\"https://github.com/tj/co\">co</a>：用同步的方式编写异步流程的代码；</li>\n<li><a href=\"https://github.com/tj/co-prompt\">co-prompt</a>：在命令行提供提示信息并接收用户输入；</li>\n<li><a href=\"https://github.com/yoshuawuyts/copy-template-dir\">copy-template-dir</a>：复制整个目录到指定路径，并且能够通过变量注入信息。</li>\n</ol>\n<p>在<code>simple-cli/</code>：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ yarn add commander co co-prompt copy-template-dir</code></pre><p>在<code>package.json</code>中添加<code>bin</code>：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\">{\n  <span class=\"hljs-string\">&quot;name&quot;</span>: <span class=\"hljs-string\">&quot;simple-cli&quot;</span>,\n  <span class=\"hljs-string\">&quot;version&quot;</span>: <span class=\"hljs-string\">&quot;1.0.0&quot;</span>,\n  <span class=\"hljs-string\">&quot;license&quot;</span>: <span class=\"hljs-string\">&quot;MIT&quot;</span>,\n  <span class=\"hljs-string\">&quot;dependencies&quot;</span>: {\n    <span class=\"hljs-string\">&quot;co&quot;</span>: <span class=\"hljs-string\">&quot;^4.6.0&quot;</span>,\n    <span class=\"hljs-string\">&quot;co-prompt&quot;</span>: <span class=\"hljs-string\">&quot;^1.0.0&quot;</span>,\n    <span class=\"hljs-string\">&quot;commander&quot;</span>: <span class=\"hljs-string\">&quot;^2.17.1&quot;</span>,\n    <span class=\"hljs-string\">&quot;copy-template-dir&quot;</span>: <span class=\"hljs-string\">&quot;^1.4.0&quot;</span>\n  },\n  <span class=\"hljs-string\">&quot;bin&quot;</span>: {\n    <span class=\"hljs-comment\">// 需要作为命令行调用，要添加 bin</span>\n    <span class=\"hljs-string\">&quot;simple-cli&quot;</span>: <span class=\"hljs-string\">&quot;./index.js&quot;</span>\n  }\n}\n</code></pre><p>创建相应文件，最后目录结构可以是这样的：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">.\n├── index.js\n├── lib\n│   └── init.js\n├── node_modules\n├── package.json\n└── yarn.lock</code></pre><h1 id=\"开发\">开发<a name=\"开发\" class=\"headerlink\" href=\"#开发\"></a></h1><h2 id=\"创建命令行工具\">创建命令行工具<a name=\"创建命令行工具\" class=\"headerlink\" href=\"#创建命令行工具\"></a></h2><p>可以直接使用<code>node ./index.js</code>进行运行，也可以使用<code>yarn link</code>后直接通过<code>simple-cli</code>进行使用（<code>yarn unlink</code>可以进行取消）。</p>\n<p><code>index.js</code>：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-meta\">#!/usr/bin/env node</span>\n<span class=\"hljs-comment\">// 因为是作为命令行调用的，在第一行加上 #!/usr/bin/env node</span>\n<span class=\"hljs-meta\">\n&quot;use strict&quot;</span>;\n<span class=\"hljs-keyword\">const</span> program = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&quot;commander&quot;</span>);\n<span class=\"hljs-keyword\">const</span> packageJSON = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&quot;./package.json&quot;</span>);\n<span class=\"hljs-keyword\">const</span> init = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&quot;./lib/cmd/init&quot;</span>);\n\nprogram.<span class=\"hljs-title function_\">version</span>(packageJSON.<span class=\"hljs-property\">version</span>).<span class=\"hljs-title function_\">usage</span>(<span class=\"hljs-string\">&quot;&lt;command&gt; [options]&quot;</span>);\n\nprogram\n  .<span class=\"hljs-title function_\">command</span>(<span class=\"hljs-string\">&quot;init&quot;</span>)\n  .<span class=\"hljs-title function_\">description</span>(<span class=\"hljs-string\">&quot;创建新新项目&quot;</span>)\n  .<span class=\"hljs-title function_\">alias</span>(<span class=\"hljs-string\">&quot;i&quot;</span>)\n  .<span class=\"hljs-title function_\">action</span>(<span class=\"hljs-function\">() =&gt;</span> {\n    <span class=\"hljs-comment\">// 接收到 init 命令执行 init() 方法</span>\n    <span class=\"hljs-title function_\">init</span>();\n  });\n\nprogram.<span class=\"hljs-title function_\">parse</span>(process.<span class=\"hljs-property\">argv</span>);\n\n<span class=\"hljs-keyword\">if</span> (program.<span class=\"hljs-property\">args</span>.<span class=\"hljs-property\">length</span> == <span class=\"hljs-number\">0</span>) {\n  <span class=\"hljs-comment\">// 这里是处理没有输入参数命令的时候，显示 help</span>\n  program.<span class=\"hljs-title function_\">help</span>();\n}</code></pre><p><code>./lib/init.js</code>：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-meta\">&quot;use strict&quot;</span>;\n\n<span class=\"hljs-comment\">// 导出一个方法</span>\n<span class=\"hljs-variable language_\">module</span>.<span class=\"hljs-property\">exports</span> = <span class=\"hljs-function\">() =&gt;</span> {};</code></pre><p>执行<code>simple-cli</code>：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ simple-cli\n\n  Usage: simple-cli &lt;<span class=\"hljs-built_in\">command</span>&gt; [options]\n\n  Options:\n\n    -V, --version  output the version number\n    -h, --<span class=\"hljs-built_in\">help</span>     output usage information\n\n  Commands:\n\n    init|i         创建新新项目</code></pre><blockquote>\n<p>如<code>yarn link</code>之后使用<code>simple-cli</code>提示<code>permission denied: simple-cli</code>，那么需要对 linked file 执行<code>chmod +x ./index.js</code>。</p>\n</blockquote>\n<h2 id=\"添加模板\">添加模板<a name=\"添加模板\" class=\"headerlink\" href=\"#添加模板\"></a></h2><p>根目录添加<code>templates/templateA/</code>，最终的目录结构：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">.\n├── index.js\n├── lib\n│   └── init.js\n├── node_modules\n├── package.json\n├── templates\n│   └── templateA\n└── yarn.lock</code></pre><p>简单添加一个模板<code>templateA</code>：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">.\n├── CONTRIBUTING.md\n├── README.md\n├── _package.json\n├── nwb.config.js\n├── src\n└── tests\n\n<span class=\"hljs-comment\"># 注意：</span>\n<span class=\"hljs-comment\"># 1. _package.json，_ 开头的文件通过 copy-template-dir 拷贝后会自动删除 _。</span>\n<span class=\"hljs-comment\"># 2. 文件中类似 {{变量名}} 的地方可通过 copy-template-dir 自动注入信息。</span></code></pre><h2 id=\"定义<code>init.js</code>\">定义<code>init.js</code><a name=\"定义<code>init.js</code>\" class=\"headerlink\" href=\"#定义<code>init.js</code>\"></a></h2><pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-meta\">&quot;use strict&quot;</span>;\n\n<span class=\"hljs-keyword\">const</span> { exec } = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&quot;child_process&quot;</span>);\n<span class=\"hljs-keyword\">const</span> co = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&quot;co&quot;</span>);\n<span class=\"hljs-keyword\">const</span> prompt = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&quot;co-prompt&quot;</span>);\n<span class=\"hljs-keyword\">const</span> copy = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&quot;copy-template-dir&quot;</span>);\n<span class=\"hljs-keyword\">const</span> path = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&quot;path&quot;</span>);\n\n<span class=\"hljs-variable language_\">module</span>.<span class=\"hljs-property\">exports</span> = <span class=\"hljs-function\">() =&gt;</span> {\n  <span class=\"hljs-title function_\">co</span>(<span class=\"hljs-keyword\">function</span>*() {\n    <span class=\"hljs-comment\">// 处理用户输入</span>\n    <span class=\"hljs-keyword\">const</span> projectName = <span class=\"hljs-keyword\">yield</span> <span class=\"hljs-title function_\">prompt</span>(<span class=\"hljs-string\">&quot;Project name: &quot;</span>);\n    <span class=\"hljs-keyword\">const</span> description = <span class=\"hljs-keyword\">yield</span> <span class=\"hljs-title function_\">prompt</span>(<span class=\"hljs-string\">&quot;Description: &quot;</span>);\n\n    <span class=\"hljs-comment\">// 执行 simple-cli 时所处的路径</span>\n    <span class=\"hljs-keyword\">const</span> currentPath = path.<span class=\"hljs-title function_\">resolve</span>(process.<span class=\"hljs-title function_\">cwd</span>(), <span class=\"hljs-string\">&quot;./&quot;</span>);\n    <span class=\"hljs-comment\">// 模板路径</span>\n    <span class=\"hljs-keyword\">const</span> templateDir = path.<span class=\"hljs-title function_\">resolve</span>(__dirname, <span class=\"hljs-string\">&quot;../templates/templateA&quot;</span>);\n    <span class=\"hljs-comment\">// 输出路径</span>\n    <span class=\"hljs-keyword\">const</span> outDir = path.<span class=\"hljs-title function_\">resolve</span>(currentPath, projectName);\n    <span class=\"hljs-comment\">// 粘贴模板时注入的信息</span>\n    <span class=\"hljs-keyword\">const</span> values = {\n      <span class=\"hljs-attr\">name</span>: projectName,\n      description\n    };\n\n    <span class=\"hljs-comment\">// 拷贝模板</span>\n    <span class=\"hljs-title function_\">copy</span>(path.<span class=\"hljs-title function_\">resolve</span>(templateDir), outDir, values, <span class=\"hljs-function\">(<span class=\"hljs-params\">err, createdFiles</span>) =&gt;</span> {\n      <span class=\"hljs-keyword\">if</span> (err) {\n        process.<span class=\"hljs-title function_\">exit</span>(<span class=\"hljs-number\">1</span>);\n      }\n\n      createdFiles.<span class=\"hljs-title function_\">forEach</span>(<span class=\"hljs-function\"><span class=\"hljs-params\">filePath</span> =&gt;</span> <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">`Created <span class=\"hljs-subst\">${filePath}</span>`</span>));\n\n      <span class=\"hljs-comment\">// Node.js 执行命令</span>\n      <span class=\"hljs-keyword\">const</span> cmdStr = <span class=\"hljs-string\">`cd <span class=\"hljs-subst\">${outDir}</span> &amp;&amp; yarn`</span>;\n      <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">`now excuting: <span class=\"hljs-subst\">${cmdStr}</span>`</span>);\n      <span class=\"hljs-title function_\">exec</span>(cmdStr, <span class=\"hljs-function\"><span class=\"hljs-params\">error</span> =&gt;</span> {\n        <span class=\"hljs-keyword\">if</span> (error) {\n          process.<span class=\"hljs-title function_\">exit</span>(<span class=\"hljs-number\">1</span>);\n        }\n\n        <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&quot;\\n √ Generation completed!&quot;</span>);\n        process.<span class=\"hljs-title function_\">exit</span>(<span class=\"hljs-number\">0</span>);\n      });\n    });\n  });\n};</code></pre><h1 id=\"使用\">使用<a name=\"使用\" class=\"headerlink\" href=\"#使用\"></a></h1><pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ simple-cli init\n\nProject name: <span class=\"hljs-built_in\">test</span>\nDescription: some description\nCreated /Users/daief/Desktop/test/.travis.yml\nCreated /Users/daief/Desktop/test/README.md\nCreated /Users/daief/Desktop/test/CONTRIBUTING.md\nCreated /Users/daief/Desktop/test/package.json\nCreated /Users/daief/Desktop/test/nwb.config.js\nCreated /Users/daief/Desktop/test/tests/.eslintrc\nCreated /Users/daief/Desktop/test/tests/App-test.js\nCreated /Users/daief/Desktop/test/src/App.css\nCreated /Users/daief/Desktop/test/src/App.js\nCreated /Users/daief/Desktop/test/src/index.css\nCreated /Users/daief/Desktop/test/src/index.html\nCreated /Users/daief/Desktop/test/src/index.js\nCreated /Users/daief/Desktop/test/src/react.svg\nnow excuting: <span class=\"hljs-built_in\">cd</span> /Users/daief/Desktop/test &amp;&amp; yarn\n\n √ Generation completed!</code></pre><h1 id=\"结束\">结束<a name=\"结束\" class=\"headerlink\" href=\"#结束\"></a></h1><p>一个炒鸡简单的脚手架就完成了，还同时了解了如何通过 Node.js 构建一个交互式的命令行工具。</p>\n<p>另，还可以添加<a href=\"https://github.com/chalk/chalk\">chalk</a>来美化命令行的输出，又或是发布到 npm 分享给小伙伴使用。</p>\n<p>项目地址：<a href=\"https://github.com/daief/simple-cli\">https://github.com/daief/simple-cli</a>。</p>\n<p>Thanks. 😃</p>\n","hash":"74b3cadc8770c2832c858e3d5e3bc0b8","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"encapsulate-setTimeout-with-promise","slug":"post/encapsulate-setTimeout-with-promise","path":"/post/encapsulate-setTimeout-with-promise","title":"使用promise封装setTimeout","comments":true,"published":true,"date":"2018-08-21T22:17:59.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"a5a3f0f287a448982aac520cffe4779a","name":"Promise","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>使用 Promise 对 setTimeout 进行封装，从而支持链式的调用。</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">delay</span> = (<span class=\"hljs-params\">func, millisec, options</span>) =&gt; {\n  <span class=\"hljs-keyword\">let</span> timer = <span class=\"hljs-number\">0</span>\n  <span class=\"hljs-keyword\">let</span> reject = <span class=\"hljs-literal\">null</span>\n  <span class=\"hljs-keyword\">const</span> promise = <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Promise</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">resolve, _reject</span>) =&gt;</span> {\n    reject = _reject\n    timer = <span class=\"hljs-built_in\">setTimeout</span>(<span class=\"hljs-function\">() =&gt;</span> {\n      <span class=\"hljs-title function_\">resolve</span>(<span class=\"hljs-title function_\">func</span>(options))\n    }, millisec)\n  })\n\n  <span class=\"hljs-keyword\">return</span> {\n    <span class=\"hljs-keyword\">get</span> <span class=\"hljs-title function_\">promise</span>() {\n      <span class=\"hljs-keyword\">return</span> promise\n    },\n    <span class=\"hljs-title function_\">cancel</span>(<span class=\"hljs-params\"></span>) {\n      <span class=\"hljs-keyword\">if</span> (timer) {\n        <span class=\"hljs-built_in\">clearTimeout</span>(timer)\n        timer = <span class=\"hljs-number\">0</span>\n        <span class=\"hljs-title function_\">reject</span>(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Error</span>(<span class=\"hljs-string\">&#x27;timer is cancelled&#x27;</span>))\n        reject = <span class=\"hljs-literal\">null</span>\n      }\n    },\n  }\n}</code></pre><p>使用🌰：</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> d = <span class=\"hljs-title function_\">delay</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">{a, b}</span>) =&gt;</span> {\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(a, b)\n  <span class=\"hljs-keyword\">return</span> a + b\n}, <span class=\"hljs-number\">2000</span>, {<span class=\"hljs-attr\">a</span>: <span class=\"hljs-number\">1</span>, <span class=\"hljs-attr\">b</span>: <span class=\"hljs-number\">3</span>})\n\nd.<span class=\"hljs-property\">promise</span>.<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">result</span>) =&gt;</span> {\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&#x27;result&#x27;</span>, result)\n}).<span class=\"hljs-title function_\">catch</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">err</span>) =&gt;</span> {\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(err)\n})\n\n<span class=\"hljs-comment\">// cancel</span>\n<span class=\"hljs-comment\">// setTimeout(() =&gt; {</span>\n<span class=\"hljs-comment\">//   d.cancel()</span>\n<span class=\"hljs-comment\">// }, 1000)</span></code></pre>","more":"","hash":"9ba631ac47c7a3d0d8944d90e3b28661","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"10-things-you-will-eventually-learn-about-javascript-projects","slug":"post/10-things-you-will-eventually-learn-about-javascript-projects","path":"/post/10-things-you-will-eventually-learn-about-javascript-projects","title":"[译] 前端编程中 10 条你需要了解的原则","comments":true,"published":true,"date":"2018-09-01T14:44:29.000Z","updated":"","tags":[{"id":"8b3607d0f4181a3cb6ffdccf7185f09b","name":"翻译","postCount":1,"postIds":[]}],"categories":[{"id":"8b3607d0f4181a3cb6ffdccf7185f09b","name":"翻译","slug":"categories/翻译","path":"/categories/翻译","parentId":"","postCount":1,"postIds":[]}],"excerpt":"<blockquote>\n<p>原文：<a href=\"https://blog.usejournal.com/10-things-you-will-eventually-learn-about-javascript-projects-efd7646b958a\">10 things you will eventually learn about javascript projects</a>\n翻译仅供学习</p>\n</blockquote>\n","more":"","hash":"7413f39f94d169699de9f370f997ab0a","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">简单的前端脚手架</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2018-08-31</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span>，</span><!--]--><!--[--><a href="/categories/JavaScript" class="unset">JavaScript</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>从零搭建一个简单的脚手架工具，像<code>vue-cli</code>一样，一个命令就能变出一个完整结构的初始项目。流行的脚手架工具有很多实用的功能，这里要说的是最基本的一项：通过一个命令快速创建出初始项目。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h1 id="简单的思路">简单的思路<a name="简单的思路" class="headerlink" href="#简单的思路"></a></h1><ol>
+<li>借助 Node.js 实现命令行的交互，读取使用者输入，可以做一些生成项目时的配置；</li>
+<li>复制预设的模板文件，根据用户输入做出一些配置，最后粘贴到指定位置。</li>
+</ol>
+<h1 id="初始化项目">初始化项目<a name="初始化项目" class="headerlink" href="#初始化项目"></a></h1><p>创建空目录<code>simple-cli</code>并初始化：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ <span class="hljs-built_in">mkdir</span> simple-cli &amp;&amp; <span class="hljs-built_in">cd</span> simple-cli &amp;&amp; yarn init -y</code></pre><p>安装相关依赖：</p>
+<ol>
+<li><a href="https://github.com/tj/commander.js/">commander</a>：一个快速开发 Node.js 命令行工具的库；</li>
+<li><a href="https://github.com/tj/co">co</a>：用同步的方式编写异步流程的代码；</li>
+<li><a href="https://github.com/tj/co-prompt">co-prompt</a>：在命令行提供提示信息并接收用户输入；</li>
+<li><a href="https://github.com/yoshuawuyts/copy-template-dir">copy-template-dir</a>：复制整个目录到指定路径，并且能够通过变量注入信息。</li>
+</ol>
+<p>在<code>simple-cli/</code>：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ yarn add commander co co-prompt copy-template-dir</code></pre><p>在<code>package.json</code>中添加<code>bin</code>：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;">{
+  <span class="hljs-string">&quot;name&quot;</span>: <span class="hljs-string">&quot;simple-cli&quot;</span>,
+  <span class="hljs-string">&quot;version&quot;</span>: <span class="hljs-string">&quot;1.0.0&quot;</span>,
+  <span class="hljs-string">&quot;license&quot;</span>: <span class="hljs-string">&quot;MIT&quot;</span>,
+  <span class="hljs-string">&quot;dependencies&quot;</span>: {
+    <span class="hljs-string">&quot;co&quot;</span>: <span class="hljs-string">&quot;^4.6.0&quot;</span>,
+    <span class="hljs-string">&quot;co-prompt&quot;</span>: <span class="hljs-string">&quot;^1.0.0&quot;</span>,
+    <span class="hljs-string">&quot;commander&quot;</span>: <span class="hljs-string">&quot;^2.17.1&quot;</span>,
+    <span class="hljs-string">&quot;copy-template-dir&quot;</span>: <span class="hljs-string">&quot;^1.4.0&quot;</span>
+  },
+  <span class="hljs-string">&quot;bin&quot;</span>: {
+    <span class="hljs-comment">// 需要作为命令行调用，要添加 bin</span>
+    <span class="hljs-string">&quot;simple-cli&quot;</span>: <span class="hljs-string">&quot;./index.js&quot;</span>
+  }
+}
+</code></pre><p>创建相应文件，最后目录结构可以是这样的：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">.
+├── index.js
+├── lib
+│   └── init.js
+├── node_modules
+├── package.json
+└── yarn.lock</code></pre><h1 id="开发">开发<a name="开发" class="headerlink" href="#开发"></a></h1><h2 id="创建命令行工具">创建命令行工具<a name="创建命令行工具" class="headerlink" href="#创建命令行工具"></a></h2><p>可以直接使用<code>node ./index.js</code>进行运行，也可以使用<code>yarn link</code>后直接通过<code>simple-cli</code>进行使用（<code>yarn unlink</code>可以进行取消）。</p>
+<p><code>index.js</code>：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-meta">#!/usr/bin/env node</span>
+<span class="hljs-comment">// 因为是作为命令行调用的，在第一行加上 #!/usr/bin/env node</span>
+<span class="hljs-meta">
+&quot;use strict&quot;</span>;
+<span class="hljs-keyword">const</span> program = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;commander&quot;</span>);
+<span class="hljs-keyword">const</span> packageJSON = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;./package.json&quot;</span>);
+<span class="hljs-keyword">const</span> init = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;./lib/cmd/init&quot;</span>);
+
+program.<span class="hljs-title function_">version</span>(packageJSON.<span class="hljs-property">version</span>).<span class="hljs-title function_">usage</span>(<span class="hljs-string">&quot;&lt;command&gt; [options]&quot;</span>);
+
+program
+  .<span class="hljs-title function_">command</span>(<span class="hljs-string">&quot;init&quot;</span>)
+  .<span class="hljs-title function_">description</span>(<span class="hljs-string">&quot;创建新新项目&quot;</span>)
+  .<span class="hljs-title function_">alias</span>(<span class="hljs-string">&quot;i&quot;</span>)
+  .<span class="hljs-title function_">action</span>(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-comment">// 接收到 init 命令执行 init() 方法</span>
+    <span class="hljs-title function_">init</span>();
+  });
+
+program.<span class="hljs-title function_">parse</span>(process.<span class="hljs-property">argv</span>);
+
+<span class="hljs-keyword">if</span> (program.<span class="hljs-property">args</span>.<span class="hljs-property">length</span> == <span class="hljs-number">0</span>) {
+  <span class="hljs-comment">// 这里是处理没有输入参数命令的时候，显示 help</span>
+  program.<span class="hljs-title function_">help</span>();
+}</code></pre><p><code>./lib/init.js</code>：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-meta">&quot;use strict&quot;</span>;
+
+<span class="hljs-comment">// 导出一个方法</span>
+<span class="hljs-variable language_">module</span>.<span class="hljs-property">exports</span> = <span class="hljs-function">() =&gt;</span> {};</code></pre><p>执行<code>simple-cli</code>：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ simple-cli
+
+  Usage: simple-cli &lt;<span class="hljs-built_in">command</span>&gt; [options]
+
+  Options:
+
+    -V, --version  output the version number
+    -h, --<span class="hljs-built_in">help</span>     output usage information
+
+  Commands:
+
+    init|i         创建新新项目</code></pre><blockquote>
+<p>如<code>yarn link</code>之后使用<code>simple-cli</code>提示<code>permission denied: simple-cli</code>，那么需要对 linked file 执行<code>chmod +x ./index.js</code>。</p>
+</blockquote>
+<h2 id="添加模板">添加模板<a name="添加模板" class="headerlink" href="#添加模板"></a></h2><p>根目录添加<code>templates/templateA/</code>，最终的目录结构：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">.
+├── index.js
+├── lib
+│   └── init.js
+├── node_modules
+├── package.json
+├── templates
+│   └── templateA
+└── yarn.lock</code></pre><p>简单添加一个模板<code>templateA</code>：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">.
+├── CONTRIBUTING.md
+├── README.md
+├── _package.json
+├── nwb.config.js
+├── src
+└── tests
+
+<span class="hljs-comment"># 注意：</span>
+<span class="hljs-comment"># 1. _package.json，_ 开头的文件通过 copy-template-dir 拷贝后会自动删除 _。</span>
+<span class="hljs-comment"># 2. 文件中类似 {{变量名}} 的地方可通过 copy-template-dir 自动注入信息。</span></code></pre><h2 id="定义<code>init.js</code>">定义<code>init.js</code><a name="定义<code>init.js</code>" class="headerlink" href="#定义<code>init.js</code>"></a></h2><pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-meta">&quot;use strict&quot;</span>;
+
+<span class="hljs-keyword">const</span> { exec } = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;child_process&quot;</span>);
+<span class="hljs-keyword">const</span> co = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;co&quot;</span>);
+<span class="hljs-keyword">const</span> prompt = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;co-prompt&quot;</span>);
+<span class="hljs-keyword">const</span> copy = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;copy-template-dir&quot;</span>);
+<span class="hljs-keyword">const</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;path&quot;</span>);
+
+<span class="hljs-variable language_">module</span>.<span class="hljs-property">exports</span> = <span class="hljs-function">() =&gt;</span> {
+  <span class="hljs-title function_">co</span>(<span class="hljs-keyword">function</span>*() {
+    <span class="hljs-comment">// 处理用户输入</span>
+    <span class="hljs-keyword">const</span> projectName = <span class="hljs-keyword">yield</span> <span class="hljs-title function_">prompt</span>(<span class="hljs-string">&quot;Project name: &quot;</span>);
+    <span class="hljs-keyword">const</span> description = <span class="hljs-keyword">yield</span> <span class="hljs-title function_">prompt</span>(<span class="hljs-string">&quot;Description: &quot;</span>);
+
+    <span class="hljs-comment">// 执行 simple-cli 时所处的路径</span>
+    <span class="hljs-keyword">const</span> currentPath = path.<span class="hljs-title function_">resolve</span>(process.<span class="hljs-title function_">cwd</span>(), <span class="hljs-string">&quot;./&quot;</span>);
+    <span class="hljs-comment">// 模板路径</span>
+    <span class="hljs-keyword">const</span> templateDir = path.<span class="hljs-title function_">resolve</span>(__dirname, <span class="hljs-string">&quot;../templates/templateA&quot;</span>);
+    <span class="hljs-comment">// 输出路径</span>
+    <span class="hljs-keyword">const</span> outDir = path.<span class="hljs-title function_">resolve</span>(currentPath, projectName);
+    <span class="hljs-comment">// 粘贴模板时注入的信息</span>
+    <span class="hljs-keyword">const</span> values = {
+      <span class="hljs-attr">name</span>: projectName,
+      description
+    };
+
+    <span class="hljs-comment">// 拷贝模板</span>
+    <span class="hljs-title function_">copy</span>(path.<span class="hljs-title function_">resolve</span>(templateDir), outDir, values, <span class="hljs-function">(<span class="hljs-params">err, createdFiles</span>) =&gt;</span> {
+      <span class="hljs-keyword">if</span> (err) {
+        process.<span class="hljs-title function_">exit</span>(<span class="hljs-number">1</span>);
+      }
+
+      createdFiles.<span class="hljs-title function_">forEach</span>(<span class="hljs-function"><span class="hljs-params">filePath</span> =&gt;</span> <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`Created <span class="hljs-subst">${filePath}</span>`</span>));
+
+      <span class="hljs-comment">// Node.js 执行命令</span>
+      <span class="hljs-keyword">const</span> cmdStr = <span class="hljs-string">`cd <span class="hljs-subst">${outDir}</span> &amp;&amp; yarn`</span>;
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`now excuting: <span class="hljs-subst">${cmdStr}</span>`</span>);
+      <span class="hljs-title function_">exec</span>(cmdStr, <span class="hljs-function"><span class="hljs-params">error</span> =&gt;</span> {
+        <span class="hljs-keyword">if</span> (error) {
+          process.<span class="hljs-title function_">exit</span>(<span class="hljs-number">1</span>);
+        }
+
+        <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;\n √ Generation completed!&quot;</span>);
+        process.<span class="hljs-title function_">exit</span>(<span class="hljs-number">0</span>);
+      });
+    });
+  });
+};</code></pre><h1 id="使用">使用<a name="使用" class="headerlink" href="#使用"></a></h1><pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ simple-cli init
+
+Project name: <span class="hljs-built_in">test</span>
+Description: some description
+Created /Users/daief/Desktop/test/.travis.yml
+Created /Users/daief/Desktop/test/README.md
+Created /Users/daief/Desktop/test/CONTRIBUTING.md
+Created /Users/daief/Desktop/test/package.json
+Created /Users/daief/Desktop/test/nwb.config.js
+Created /Users/daief/Desktop/test/tests/.eslintrc
+Created /Users/daief/Desktop/test/tests/App-test.js
+Created /Users/daief/Desktop/test/src/App.css
+Created /Users/daief/Desktop/test/src/App.js
+Created /Users/daief/Desktop/test/src/index.css
+Created /Users/daief/Desktop/test/src/index.html
+Created /Users/daief/Desktop/test/src/index.js
+Created /Users/daief/Desktop/test/src/react.svg
+now excuting: <span class="hljs-built_in">cd</span> /Users/daief/Desktop/test &amp;&amp; yarn
+
+ √ Generation completed!</code></pre><h1 id="结束">结束<a name="结束" class="headerlink" href="#结束"></a></h1><p>一个炒鸡简单的脚手架就完成了，还同时了解了如何通过 Node.js 构建一个交互式的命令行工具。</p>
+<p>另，还可以添加<a href="https://github.com/chalk/chalk">chalk</a>来美化命令行的输出，又或是发布到 npm 分享给小伙伴使用。</p>
+<p>项目地址：<a href="https://github.com/daief/simple-cli">https://github.com/daief/simple-cli</a>。</p>
+<p>Thanks. 😃</p>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/JavaScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> JavaScript</a><a href="/tags/Node.js" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> Node.js</a><a href="/tags/CLI" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> CLI</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/encapsulate-setTimeout-with-promise" class="unset">使用promise封装setTimeout</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/10-things-you-will-eventually-learn-about-javascript-projects" class="unset">[译] 前端编程中 10 条你需要了解的原则</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

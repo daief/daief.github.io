@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>[译] 前端编程中 10 条你需要了解的原则 | daief的个人日志</title><meta property="og:title" content="[译] 前端编程中 10 条你需要了解的原则 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"10-things-you-will-eventually-learn-about-javascript-projects","slug":"post/10-things-you-will-eventually-learn-about-javascript-projects","path":"/post/10-things-you-will-eventually-learn-about-javascript-projects","title":"[译] 前端编程中 10 条你需要了解的原则","comments":true,"published":true,"date":"2018-09-01T14:44:29.000Z","updated":"","tags":[{"id":"8b3607d0f4181a3cb6ffdccf7185f09b","name":"翻译","postCount":1,"postIds":[]}],"categories":[{"id":"8b3607d0f4181a3cb6ffdccf7185f09b","name":"翻译","slug":"categories/翻译","path":"/categories/翻译","parentId":"","postCount":1,"postIds":[]}],"excerpt":"<blockquote>\n<p>原文：<a href=\"https://blog.usejournal.com/10-things-you-will-eventually-learn-about-javascript-projects-efd7646b958a\">10 things you will eventually learn about javascript projects</a>\n翻译仅供学习</p>\n</blockquote>\n","more":"\n\n<p><strong>JavaScript 编程是一场冒险</strong>。在各个行业经历了近十年从业余到专业的发展之后，我相信每个人都愿意同意我的这一观点。</p>\n<p>前端工程给了我们很多选择的自由，灵活性以及大量的创造性。但想要发挥这些特性需要我们同时具备一些<strong>专业知识（knowledge）</strong>，<strong>规划（planning）</strong>和<strong>自我责任感（self-responsibility）</strong>。</p>\n<p>一路走来我们经历 jQuery、require.js、Angulars、React、ExtJs 等等，还有很多其他的库我已不记得（或者说我选择不去回忆）——因为在今天（2018 年）的前端我已经看到了许多不可思议的事情，百家争鸣。而我们很可能已经接触过其中的某些方面。</p>\n<p>总是存在一些<strong>通用的模式，使得一些即使不协调的项目也能获得一定的可管理性</strong>。接下来将要表述的是一份关于如何做到这点的列表，总共包含 10 条类目。这些主要来源我个人的开发经验，所以一定程度上是主观的，但我相信有经验的开发者都会认同我。这些模式能够为一个项目提供牢固的基础，适用于任一框架、方法、团队规模，并能够减少文档编写、代码重构的需求、以及开发者的眼泪（争吵）。</p>\n<p>我希望今天你能都学到一些新的东西，并且是对你有帮助的，最后能够用上这些去创造很赞的事。💪</p>\n<h2 id=\"分而治之（Divide and conquer）\">分而治之（Divide and conquer）<a name=\"分而治之（Divide and conquer）\" class=\"headerlink\" href=\"#分而治之（Divide and conquer）\"></a></h2><p>大多数人一定听过这个，但是有一些人看起来低估了这条原则。CommonJS，Webpack 和 Node 已经允许我们将代码分离、写在了多个文件，为什么我们还要来关心这一点?</p>\n<p><strong>一致性（Consistency）</strong>。将项目划分为一个个单导出（single-export）的文件，这使得搜索和依赖管理变得十分简单，即使是在代码库的规模持续增长的时候。为文件命名时遵循它唯一导出的内容，能让文件变得<strong>直观（intuitive）</strong>，在遍历架构时这还有助于减少脑力的消耗、降低大脑负担。</p>\n<p><strong>管理性（Management）</strong>。将每个导出分离到各个文件，可以在必要的时候移动它的位置，还能促进解耦。当在应用程序的不同部分需要你的辅助函数时，你可以很容易地创建一个分享（Shared）目录，然后把文件拖进来，使其他部分的代码可以访问到它。</p>\n<h2 id=\"让事情变得直观、明显（Make things embarrassingly obvious）\">让事情变得直观、明显（Make things embarrassingly obvious）<a name=\"让事情变得直观、明显（Make things embarrassingly obvious）\" class=\"headerlink\" href=\"#让事情变得直观、明显（Make things embarrassingly obvious）\"></a></h2><p><strong>要花时间给每一个变量、方法、文件命名，就像是给你刚出生的婴儿取名字一样用心</strong>。在今天，你可能节省了 0.3 秒来调用一个变量“x”，但是一个月以后你可能就要花两天时间来试图搞清楚它的含义，再花上四天时间去重构代码。<strong>提前思考，不要害怕太长的变量名</strong>。</p>\n<p><strong>避免使用高深的方式，即使这能让你考虑申请麻省理工（MIT）</strong>。你的方案也许是十分精巧而复杂的，但在未来的某一天，你和你的团队可能要话费大量时间去搞懂这段代码所做的事情。<strong>专注于把事情做得简单，甚至不需要文档和注释的说明</strong>。</p>\n<h2 id=\"处理魔幻数字和字符（Resolve magic numbers and strings）\">处理魔幻数字和字符（Resolve magic numbers and strings）<a name=\"处理魔幻数字和字符（Resolve magic numbers and strings）\" class=\"headerlink\" href=\"#处理魔幻数字和字符（Resolve magic numbers and strings）\"></a></h2><p>与命名规则有点像似，不要在你的代码里使用魔幻数字和字符。<strong>不管一个值是的意义是多么小而简单，也要把它设置成一个变量、取一个有意义的名字，并把它放到当前作用域的顶端</strong>。</p>\n<p>大多数时候，<strong>你代码中声明的变量会被其他地方重用</strong>。所以，马上把他们设置为变量，减少代码重复、增强可维护性。</p>\n<h2 id=\"消除多层嵌套（Fight nesting）\">消除多层嵌套（Fight nesting）<a name=\"消除多层嵌套（Fight nesting）\" class=\"headerlink\" href=\"#消除多层嵌套（Fight nesting）\"></a></h2><p>如果你的一段代码一行超多 120 字符，行数超过 500，或者<strong>你的 if 语句多余三层，那么你最好要将其分离</strong>。</p>\n<p>你可以这样处理拥有复杂条件判断的代码，把多层嵌套的 if 语句分离到函数（functions）、Promises 或 Observables。如果你使用了大量的异步回调，async / await 能十分有效地帮助你简化代码。</p>\n<h2 id=\"解决难以配置（Configure hard）\">解决难以配置（Configure hard）<a name=\"解决难以配置（Configure hard）\" class=\"headerlink\" href=\"#解决难以配置（Configure hard）\"></a></h2><p>如果你的应用使用了全局变量、API、功能开关或是一些第三方认证，应该把这些抽离到一个单独的配置文件。</p>\n<p>有很多包能同时在 web 和 node 帮助进行配置管理，像是<a href=\"https://www.npmjs.com/package/config\">config</a>。有些时候你的配置文件应该需要做到让应用在服务端运行或是本地进行开发。更早地创建配置文件比后期才进行要更好，提早开始能让你对比如环境区分、认证、功能开关等配置有机会做出调整。</p>\n<h2 id=\"框架可以提供帮助（Frameworks are there to help）\">框架可以提供帮助（Frameworks are there to help）<a name=\"框架可以提供帮助（Frameworks are there to help）\" class=\"headerlink\" href=\"#框架可以提供帮助（Frameworks are there to help）\"></a></h2><p>太多时候你可以看到一个框架被使用仅仅是因为有人知道它、或是框架很受欢迎。</p>\n<p>花时间好好考虑下你的项目是否需要使用框架或是真正需要使用哪个框架。终端用户很少关心你的网站是否使用了一个在 Github 上超过 10 万星星的框架。根据经验，我将一些框架和库分开，如下：</p>\n<ul>\n<li><strong>React</strong>：当你需要<strong>完全控制架构并且使用组件去构建 web 应用时</strong>，你可以选择 React。<strong>但是在上手之前你需要话费不少时间去熟悉 React 的生态圈</strong>。当然在这之后，React 也会给予相应的回馈，如果你知道你正在做什么。</li>\n<li><strong>Angular / VueJS / Ember</strong>：当你需要<strong>快速构建一个可靠的 web 应用</strong>时，你可以选择这些。但作为交换，你得允许一个大的黑盒而不是一个架构。这些框架能为你做很多事情，但你得权衡这种方式带来的利弊。与 React 相比，他们的结构更加严格缺少自由，但可以让你少犯错误。</li>\n<li><strong>jQuery / lodash / 其他相似的库</strong>：当你需要快速开发<strong>网页并节约网页传输大小</strong>，这些库比较适合。这些能减少很多开发时间，但需要担忧的是，这些库会允许你写出难以维护的代码，所以你应该把这些作为辅助而不是基础。</li>\n<li><strong>Vanilla / 不适用框架</strong>：当你能<strong>花费大量时间来开发和规划</strong>，同时适用于 web 应用和网页开发。当你的项目涉及一些<strong>实验性</strong>的功能时，比如 WebGL，Workers、深度优化、浏览器动画等，纯 JavaScript 是一个不错的选择。以这种方式，最终你可能会<strong>创造出自己的框架</strong>。在转换器（transpilers）的帮助下，这可能是 jQuery 更好、更轻量级的替代。</li>\n</ul>\n<p>把这一项作为建议，要经过深思熟虑决定框架的选择和使用。</p>\n<h2 id=\"为原型以外的内容编写测试（Unless it is a prototype — write tests）\">为原型以外的内容编写测试（Unless it is a prototype — write tests）<a name=\"为原型以外的内容编写测试（Unless it is a prototype — write tests）\" class=\"headerlink\" href=\"#为原型以外的内容编写测试（Unless it is a prototype — write tests）\"></a></h2><p>单元测试、冒烟测试、端到端测试、完整性检验。除非你的项目只是一个即将被重写的原型，否则加上测试。<strong>随着复杂度的增加，代码将变得更加难以控制和维护，而测试能做到这些</strong>。</p>\n<p>在未来的某一天，你遇到了一个 bug，抬头看着万里无云的蓝天，你会感谢过去的你自己所写的测试。因为你从未意识到究竟有多少代码在你添加新功能之后默默崩溃了。</p>\n<h2 id=\"使用版本控制（Use version control）\">使用版本控制（Use version control）<a name=\"使用版本控制（Use version control）\" class=\"headerlink\" href=\"#使用版本控制（Use version control）\"></a></h2><p>对于无论是原型，全面的企业 web 应用，还是一个小型的、娱乐的项目，从每一次的第一行代码开始，就使用 git 或是其他版本控制进行管理。保持日常的提交，使用分支，学习合并、解决冲突和版本回退。<strong>每次提交写上有意义的提交信息</strong>。</p>\n<p>版本控制允许你进行时间旅行，保存破坏性改动（broken things），查看过去的改动。如果你在这篇文章中只记得一件事，那一定要是<strong>学习版本控制的基础知识并在每日的工作去使用它</strong>。为什么？因为即使你忽略了文章其他部分的内容而出错了，<strong>只要有版本控制在你就能修复</strong>。然而，如果没有它，那你注定只能从头开始。</p>\n<h2 id=\"负责地管理状态（Manage state responsibly）\">负责地管理状态（Manage state responsibly）<a name=\"负责地管理状态（Manage state responsibly）\" class=\"headerlink\" href=\"#负责地管理状态（Manage state responsibly）\"></a></h2><p><strong>为状态管理寻找一种方式或一些库，并坚持下去，就像你的生命要依赖它一样——因为，有时候，可能真的是这样</strong>。</p>\n<p>作为前端开发者，我们经常面临两种挑战：<strong>展示数据和存储数据</strong>。随之时间的推移，后者会变得越来越难维护，因为我们太容易去忽略它了。也就是说，几个月后，你的项目将变得几乎无法维护。</p>\n<p>数据存储（状态管理）是非常棘手的。我们的应用通常要在<strong>用户看到的数据和服务器的数据之间保持同步</strong>。我们的目标是不在中间层加入过多复杂的逻辑。<strong>组件应该使用一组相同的数据，同步用户做出的改变，同时也要反馈服务器做出的改变</strong>。该如何才能做到这样？</p>\n<ul>\n<li>对于 React，有一个十分开放的生态圈，提供了大量的解决方案：基于 Flex 架构的 <strong>Redux</strong>；基于观察者模式（observable-based）的 <strong>Mobx</strong>。每一种方案都有它各自的利弊，<strong>在使用之前请一定要学习并理解这些库的基本知识</strong>。</li>\n<li><strong>Angular，Ember，和 VueJS</strong> 有他们内建的状态管理方案，基于 <strong>Observables</strong>。虽然不是很必要，也有一些额外的库可以使用，比如 ngRx，Akita 和 Vuex。</li>\n<li>对于任何一种其他的框架或是 Vanilla JavaScript，你也可以使用 Redux，Mobx，或是你自己的状态管理方案。主要目标是要保证<strong>整个应用有一个相同的数据来源，保持数据的一致性</strong>。</li>\n</ul>\n<h2 id=\"保持质疑（Question trends）\">保持质疑（Question trends）<a name=\"保持质疑（Question trends）\" class=\"headerlink\" href=\"#保持质疑（Question trends）\"></a></h2><p>在这最后说的是，<strong>要倾听和学习来自社区的内容，但是同时要保持思考和质疑的态度，包括你读到的每一条评论、Medium 上的长文（也许这是一只猫写的呢），最后在你的编码中有所反馈</strong>。对于新的想法要保持开放态度，因为前端的生态圈总是变化很快，<strong>但也不能为了追逐新事物而去追逐</strong>，这已经导致了不少的项目被遗忘。</p>\n<p><strong>用一个老的、成熟的框架写一个项目，比起另一个只是因为新鲜而使用了两个框架的项目总是更好、更稳健的</strong>。虽然趋势上来说，新的框架往往提高了一些程序的性能，但它几乎不会影响一致性。坚持你的选择以保持高的可维护性，仅仅只在必要的时候作出调整，强调一下，只在必要的时候。</p>\n<hr>\n<p>完。🙂</p>\n<blockquote>\n<p>原文：<a href=\"https://blog.usejournal.com/10-things-you-will-eventually-learn-about-javascript-projects-efd7646b958a\">10 things you will eventually learn about javascript projects</a>\n翻译仅供学习</p>\n</blockquote>\n","hash":"7413f39f94d169699de9f370f997ab0a","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"a-simple-cli","slug":"post/a-simple-cli","path":"/post/a-simple-cli","title":"简单的前端脚手架","comments":true,"published":true,"date":"2018-08-31T22:53:34.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"3b2819dd4c24eda2faf2052eef449551","name":"Node.js","postCount":3,"postIds":[]},{"id":"91af5705f16502125e8b2187e64202c0","name":"CLI","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>从零搭建一个简单的脚手架工具，像<code>vue-cli</code>一样，一个命令就能变出一个完整结构的初始项目。流行的脚手架工具有很多实用的功能，这里要说的是最基本的一项：通过一个命令快速创建出初始项目。</p>\n","more":"","hash":"74b3cadc8770c2832c858e3d5e3bc0b8","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"declaration-files-of-typescript","slug":"post/declaration-files-of-typescript","path":"/post/declaration-files-of-typescript","title":"TypeScript 中的声明文件","comments":true,"published":true,"date":"2018-09-04T21:10:44.000Z","updated":"","tags":[{"id":"558b544cf685f39d34e4903e39c38b67","name":"TypeScript","postCount":6,"postIds":[]},{"id":"ebbca6b4fc70d03f049d2857fa3e9489","name":"declaration-files","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"558b544cf685f39d34e4903e39c38b67","name":"TypeScript","slug":"categories/TypeScript","path":"/categories/TypeScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":4,"postIds":[]}],"excerpt":"<p>学习 TypeScript 稍微有一段时间了，每次写都会碰到有关声明文件的问题，目前为止暂未完全搞清楚，在此记录一些相关问题，以后碰到能够迅速解决。</p>\n","more":"","hash":"e141cb5859a76e7ee025e59250a7c4ff","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">[译] 前端编程中 10 条你需要了解的原则</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2018-09-01</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/翻译" class="unset">翻译</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><blockquote>
+<p>原文：<a href="https://blog.usejournal.com/10-things-you-will-eventually-learn-about-javascript-projects-efd7646b958a">10 things you will eventually learn about javascript projects</a>
+翻译仅供学习</p>
+</blockquote>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<p><strong>JavaScript 编程是一场冒险</strong>。在各个行业经历了近十年从业余到专业的发展之后，我相信每个人都愿意同意我的这一观点。</p>
+<p>前端工程给了我们很多选择的自由，灵活性以及大量的创造性。但想要发挥这些特性需要我们同时具备一些<strong>专业知识（knowledge）</strong>，<strong>规划（planning）</strong>和<strong>自我责任感（self-responsibility）</strong>。</p>
+<p>一路走来我们经历 jQuery、require.js、Angulars、React、ExtJs 等等，还有很多其他的库我已不记得（或者说我选择不去回忆）——因为在今天（2018 年）的前端我已经看到了许多不可思议的事情，百家争鸣。而我们很可能已经接触过其中的某些方面。</p>
+<p>总是存在一些<strong>通用的模式，使得一些即使不协调的项目也能获得一定的可管理性</strong>。接下来将要表述的是一份关于如何做到这点的列表，总共包含 10 条类目。这些主要来源我个人的开发经验，所以一定程度上是主观的，但我相信有经验的开发者都会认同我。这些模式能够为一个项目提供牢固的基础，适用于任一框架、方法、团队规模，并能够减少文档编写、代码重构的需求、以及开发者的眼泪（争吵）。</p>
+<p>我希望今天你能都学到一些新的东西，并且是对你有帮助的，最后能够用上这些去创造很赞的事。💪</p>
+<h2 id="分而治之（Divide and conquer）">分而治之（Divide and conquer）<a name="分而治之（Divide and conquer）" class="headerlink" href="#分而治之（Divide and conquer）"></a></h2><p>大多数人一定听过这个，但是有一些人看起来低估了这条原则。CommonJS，Webpack 和 Node 已经允许我们将代码分离、写在了多个文件，为什么我们还要来关心这一点?</p>
+<p><strong>一致性（Consistency）</strong>。将项目划分为一个个单导出（single-export）的文件，这使得搜索和依赖管理变得十分简单，即使是在代码库的规模持续增长的时候。为文件命名时遵循它唯一导出的内容，能让文件变得<strong>直观（intuitive）</strong>，在遍历架构时这还有助于减少脑力的消耗、降低大脑负担。</p>
+<p><strong>管理性（Management）</strong>。将每个导出分离到各个文件，可以在必要的时候移动它的位置，还能促进解耦。当在应用程序的不同部分需要你的辅助函数时，你可以很容易地创建一个分享（Shared）目录，然后把文件拖进来，使其他部分的代码可以访问到它。</p>
+<h2 id="让事情变得直观、明显（Make things embarrassingly obvious）">让事情变得直观、明显（Make things embarrassingly obvious）<a name="让事情变得直观、明显（Make things embarrassingly obvious）" class="headerlink" href="#让事情变得直观、明显（Make things embarrassingly obvious）"></a></h2><p><strong>要花时间给每一个变量、方法、文件命名，就像是给你刚出生的婴儿取名字一样用心</strong>。在今天，你可能节省了 0.3 秒来调用一个变量“x”，但是一个月以后你可能就要花两天时间来试图搞清楚它的含义，再花上四天时间去重构代码。<strong>提前思考，不要害怕太长的变量名</strong>。</p>
+<p><strong>避免使用高深的方式，即使这能让你考虑申请麻省理工（MIT）</strong>。你的方案也许是十分精巧而复杂的，但在未来的某一天，你和你的团队可能要话费大量时间去搞懂这段代码所做的事情。<strong>专注于把事情做得简单，甚至不需要文档和注释的说明</strong>。</p>
+<h2 id="处理魔幻数字和字符（Resolve magic numbers and strings）">处理魔幻数字和字符（Resolve magic numbers and strings）<a name="处理魔幻数字和字符（Resolve magic numbers and strings）" class="headerlink" href="#处理魔幻数字和字符（Resolve magic numbers and strings）"></a></h2><p>与命名规则有点像似，不要在你的代码里使用魔幻数字和字符。<strong>不管一个值是的意义是多么小而简单，也要把它设置成一个变量、取一个有意义的名字，并把它放到当前作用域的顶端</strong>。</p>
+<p>大多数时候，<strong>你代码中声明的变量会被其他地方重用</strong>。所以，马上把他们设置为变量，减少代码重复、增强可维护性。</p>
+<h2 id="消除多层嵌套（Fight nesting）">消除多层嵌套（Fight nesting）<a name="消除多层嵌套（Fight nesting）" class="headerlink" href="#消除多层嵌套（Fight nesting）"></a></h2><p>如果你的一段代码一行超多 120 字符，行数超过 500，或者<strong>你的 if 语句多余三层，那么你最好要将其分离</strong>。</p>
+<p>你可以这样处理拥有复杂条件判断的代码，把多层嵌套的 if 语句分离到函数（functions）、Promises 或 Observables。如果你使用了大量的异步回调，async / await 能十分有效地帮助你简化代码。</p>
+<h2 id="解决难以配置（Configure hard）">解决难以配置（Configure hard）<a name="解决难以配置（Configure hard）" class="headerlink" href="#解决难以配置（Configure hard）"></a></h2><p>如果你的应用使用了全局变量、API、功能开关或是一些第三方认证，应该把这些抽离到一个单独的配置文件。</p>
+<p>有很多包能同时在 web 和 node 帮助进行配置管理，像是<a href="https://www.npmjs.com/package/config">config</a>。有些时候你的配置文件应该需要做到让应用在服务端运行或是本地进行开发。更早地创建配置文件比后期才进行要更好，提早开始能让你对比如环境区分、认证、功能开关等配置有机会做出调整。</p>
+<h2 id="框架可以提供帮助（Frameworks are there to help）">框架可以提供帮助（Frameworks are there to help）<a name="框架可以提供帮助（Frameworks are there to help）" class="headerlink" href="#框架可以提供帮助（Frameworks are there to help）"></a></h2><p>太多时候你可以看到一个框架被使用仅仅是因为有人知道它、或是框架很受欢迎。</p>
+<p>花时间好好考虑下你的项目是否需要使用框架或是真正需要使用哪个框架。终端用户很少关心你的网站是否使用了一个在 Github 上超过 10 万星星的框架。根据经验，我将一些框架和库分开，如下：</p>
+<ul>
+<li><strong>React</strong>：当你需要<strong>完全控制架构并且使用组件去构建 web 应用时</strong>，你可以选择 React。<strong>但是在上手之前你需要话费不少时间去熟悉 React 的生态圈</strong>。当然在这之后，React 也会给予相应的回馈，如果你知道你正在做什么。</li>
+<li><strong>Angular / VueJS / Ember</strong>：当你需要<strong>快速构建一个可靠的 web 应用</strong>时，你可以选择这些。但作为交换，你得允许一个大的黑盒而不是一个架构。这些框架能为你做很多事情，但你得权衡这种方式带来的利弊。与 React 相比，他们的结构更加严格缺少自由，但可以让你少犯错误。</li>
+<li><strong>jQuery / lodash / 其他相似的库</strong>：当你需要快速开发<strong>网页并节约网页传输大小</strong>，这些库比较适合。这些能减少很多开发时间，但需要担忧的是，这些库会允许你写出难以维护的代码，所以你应该把这些作为辅助而不是基础。</li>
+<li><strong>Vanilla / 不适用框架</strong>：当你能<strong>花费大量时间来开发和规划</strong>，同时适用于 web 应用和网页开发。当你的项目涉及一些<strong>实验性</strong>的功能时，比如 WebGL，Workers、深度优化、浏览器动画等，纯 JavaScript 是一个不错的选择。以这种方式，最终你可能会<strong>创造出自己的框架</strong>。在转换器（transpilers）的帮助下，这可能是 jQuery 更好、更轻量级的替代。</li>
+</ul>
+<p>把这一项作为建议，要经过深思熟虑决定框架的选择和使用。</p>
+<h2 id="为原型以外的内容编写测试（Unless it is a prototype — write tests）">为原型以外的内容编写测试（Unless it is a prototype — write tests）<a name="为原型以外的内容编写测试（Unless it is a prototype — write tests）" class="headerlink" href="#为原型以外的内容编写测试（Unless it is a prototype — write tests）"></a></h2><p>单元测试、冒烟测试、端到端测试、完整性检验。除非你的项目只是一个即将被重写的原型，否则加上测试。<strong>随着复杂度的增加，代码将变得更加难以控制和维护，而测试能做到这些</strong>。</p>
+<p>在未来的某一天，你遇到了一个 bug，抬头看着万里无云的蓝天，你会感谢过去的你自己所写的测试。因为你从未意识到究竟有多少代码在你添加新功能之后默默崩溃了。</p>
+<h2 id="使用版本控制（Use version control）">使用版本控制（Use version control）<a name="使用版本控制（Use version control）" class="headerlink" href="#使用版本控制（Use version control）"></a></h2><p>对于无论是原型，全面的企业 web 应用，还是一个小型的、娱乐的项目，从每一次的第一行代码开始，就使用 git 或是其他版本控制进行管理。保持日常的提交，使用分支，学习合并、解决冲突和版本回退。<strong>每次提交写上有意义的提交信息</strong>。</p>
+<p>版本控制允许你进行时间旅行，保存破坏性改动（broken things），查看过去的改动。如果你在这篇文章中只记得一件事，那一定要是<strong>学习版本控制的基础知识并在每日的工作去使用它</strong>。为什么？因为即使你忽略了文章其他部分的内容而出错了，<strong>只要有版本控制在你就能修复</strong>。然而，如果没有它，那你注定只能从头开始。</p>
+<h2 id="负责地管理状态（Manage state responsibly）">负责地管理状态（Manage state responsibly）<a name="负责地管理状态（Manage state responsibly）" class="headerlink" href="#负责地管理状态（Manage state responsibly）"></a></h2><p><strong>为状态管理寻找一种方式或一些库，并坚持下去，就像你的生命要依赖它一样——因为，有时候，可能真的是这样</strong>。</p>
+<p>作为前端开发者，我们经常面临两种挑战：<strong>展示数据和存储数据</strong>。随之时间的推移，后者会变得越来越难维护，因为我们太容易去忽略它了。也就是说，几个月后，你的项目将变得几乎无法维护。</p>
+<p>数据存储（状态管理）是非常棘手的。我们的应用通常要在<strong>用户看到的数据和服务器的数据之间保持同步</strong>。我们的目标是不在中间层加入过多复杂的逻辑。<strong>组件应该使用一组相同的数据，同步用户做出的改变，同时也要反馈服务器做出的改变</strong>。该如何才能做到这样？</p>
+<ul>
+<li>对于 React，有一个十分开放的生态圈，提供了大量的解决方案：基于 Flex 架构的 <strong>Redux</strong>；基于观察者模式（observable-based）的 <strong>Mobx</strong>。每一种方案都有它各自的利弊，<strong>在使用之前请一定要学习并理解这些库的基本知识</strong>。</li>
+<li><strong>Angular，Ember，和 VueJS</strong> 有他们内建的状态管理方案，基于 <strong>Observables</strong>。虽然不是很必要，也有一些额外的库可以使用，比如 ngRx，Akita 和 Vuex。</li>
+<li>对于任何一种其他的框架或是 Vanilla JavaScript，你也可以使用 Redux，Mobx，或是你自己的状态管理方案。主要目标是要保证<strong>整个应用有一个相同的数据来源，保持数据的一致性</strong>。</li>
+</ul>
+<h2 id="保持质疑（Question trends）">保持质疑（Question trends）<a name="保持质疑（Question trends）" class="headerlink" href="#保持质疑（Question trends）"></a></h2><p>在这最后说的是，<strong>要倾听和学习来自社区的内容，但是同时要保持思考和质疑的态度，包括你读到的每一条评论、Medium 上的长文（也许这是一只猫写的呢），最后在你的编码中有所反馈</strong>。对于新的想法要保持开放态度，因为前端的生态圈总是变化很快，<strong>但也不能为了追逐新事物而去追逐</strong>，这已经导致了不少的项目被遗忘。</p>
+<p><strong>用一个老的、成熟的框架写一个项目，比起另一个只是因为新鲜而使用了两个框架的项目总是更好、更稳健的</strong>。虽然趋势上来说，新的框架往往提高了一些程序的性能，但它几乎不会影响一致性。坚持你的选择以保持高的可维护性，仅仅只在必要的时候作出调整，强调一下，只在必要的时候。</p>
+<hr>
+<p>完。🙂</p>
+<blockquote>
+<p>原文：<a href="https://blog.usejournal.com/10-things-you-will-eventually-learn-about-javascript-projects-efd7646b958a">10 things you will eventually learn about javascript projects</a>
+翻译仅供学习</p>
+</blockquote>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/翻译" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> 翻译</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/a-simple-cli" class="unset">简单的前端脚手架</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/declaration-files-of-typescript" class="unset">TypeScript 中的声明文件</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

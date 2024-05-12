@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>webpack学习 | daief的个人日志</title><meta property="og:title" content="webpack学习 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"learn-webpack","slug":"post/learn-webpack","path":"/post/learn-webpack","title":"webpack学习","comments":true,"published":true,"date":"2017-07-20T16:52:48.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"424516ca53b4ad4bef37ed04f8795a88","name":"webpack","postCount":2,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<blockquote>\n<p>webpack 是近期最火的一款模块加载器兼打包工具，它能把各种资源，例如 JS（含 JSX）、coffee、样式（含 less/sass）、图片等都作为模块来使用和处理。\n我们可以直接使用 require(XXX) 的形式来引入各模块，即使它们可能需要经过编译（比如 JSX 和 sass），但我们无须在上面花费太多心思，因为 webpack 有着各种健全的加载器（loader）在默默处理这些事情。</p>\n</blockquote>\n<p><a href=\"http://webpack.github.io/\">webpack 官网</a></p>\n","more":"\n\n<p><a href=\"https://github.com/daief/webpack-demo\">webpack-demo</a>\n-- <a href=\"https://github.com/ruanyf/webpack-demos\">参考仓库 https://github.com/ruanyf/webpack-demos</a>\n运行 demo 需要先进入目录执行<code>npm install</code>安装依赖</p>\n<h2 id=\"全局安装 webpack 和 webpack-dev-server\">全局安装 webpack 和 webpack-dev-server<a name=\"全局安装 webpack 和 webpack-dev-server\" class=\"headerlink\" href=\"#全局安装 webpack 和 webpack-dev-server\"></a></h2><pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\"><span class=\"hljs-comment\">#全局安装</span>\nnpm i -g webpack webpack-dev-server</code></pre><p>启动服务器，在 <a href=\"http://127.0.0.1:8080\">http://127.0.0.1:8080</a> 查看运行效果</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ webpack-dev-server</code></pre><p>打包生成 bundle.js</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ webpack</code></pre><h2 id=\"entry file\">entry file<a name=\"entry file\" class=\"headerlink\" href=\"#entry file\"></a></h2><p>Webpack 遵循 webpack.config.js 的配置来构建生成 bundle.js —— <a href=\"https://github.com/daief/webpack-demo/tree/master/demo1\">demo1</a></p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-comment\">// webpack.config.js</span>\n<span class=\"hljs-variable language_\">module</span>.<span class=\"hljs-property\">exports</span> = {\n  <span class=\"hljs-attr\">entry</span>: <span class=\"hljs-string\">&#x27;./main.js&#x27;</span>,\n  <span class=\"hljs-attr\">output</span>: {\n    <span class=\"hljs-attr\">filename</span>: <span class=\"hljs-string\">&#x27;bundle.js&#x27;</span>,\n  },\n};</code></pre><p>多个入口文件(Multiple entry files) <a href=\"https://github.com/daief/webpack-demo/tree/master/demo2\">demo2</a>\nwebpack.config.js</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-variable language_\">module</span>.<span class=\"hljs-property\">exports</span> = {\n  <span class=\"hljs-attr\">entry</span>: {\n    <span class=\"hljs-attr\">bundle1</span>: <span class=\"hljs-string\">&#x27;./main1.js&#x27;</span>,\n    <span class=\"hljs-attr\">bundle2</span>: <span class=\"hljs-string\">&#x27;./main2.js&#x27;</span>,\n  },\n  <span class=\"hljs-attr\">output</span>: {\n    <span class=\"hljs-attr\">filename</span>: <span class=\"hljs-string\">&#x27;[name].js&#x27;</span>,\n  },\n};</code></pre><h2 id=\"Babel-loader\">Babel-loader<a name=\"Babel-loader\" class=\"headerlink\" href=\"#Babel-loader\"></a></h2><p>Loaders 是能够将你 app 的资源文件进行转换的预处理程序。比如 Babel-loader 可以将 JSX/ES6 文件转换成 js 文件。 <a href=\"https://github.com/daief/webpack-demo/tree/master/demo3\">demo3</a></p>\n<p>webpack.config.js 暂时还不清楚 module 的写法</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-variable language_\">module</span>.<span class=\"hljs-property\">exports</span> = {\n  <span class=\"hljs-attr\">entry</span>: <span class=\"hljs-string\">&#x27;./main.jsx&#x27;</span>,\n  <span class=\"hljs-attr\">output</span>: {\n    <span class=\"hljs-attr\">filename</span>: <span class=\"hljs-string\">&#x27;bundle.js&#x27;</span>,\n  },\n  <span class=\"hljs-attr\">module</span>: {\n    <span class=\"hljs-attr\">loaders</span>: [\n      {\n        <span class=\"hljs-attr\">test</span>: <span class=\"hljs-regexp\">/\\.js[x]?$/</span>,\n        <span class=\"hljs-attr\">exclude</span>: <span class=\"hljs-regexp\">/node_modules/</span>,\n        <span class=\"hljs-attr\">loader</span>: <span class=\"hljs-string\">&#x27;babel-loader?presets[]=es2015&amp;presets[]=react&#x27;</span>,\n      },\n    ],\n  },\n};</code></pre><blockquote>\n<p>运行之前确保安装了相关依赖模块</p>\n</blockquote>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">npm install --save react react-dom\nnpm install --save-dev babel-core babel-loader babel-preset-es2015 babel-preset</code></pre><h2 id=\"CSS-loader\">CSS-loader<a name=\"CSS-loader\" class=\"headerlink\" href=\"#CSS-loader\"></a></h2><p>Webpack 允许在 js 文件中 require CSS 文件，之后使用 CSS-loader 预处理 CSS 文件\n<a href=\"https://github.com/daief/webpack-demo/tree/master/demo4\">demo4</a>\n你必须要两个 loaders 去转换 CSS 文件。第一个是 CSS-loader 去读取 CSS 文件，另一个是 Style-loader 去插入样式标签到 HTML 页面。</p>\n<p>webpack.config.js</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-variable language_\">module</span>.<span class=\"hljs-property\">exports</span> = {\n  <span class=\"hljs-attr\">entry</span>: <span class=\"hljs-string\">&#x27;./main.js&#x27;</span>,\n  <span class=\"hljs-attr\">output</span>: {\n    <span class=\"hljs-attr\">filename</span>: <span class=\"hljs-string\">&#x27;bundle.js&#x27;</span>,\n  },\n  <span class=\"hljs-attr\">module</span>: {\n    <span class=\"hljs-attr\">loaders</span>: [{ <span class=\"hljs-attr\">test</span>: <span class=\"hljs-regexp\">/\\.css$/</span>, <span class=\"hljs-attr\">loader</span>: <span class=\"hljs-string\">&#x27;style-loader!css-loader&#x27;</span> }],\n  },\n};</code></pre>","hash":"25e655ed0f5b0814eb0fb35a6b1d4810","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"build-a-vue-project","slug":"post/build-a-vue-project","path":"/post/build-a-vue-project","title":"Vue, vue-router, vuex项目构建","comments":true,"published":true,"date":"2017-07-20T16:48:54.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"2d8ec58babcec05d3fe8f712968de749","name":"Vue","postCount":5,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<blockquote>\n<p>Vue.js（读音 /vjuː/，类似于 view） 是一套构建用户界面的渐进式框架。与其他重量级框架不同的是，Vue 采用自底向上增量开发的设计。Vue 的核心库只关注视图层，它不仅易于上手，还便于与第三方库或既有项目整合。另一方面，当与单文件组件和 Vue 生态系统支持的库结合使用时，Vue 也完全能够为复杂的单页应用程序提供驱动。\n本篇记录如何构建 vue，vue-router，vuex 项目的步骤。</p>\n</blockquote>\n","more":"","hash":"6a4e1d1ce772d100ae5a55e2165b3f0c","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"record-of-vue-music","slug":"post/record-of-vue-music","path":"/post/record-of-vue-music","title":"vue-music记录","comments":true,"published":true,"date":"2017-09-04T19:39:02.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"558b544cf685f39d34e4903e39c38b67","name":"TypeScript","postCount":6,"postIds":[]},{"id":"2d8ec58babcec05d3fe8f712968de749","name":"Vue","postCount":5,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>使用 Vue（2.x）全家桶，仿造网易云音乐 pc 网页版制作的一个单页应用，接口使用<a href=\"https://github.com/Binaryify/NeteaseCloudMusicApi\">NeteaseCloudMusicApi</a>。</p>\n<p><del>演示链接</del>\n<a href=\"https://github.com/daief/vue-music\">项目链接</a></p>\n","more":"","hash":"aebdd1f1c413052863eb33fc0f758003","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">webpack学习</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2017-07-20</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><blockquote>
+<p>webpack 是近期最火的一款模块加载器兼打包工具，它能把各种资源，例如 JS（含 JSX）、coffee、样式（含 less/sass）、图片等都作为模块来使用和处理。
+我们可以直接使用 require(XXX) 的形式来引入各模块，即使它们可能需要经过编译（比如 JSX 和 sass），但我们无须在上面花费太多心思，因为 webpack 有着各种健全的加载器（loader）在默默处理这些事情。</p>
+</blockquote>
+<p><a href="http://webpack.github.io/">webpack 官网</a></p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<p><a href="https://github.com/daief/webpack-demo">webpack-demo</a>
+-- <a href="https://github.com/ruanyf/webpack-demos">参考仓库 https://github.com/ruanyf/webpack-demos</a>
+运行 demo 需要先进入目录执行<code>npm install</code>安装依赖</p>
+<h2 id="全局安装 webpack 和 webpack-dev-server">全局安装 webpack 和 webpack-dev-server<a name="全局安装 webpack 和 webpack-dev-server" class="headerlink" href="#全局安装 webpack 和 webpack-dev-server"></a></h2><pre class="hljs language-bash" hljs-language="bash"><code style="display:block;"><span class="hljs-comment">#全局安装</span>
+npm i -g webpack webpack-dev-server</code></pre><p>启动服务器，在 <a href="http://127.0.0.1:8080">http://127.0.0.1:8080</a> 查看运行效果</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ webpack-dev-server</code></pre><p>打包生成 bundle.js</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ webpack</code></pre><h2 id="entry file">entry file<a name="entry file" class="headerlink" href="#entry file"></a></h2><p>Webpack 遵循 webpack.config.js 的配置来构建生成 bundle.js —— <a href="https://github.com/daief/webpack-demo/tree/master/demo1">demo1</a></p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-comment">// webpack.config.js</span>
+<span class="hljs-variable language_">module</span>.<span class="hljs-property">exports</span> = {
+  <span class="hljs-attr">entry</span>: <span class="hljs-string">&#x27;./main.js&#x27;</span>,
+  <span class="hljs-attr">output</span>: {
+    <span class="hljs-attr">filename</span>: <span class="hljs-string">&#x27;bundle.js&#x27;</span>,
+  },
+};</code></pre><p>多个入口文件(Multiple entry files) <a href="https://github.com/daief/webpack-demo/tree/master/demo2">demo2</a>
+webpack.config.js</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-variable language_">module</span>.<span class="hljs-property">exports</span> = {
+  <span class="hljs-attr">entry</span>: {
+    <span class="hljs-attr">bundle1</span>: <span class="hljs-string">&#x27;./main1.js&#x27;</span>,
+    <span class="hljs-attr">bundle2</span>: <span class="hljs-string">&#x27;./main2.js&#x27;</span>,
+  },
+  <span class="hljs-attr">output</span>: {
+    <span class="hljs-attr">filename</span>: <span class="hljs-string">&#x27;[name].js&#x27;</span>,
+  },
+};</code></pre><h2 id="Babel-loader">Babel-loader<a name="Babel-loader" class="headerlink" href="#Babel-loader"></a></h2><p>Loaders 是能够将你 app 的资源文件进行转换的预处理程序。比如 Babel-loader 可以将 JSX/ES6 文件转换成 js 文件。 <a href="https://github.com/daief/webpack-demo/tree/master/demo3">demo3</a></p>
+<p>webpack.config.js 暂时还不清楚 module 的写法</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-variable language_">module</span>.<span class="hljs-property">exports</span> = {
+  <span class="hljs-attr">entry</span>: <span class="hljs-string">&#x27;./main.jsx&#x27;</span>,
+  <span class="hljs-attr">output</span>: {
+    <span class="hljs-attr">filename</span>: <span class="hljs-string">&#x27;bundle.js&#x27;</span>,
+  },
+  <span class="hljs-attr">module</span>: {
+    <span class="hljs-attr">loaders</span>: [
+      {
+        <span class="hljs-attr">test</span>: <span class="hljs-regexp">/\.js[x]?$/</span>,
+        <span class="hljs-attr">exclude</span>: <span class="hljs-regexp">/node_modules/</span>,
+        <span class="hljs-attr">loader</span>: <span class="hljs-string">&#x27;babel-loader?presets[]=es2015&amp;presets[]=react&#x27;</span>,
+      },
+    ],
+  },
+};</code></pre><blockquote>
+<p>运行之前确保安装了相关依赖模块</p>
+</blockquote>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">npm install --save react react-dom
+npm install --save-dev babel-core babel-loader babel-preset-es2015 babel-preset</code></pre><h2 id="CSS-loader">CSS-loader<a name="CSS-loader" class="headerlink" href="#CSS-loader"></a></h2><p>Webpack 允许在 js 文件中 require CSS 文件，之后使用 CSS-loader 预处理 CSS 文件
+<a href="https://github.com/daief/webpack-demo/tree/master/demo4">demo4</a>
+你必须要两个 loaders 去转换 CSS 文件。第一个是 CSS-loader 去读取 CSS 文件，另一个是 Style-loader 去插入样式标签到 HTML 页面。</p>
+<p>webpack.config.js</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-variable language_">module</span>.<span class="hljs-property">exports</span> = {
+  <span class="hljs-attr">entry</span>: <span class="hljs-string">&#x27;./main.js&#x27;</span>,
+  <span class="hljs-attr">output</span>: {
+    <span class="hljs-attr">filename</span>: <span class="hljs-string">&#x27;bundle.js&#x27;</span>,
+  },
+  <span class="hljs-attr">module</span>: {
+    <span class="hljs-attr">loaders</span>: [{ <span class="hljs-attr">test</span>: <span class="hljs-regexp">/\.css$/</span>, <span class="hljs-attr">loader</span>: <span class="hljs-string">&#x27;style-loader!css-loader&#x27;</span> }],
+  },
+};</code></pre></div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/JavaScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> JavaScript</a><a href="/tags/webpack" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> webpack</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/build-a-vue-project" class="unset">Vue, vue-router, vuex项目构建</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/record-of-vue-music" class="unset">vue-music记录</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

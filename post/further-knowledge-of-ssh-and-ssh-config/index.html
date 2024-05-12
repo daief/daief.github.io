@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>进一步认识 SSH 和 SSH config | daief的个人日志</title><meta property="og:title" content="进一步认识 SSH 和 SSH config | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"further-knowledge-of-ssh-and-ssh-config","slug":"post/further-knowledge-of-ssh-and-ssh-config","path":"/post/further-knowledge-of-ssh-and-ssh-config","title":"进一步认识 SSH 和 SSH config","comments":true,"published":true,"date":"2022-12-22T10:53:04.000Z","updated":"","tags":[{"id":"765553e6c7ac8592c389acb9878a050a","name":"SSH","postCount":1,"postIds":[]}],"categories":[{"id":"edc9f0a5a5d57797bf68e37364743831","name":"Linux","slug":"categories/Linux","path":"/categories/Linux","parentId":"","postCount":4,"postIds":[]}],"excerpt":"<p>不知道有多少人和我一样，对 SSH key 的接触起始于 Git 的使用，反正是啥也不懂，跟着教程一顿敲：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ ssh-keygen -t rsa -b 2048 -C <span class=\"hljs-string\">&quot;xxxxxxxxxx@qq.com&quot;</span></code></pre><p>一路回车，然后把 <code>id_rsa.pub</code> 的内容填入到 Github/Gitlab 的设置里，就转头去使用 Git 了。</p>\n","more":"\n\n<h1 id=\"SSH\">SSH<a name=\"SSH\" class=\"headerlink\" href=\"#SSH\"></a></h1><p>先说 SSH，SSH（Secure Shell）是一种安全的网络协议，用于在网络上远程连接和管理计算机系统。它可以加密数据并确保数据传输的完整性，从而提供了一种安全的远程访问方式。</p>\n<p>通过使用 SSH，用户可以从本地计算机连接到远程计算机并在远程计算机上执行各种操作，例如查看、编辑和上传文件，安装软件，启动服务等等。SSH 还支持端口转发，允许用户通过 SSH 隧道访问本地网络资源，从而增强了网络安全性。</p>\n<p>SSH 协议使用公钥加密技术，使得数据传输过程中即使被窃听也不会被破解。同时，SSH 协议还提供了认证机制，确保只有授权用户才能访问远程计算机系统。</p>\n<p>由于其安全性和可靠性，SSH 已经成为远程管理和文件传输中最常用的协议之一，广泛应用于 Linux 和其他 Unix 系统中。</p>\n<p>在 Windows 上，可以通过安装 OpenSSH 以获得 SSH 的服务端/客户端能力。</p>\n<h2 id=\"SSH key\">SSH key<a name=\"SSH key\" class=\"headerlink\" href=\"#SSH key\"></a></h2><p>开头命令生成的内容就是 SSH key，公密钥组成一对，用于 SSH 连接，<code>id_rsa.pub</code> 就是公钥，<code>id_rsa</code> 是私钥，需要妥善保管。</p>\n<blockquote>\n<p>公钥加密技术也称非对称式密码学，它需要两个密钥，一个是公开密钥，另一个是私有密钥；公钥用作加密，私钥则用作解密。使用公钥把明文加密后所得的密文，只能用相对应的私钥才能解密并得到原本的明文，最初用来加密的公钥不能用作解密。由于加密和解密需要两个不同的密钥，故被称为非对称加密；不同于加密和解密都使用同一个密钥的对称加密。公钥可以公开，可任意向外发布；私钥不可以公开，必须由用户自行严格秘密保管，绝不透过任何途径向任何人提供，也不会透露给被信任的要通讯的另一方。</p>\n</blockquote>\n<p>前文只体现了非对称加密，但私钥从未暴露过，服务端是如何解密数据的呢？其实非对称加密只用于身份认证阶段，当建立了安全连接只会，数据都是通过对称加密传输的。这与加密方式的特性也有关系：</p>\n<ul>\n<li>非对称加密：加密和解密需要两个不同的密钥，故被称为非对称加密；私钥不需要公开，加密效率较低</li>\n<li>对称加密：加密和解密都使用同一个密钥，密钥需要经过网络传输，加密效率高</li>\n</ul>\n<h2 id=\"认证过程\">认证过程<a name=\"认证过程\" class=\"headerlink\" href=\"#认证过程\"></a></h2><p>SSH 连接有两种认证方式：密码认证和密钥认证，下面分别是两种方式的认证流程。</p>\n<p><strong>密码认证：</strong></p>\n<div class=\"mermaid\">%%{init: {'theme':'forest'}}%%\nsequenceDiagram\n  participant C as 客户端\n  participant S as 服务端\n  C ->> S: 发送连接请求（ssh root@x.x.x.x）\n\n  S ->> C: 发送服务端的公钥给客户端\n\n  Note left of C: 输入用户名 & 密码，<br />使用服务端公钥加密信息\n  C ->> S: 将密文发送回服务端\n\n  Note right of S: 服务度用自己的私钥解密并校验，通过则建立连接</div><p><strong>密钥认证（免密登录）：</strong></p>\n<div class=\"mermaid\">%%{init: {'theme':'forest'}}%%\nsequenceDiagram\n  participant C as 客户端\n  participant S as 服务端\n  Note left of C: 生成一对密钥，并将公钥上传到服务端，<br />保存到 ~/.ssh/authorized_keys 中\n  C ->> S: 发送连接请求（ssh root@x.x.x.x）\n\n  Note right of S: 服务端验证公钥是否存在，<br />存在则发送随机字符串（challenge）\n  S ->> C: 发送通过公钥加密字符串后的密文\n\n  Note left of C: 使用私钥解密密文，得到 challenge\n  C ->> S: 将结果发送给服务端\n\n  Note right of S: 校验通过，建立连接</div><p>当第一次登录某台服务器的时候，会出现如下提示：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">The authenticity of host <span class=\"hljs-string\">&#x27;x.x.x.x (x.x.x.x)&#x27;</span> can<span class=\"hljs-string\">&#x27;t be established.\nED25519 key fingerprint is SHA256:mewI2GS1WD86ckuE89JPn4CpljUqGngkQD4slRogDQE.\nThis key is not known by any other names</span></code></pre><p>这段话的意思是，无法确认 host 主机的真实性，只知道它的公钥指纹，是否继续连接？为什么会存在这个提示，是因为存在中间人攻击。</p>\n<blockquote>\n<p>中间人攻击：</p>\n<p>这个过程本身是安全的，但是实施的时候存在一个风险：如果有人截获了登录请求，然后冒充远程主机，将伪造的公钥发给用户，那么用户很难辨别真伪。因为不像 https 协议，SSH 协议的公钥是没有证书中心（CA）公证的，也就是说，都是自己签发的。</p>\n<p>可以设想，如果攻击者插在用户与远程主机之间（比如在公共的 wifi 区域），用伪造的公钥，获取用户的登录密码。再用这个密码登录远程主机，那么 SSH 的安全机制就荡然无存了。这种风险就是著名的中间人攻击。</p>\n</blockquote>\n<p>所以用户需要根据指纹来确定是否连接到了正确的主机，如果指纹不一致，就需要终止连接。</p>\n<p>又一个问题就是，用户怎么知道远程主机的公钥指纹应该是多少？回答是没有好办法，远程主机必须在自己的网站上贴出公钥指纹，以便用户自行核对。</p>\n<p>用户确认之后，继续并完成连接后，该主机以及公钥信息就会保存在 <code>~/.ssh/known_hosts</code>，后续连接也将不再出现提示：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">Warning: Permanently added <span class=\"hljs-string\">&#x27;x.x.x.x&#x27;</span> (ED25519) to the list of known hosts.</code></pre><h1 id=\"Git\">Git<a name=\"Git\" class=\"headerlink\" href=\"#Git\"></a></h1><p>再次回到开头的命令，命令的含义是指定使用 RSA 算法、长度 2048 生成一对密钥，<code>-C</code> 是可选的，指定注释信息，内容会追加在公钥后面：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ ssh-keygen -t rsa -b 2048 -C <span class=\"hljs-string\">&quot;xxxxxxxxxx@qq.com&quot;</span></code></pre><p>而对于 Git，推荐使用 SSH 的连接方式，故一般在入门 Git 时都会去使用 ssh-key 生成密钥对。</p>\n<p><img alt=\"git-clone.png\" loading=\"lazy\" title=\"git-clone.png\" class=\"post-image \" src=\"/images/0218373543f3a09bf311906d26091c81.git-clone.png\" onerror=\"this.onerror=null;this.src='/images/image-error.jpg';\"></p>\n<h1 id=\"使用 Ed25519 算法\">使用 Ed25519 算法<a name=\"使用 Ed25519 算法\" class=\"headerlink\" href=\"#使用 Ed25519 算法\"></a></h1><p>一般网上通过使用 ssh-key 生成密钥对时都使用 RSA 算法，RSA 经典且可靠，但性能不够理想。</p>\n<p><a href=\"https://leanpub.com/gocrypto/read#leanpub-auto-chapter-5-digital-signatures\">Practical Cryptography With Go </a>一书建议使用 ED25519 密钥，ED25519 比 RSA 更安全且性能更好。</p>\n<p>OpenSSH 6.5 在 2014 年开始支持 ED25519 SSH 密钥，目前应该在大多数操作系统上都能支持。</p>\n<p>为了使用 Ed25519 只需更改 <code>-t</code> 参数：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ <span class=\"hljs-built_in\">mkdir</span> -p ~/.ssh &amp;&amp; <span class=\"hljs-built_in\">cd</span> ~/.ssh\n\n$ ssh-keygen -t ed25519  -C <span class=\"hljs-string\">&quot;xxxxx@zz.com&quot;</span></code></pre><p>在生成密钥的时候，会提示输入密码，这个密码是用来保护私钥的，如果不想设置密码，直接回车即可。但为了安全考虑，十分有必要设置密码。这样即使私钥丢失或被盗，也不会轻易被他人使用。</p>\n<h1 id=\"管理多对 SSH key 和多个 Git 账户\">管理多对 SSH key 和多个 Git 账户<a name=\"管理多对 SSH key 和多个 Git 账户\" class=\"headerlink\" href=\"#管理多对 SSH key 和多个 Git 账户\"></a></h1><p>以 Git 为例，往往一个人会拥有多个平台的账号，比如 GitHub、GitLab、公司 Git 等，这时建议为每个服务生成一对专用的密钥。而多对密钥、多个 Git 账户的管理又是个新的问题，不过好在通过简单的配置，就能轻松解决了。</p>\n<p>首先针对不同平台生成秘银：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ <span class=\"hljs-built_in\">mkdir</span> -p ~/.ssh &amp;&amp; <span class=\"hljs-built_in\">cd</span> ~/.ssh\n\n<span class=\"hljs-comment\"># 我在 GitHub</span>\n$ ssh-keygen -t ed25519 -f my_github_ed25519  -C <span class=\"hljs-string\">&quot;me@github&quot;</span>\n\n<span class=\"hljs-comment\"># 我在 GitLab</span>\n$ ssh-keygen -t ed25519 -f my_gitlab_ed25519  -C <span class=\"hljs-string\">&quot;me@gitlab&quot;</span>\n\n<span class=\"hljs-comment\"># 我在企业</span>\n$ ssh-keygen -t ed25519 -f my_company_ed25519 -C <span class=\"hljs-string\">&quot;email@example.com&quot;</span></code></pre><p>编辑 <code>~/.ssh/config</code>：</p>\n<pre class=\"hljs language-shell\" hljs-language=\"shell\"><code style=\"display:block;\"><span class=\"hljs-meta prompt_\"># </span><span class=\"language-bash\">我在 GitHub</span>\nHost github.com\n  Hostname github.com\n  User git\n  PreferredAuthentications publickey\n  IdentityFile ~/.ssh/my_github_ed25519\n<span class=\"hljs-meta prompt_\">\n# </span><span class=\"language-bash\">我在 GitLab</span>\nHost gitlab.com\n  Hostname gitlab.com\n  User git\n  PreferredAuthentications publickey\n  IdentityFile ~/.ssh/my_gitlab_ed25519\n<span class=\"hljs-meta prompt_\">\n# </span><span class=\"language-bash\">我在企业</span>\nHost example.com\n  Hostname example.com\n  Port 22\n  User git\n  PreferredAuthentications publickey\n  IdentityFile ~/.ssh/my_company_ed25519</code></pre><p>如此一来 SSH 连接不同服务器时，就会自动使用相应的密钥了。</p>\n<p>而对于多个 Git 账户，可以通过配置 <code>~/.gitconfig</code> 来实现：</p>\n<pre class=\"hljs language-toml\" hljs-language=\"toml\"><code style=\"display:block;\"><span class=\"hljs-comment\"># 全局账户</span>\n<span class=\"hljs-section\">[user]</span>\n<span class=\"hljs-attr\">name</span>=daief\n<span class=\"hljs-attr\">email</span>=xxxxxxxx@qq.com\n\n<span class=\"hljs-comment\"># 以 / 结尾，否则不会生效，以 / 结尾，** 会被自动添加上，~/Desktop/codes/**</span>\n<span class=\"hljs-section\">[includeIf &quot;gitdir:~/Desktop/codes/&quot;]</span>\n<span class=\"hljs-attr\">path</span> = ~/Desktop/codes/.gitconfig\n\n<span class=\"hljs-section\">[includeIf &quot;gitdir:~/Documents/fe/projects/&quot;]</span>\n<span class=\"hljs-attr\">path</span> = ~/Documents/fe/projects/.gitconfig</code></pre><p>子配置分别是：</p>\n<pre class=\"hljs language-toml\" hljs-language=\"toml\"><code style=\"display:block;\"><span class=\"hljs-comment\"># ~/Desktop/codes/.gitconfig</span>\n<span class=\"hljs-section\">[user]</span>\n<span class=\"hljs-attr\">name</span>=user2\n<span class=\"hljs-attr\">email</span>=xxxxx2@qq.com\n\n<span class=\"hljs-comment\"># ~/Documents/fe/projects/.gitconfig</span>\n<span class=\"hljs-section\">[user]</span>\n<span class=\"hljs-attr\">name</span>=user3\n<span class=\"hljs-attr\">email</span>=xxxxx3@qq.com</code></pre><p>这样一来，当在 <code>~/Desktop/codes/</code> 目录下执行 Git 命令时，就会使用 <code>~/Desktop/codes/.gitconfig</code> 配置；而在 <code>~/Documents/fe/projects/</code> 目录下执行 Git 命令时，就会使用 <code>~/Documents/fe/projects/.gitconfig</code> 配置；否则就是使用全局配置。</p>\n<h1 id=\"总结\">总结<a name=\"总结\" class=\"headerlink\" href=\"#总结\"></a></h1><p>其实最开始只是寻找管理多个 Git 账号的解决方案，期间接触了不少别的知识，想着就干脆都了解一下，再整合记录一下。</p>\n<hr>\n<p>参考资料：</p>\n<ul>\n<li>SSH 认证原理：<a href=\"https://www.jianshu.com/p/d31de2601368\">https://www.jianshu.com/p/d31de2601368</a></li>\n<li>公开密钥加密：<a href=\"https://zh.wikipedia.org/zh-hans/%E5%85%AC%E5%BC%80%E5%AF%86%E9%92%A5%E5%8A%A0%E5%AF%86\">https://zh.wikipedia.org/zh-hans/%E5%85%AC%E5%BC%80%E5%AF%86%E9%92%A5%E5%8A%A0%E5%AF%86</a></li>\n<li>Install OpenSSH for Windows：<a href=\"https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse\">https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse</a></li>\n<li>Use SSH keys to communicate with GitLab：<a href=\"https://docs.gitlab.com/ee/user/ssh.html\">https://docs.gitlab.com/ee/user/ssh.html</a></li>\n<li>Ed25519：<a href=\"https://ed25519.cr.yp.to/\">https://ed25519.cr.yp.to/</a></li>\n<li>使用 Ed25519 算法生成你的 SSH 密钥：<a href=\"https://zhuanlan.zhihu.com/p/110413836\">https://zhuanlan.zhihu.com/p/110413836</a></li>\n<li>Multiple GitHub accounts on the same computer?：<a href=\"https://stackoverflow.com/questions/3860112/multiple-github-accounts-on-the-same-computer\">https://stackoverflow.com/questions/3860112/multiple-github-accounts-on-the-same-computer</a></li>\n</ul>\n","hash":"764b88a83225c7530143ae3dec7d28ee","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"ime-and-keydown-event","slug":"post/ime-and-keydown-event","path":"/post/ime-and-keydown-event","title":"输入法与 keydown 事件","comments":true,"published":true,"date":"2022-10-20T17:01:39.000Z","updated":"","tags":[],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>输入、回车提交，这是一组在搜索场景中常见、友好的交互形式，但要将其做好以获得更好的用户体验，还需要关注其中的小小细节。</p>\n","more":"","hash":"1bd48204dba8dd8ca9efa567b07e63e0","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"inno-setup","slug":"post/inno-setup","path":"/post/inno-setup","title":"Inno Setup","comments":true,"published":true,"date":"2023-04-07T11:28:06.000Z","updated":"","tags":[],"categories":[{"id":"ad7123e6c402c7d6c71d0a1032463ea3","name":"桌面开发","slug":"categories/桌面开发","path":"/categories/桌面开发","parentId":"","postCount":1,"postIds":[]}],"excerpt":"<p>最近工作上遇到了 Inno Setup，这对于我来说是个新东西，看不懂，那么就学一下吧。</p>\n","more":"","hash":"0c1c52bbcd5a2832d50b1e78b7b22d17","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">进一步认识 SSH 和 SSH config</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2022-12-22</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/Linux" class="unset">Linux</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>不知道有多少人和我一样，对 SSH key 的接触起始于 Git 的使用，反正是啥也不懂，跟着教程一顿敲：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ ssh-keygen -t rsa -b 2048 -C <span class="hljs-string">&quot;xxxxxxxxxx@qq.com&quot;</span></code></pre><p>一路回车，然后把 <code>id_rsa.pub</code> 的内容填入到 Github/Gitlab 的设置里，就转头去使用 Git 了。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h1 id="SSH">SSH<a name="SSH" class="headerlink" href="#SSH"></a></h1><p>先说 SSH，SSH（Secure Shell）是一种安全的网络协议，用于在网络上远程连接和管理计算机系统。它可以加密数据并确保数据传输的完整性，从而提供了一种安全的远程访问方式。</p>
+<p>通过使用 SSH，用户可以从本地计算机连接到远程计算机并在远程计算机上执行各种操作，例如查看、编辑和上传文件，安装软件，启动服务等等。SSH 还支持端口转发，允许用户通过 SSH 隧道访问本地网络资源，从而增强了网络安全性。</p>
+<p>SSH 协议使用公钥加密技术，使得数据传输过程中即使被窃听也不会被破解。同时，SSH 协议还提供了认证机制，确保只有授权用户才能访问远程计算机系统。</p>
+<p>由于其安全性和可靠性，SSH 已经成为远程管理和文件传输中最常用的协议之一，广泛应用于 Linux 和其他 Unix 系统中。</p>
+<p>在 Windows 上，可以通过安装 OpenSSH 以获得 SSH 的服务端/客户端能力。</p>
+<h2 id="SSH key">SSH key<a name="SSH key" class="headerlink" href="#SSH key"></a></h2><p>开头命令生成的内容就是 SSH key，公密钥组成一对，用于 SSH 连接，<code>id_rsa.pub</code> 就是公钥，<code>id_rsa</code> 是私钥，需要妥善保管。</p>
+<blockquote>
+<p>公钥加密技术也称非对称式密码学，它需要两个密钥，一个是公开密钥，另一个是私有密钥；公钥用作加密，私钥则用作解密。使用公钥把明文加密后所得的密文，只能用相对应的私钥才能解密并得到原本的明文，最初用来加密的公钥不能用作解密。由于加密和解密需要两个不同的密钥，故被称为非对称加密；不同于加密和解密都使用同一个密钥的对称加密。公钥可以公开，可任意向外发布；私钥不可以公开，必须由用户自行严格秘密保管，绝不透过任何途径向任何人提供，也不会透露给被信任的要通讯的另一方。</p>
+</blockquote>
+<p>前文只体现了非对称加密，但私钥从未暴露过，服务端是如何解密数据的呢？其实非对称加密只用于身份认证阶段，当建立了安全连接只会，数据都是通过对称加密传输的。这与加密方式的特性也有关系：</p>
+<ul>
+<li>非对称加密：加密和解密需要两个不同的密钥，故被称为非对称加密；私钥不需要公开，加密效率较低</li>
+<li>对称加密：加密和解密都使用同一个密钥，密钥需要经过网络传输，加密效率高</li>
+</ul>
+<h2 id="认证过程">认证过程<a name="认证过程" class="headerlink" href="#认证过程"></a></h2><p>SSH 连接有两种认证方式：密码认证和密钥认证，下面分别是两种方式的认证流程。</p>
+<p><strong>密码认证：</strong></p>
+<div class="mermaid">%%{init: {'theme':'forest'}}%%
+sequenceDiagram
+  participant C as 客户端
+  participant S as 服务端
+  C ->> S: 发送连接请求（ssh root@x.x.x.x）
+
+  S ->> C: 发送服务端的公钥给客户端
+
+  Note left of C: 输入用户名 & 密码，<br />使用服务端公钥加密信息
+  C ->> S: 将密文发送回服务端
+
+  Note right of S: 服务度用自己的私钥解密并校验，通过则建立连接</div><p><strong>密钥认证（免密登录）：</strong></p>
+<div class="mermaid">%%{init: {'theme':'forest'}}%%
+sequenceDiagram
+  participant C as 客户端
+  participant S as 服务端
+  Note left of C: 生成一对密钥，并将公钥上传到服务端，<br />保存到 ~/.ssh/authorized_keys 中
+  C ->> S: 发送连接请求（ssh root@x.x.x.x）
+
+  Note right of S: 服务端验证公钥是否存在，<br />存在则发送随机字符串（challenge）
+  S ->> C: 发送通过公钥加密字符串后的密文
+
+  Note left of C: 使用私钥解密密文，得到 challenge
+  C ->> S: 将结果发送给服务端
+
+  Note right of S: 校验通过，建立连接</div><p>当第一次登录某台服务器的时候，会出现如下提示：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">The authenticity of host <span class="hljs-string">&#x27;x.x.x.x (x.x.x.x)&#x27;</span> can<span class="hljs-string">&#x27;t be established.
+ED25519 key fingerprint is SHA256:mewI2GS1WD86ckuE89JPn4CpljUqGngkQD4slRogDQE.
+This key is not known by any other names</span></code></pre><p>这段话的意思是，无法确认 host 主机的真实性，只知道它的公钥指纹，是否继续连接？为什么会存在这个提示，是因为存在中间人攻击。</p>
+<blockquote>
+<p>中间人攻击：</p>
+<p>这个过程本身是安全的，但是实施的时候存在一个风险：如果有人截获了登录请求，然后冒充远程主机，将伪造的公钥发给用户，那么用户很难辨别真伪。因为不像 https 协议，SSH 协议的公钥是没有证书中心（CA）公证的，也就是说，都是自己签发的。</p>
+<p>可以设想，如果攻击者插在用户与远程主机之间（比如在公共的 wifi 区域），用伪造的公钥，获取用户的登录密码。再用这个密码登录远程主机，那么 SSH 的安全机制就荡然无存了。这种风险就是著名的中间人攻击。</p>
+</blockquote>
+<p>所以用户需要根据指纹来确定是否连接到了正确的主机，如果指纹不一致，就需要终止连接。</p>
+<p>又一个问题就是，用户怎么知道远程主机的公钥指纹应该是多少？回答是没有好办法，远程主机必须在自己的网站上贴出公钥指纹，以便用户自行核对。</p>
+<p>用户确认之后，继续并完成连接后，该主机以及公钥信息就会保存在 <code>~/.ssh/known_hosts</code>，后续连接也将不再出现提示：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">Warning: Permanently added <span class="hljs-string">&#x27;x.x.x.x&#x27;</span> (ED25519) to the list of known hosts.</code></pre><h1 id="Git">Git<a name="Git" class="headerlink" href="#Git"></a></h1><p>再次回到开头的命令，命令的含义是指定使用 RSA 算法、长度 2048 生成一对密钥，<code>-C</code> 是可选的，指定注释信息，内容会追加在公钥后面：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ ssh-keygen -t rsa -b 2048 -C <span class="hljs-string">&quot;xxxxxxxxxx@qq.com&quot;</span></code></pre><p>而对于 Git，推荐使用 SSH 的连接方式，故一般在入门 Git 时都会去使用 ssh-key 生成密钥对。</p>
+<p><img alt="git-clone.png" loading="lazy" title="git-clone.png" class="post-image " src="/images/0218373543f3a09bf311906d26091c81.git-clone.png" onerror="this.onerror=null;this.src='/images/image-error.jpg';"></p>
+<h1 id="使用 Ed25519 算法">使用 Ed25519 算法<a name="使用 Ed25519 算法" class="headerlink" href="#使用 Ed25519 算法"></a></h1><p>一般网上通过使用 ssh-key 生成密钥对时都使用 RSA 算法，RSA 经典且可靠，但性能不够理想。</p>
+<p><a href="https://leanpub.com/gocrypto/read#leanpub-auto-chapter-5-digital-signatures">Practical Cryptography With Go </a>一书建议使用 ED25519 密钥，ED25519 比 RSA 更安全且性能更好。</p>
+<p>OpenSSH 6.5 在 2014 年开始支持 ED25519 SSH 密钥，目前应该在大多数操作系统上都能支持。</p>
+<p>为了使用 Ed25519 只需更改 <code>-t</code> 参数：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ <span class="hljs-built_in">mkdir</span> -p ~/.ssh &amp;&amp; <span class="hljs-built_in">cd</span> ~/.ssh
+
+$ ssh-keygen -t ed25519  -C <span class="hljs-string">&quot;xxxxx@zz.com&quot;</span></code></pre><p>在生成密钥的时候，会提示输入密码，这个密码是用来保护私钥的，如果不想设置密码，直接回车即可。但为了安全考虑，十分有必要设置密码。这样即使私钥丢失或被盗，也不会轻易被他人使用。</p>
+<h1 id="管理多对 SSH key 和多个 Git 账户">管理多对 SSH key 和多个 Git 账户<a name="管理多对 SSH key 和多个 Git 账户" class="headerlink" href="#管理多对 SSH key 和多个 Git 账户"></a></h1><p>以 Git 为例，往往一个人会拥有多个平台的账号，比如 GitHub、GitLab、公司 Git 等，这时建议为每个服务生成一对专用的密钥。而多对密钥、多个 Git 账户的管理又是个新的问题，不过好在通过简单的配置，就能轻松解决了。</p>
+<p>首先针对不同平台生成秘银：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ <span class="hljs-built_in">mkdir</span> -p ~/.ssh &amp;&amp; <span class="hljs-built_in">cd</span> ~/.ssh
+
+<span class="hljs-comment"># 我在 GitHub</span>
+$ ssh-keygen -t ed25519 -f my_github_ed25519  -C <span class="hljs-string">&quot;me@github&quot;</span>
+
+<span class="hljs-comment"># 我在 GitLab</span>
+$ ssh-keygen -t ed25519 -f my_gitlab_ed25519  -C <span class="hljs-string">&quot;me@gitlab&quot;</span>
+
+<span class="hljs-comment"># 我在企业</span>
+$ ssh-keygen -t ed25519 -f my_company_ed25519 -C <span class="hljs-string">&quot;email@example.com&quot;</span></code></pre><p>编辑 <code>~/.ssh/config</code>：</p>
+<pre class="hljs language-shell" hljs-language="shell"><code style="display:block;"><span class="hljs-meta prompt_"># </span><span class="language-bash">我在 GitHub</span>
+Host github.com
+  Hostname github.com
+  User git
+  PreferredAuthentications publickey
+  IdentityFile ~/.ssh/my_github_ed25519
+<span class="hljs-meta prompt_">
+# </span><span class="language-bash">我在 GitLab</span>
+Host gitlab.com
+  Hostname gitlab.com
+  User git
+  PreferredAuthentications publickey
+  IdentityFile ~/.ssh/my_gitlab_ed25519
+<span class="hljs-meta prompt_">
+# </span><span class="language-bash">我在企业</span>
+Host example.com
+  Hostname example.com
+  Port 22
+  User git
+  PreferredAuthentications publickey
+  IdentityFile ~/.ssh/my_company_ed25519</code></pre><p>如此一来 SSH 连接不同服务器时，就会自动使用相应的密钥了。</p>
+<p>而对于多个 Git 账户，可以通过配置 <code>~/.gitconfig</code> 来实现：</p>
+<pre class="hljs language-toml" hljs-language="toml"><code style="display:block;"><span class="hljs-comment"># 全局账户</span>
+<span class="hljs-section">[user]</span>
+<span class="hljs-attr">name</span>=daief
+<span class="hljs-attr">email</span>=xxxxxxxx@qq.com
+
+<span class="hljs-comment"># 以 / 结尾，否则不会生效，以 / 结尾，** 会被自动添加上，~/Desktop/codes/**</span>
+<span class="hljs-section">[includeIf &quot;gitdir:~/Desktop/codes/&quot;]</span>
+<span class="hljs-attr">path</span> = ~/Desktop/codes/.gitconfig
+
+<span class="hljs-section">[includeIf &quot;gitdir:~/Documents/fe/projects/&quot;]</span>
+<span class="hljs-attr">path</span> = ~/Documents/fe/projects/.gitconfig</code></pre><p>子配置分别是：</p>
+<pre class="hljs language-toml" hljs-language="toml"><code style="display:block;"><span class="hljs-comment"># ~/Desktop/codes/.gitconfig</span>
+<span class="hljs-section">[user]</span>
+<span class="hljs-attr">name</span>=user2
+<span class="hljs-attr">email</span>=xxxxx2@qq.com
+
+<span class="hljs-comment"># ~/Documents/fe/projects/.gitconfig</span>
+<span class="hljs-section">[user]</span>
+<span class="hljs-attr">name</span>=user3
+<span class="hljs-attr">email</span>=xxxxx3@qq.com</code></pre><p>这样一来，当在 <code>~/Desktop/codes/</code> 目录下执行 Git 命令时，就会使用 <code>~/Desktop/codes/.gitconfig</code> 配置；而在 <code>~/Documents/fe/projects/</code> 目录下执行 Git 命令时，就会使用 <code>~/Documents/fe/projects/.gitconfig</code> 配置；否则就是使用全局配置。</p>
+<h1 id="总结">总结<a name="总结" class="headerlink" href="#总结"></a></h1><p>其实最开始只是寻找管理多个 Git 账号的解决方案，期间接触了不少别的知识，想着就干脆都了解一下，再整合记录一下。</p>
+<hr>
+<p>参考资料：</p>
+<ul>
+<li>SSH 认证原理：<a href="https://www.jianshu.com/p/d31de2601368">https://www.jianshu.com/p/d31de2601368</a></li>
+<li>公开密钥加密：<a href="https://zh.wikipedia.org/zh-hans/%E5%85%AC%E5%BC%80%E5%AF%86%E9%92%A5%E5%8A%A0%E5%AF%86">https://zh.wikipedia.org/zh-hans/%E5%85%AC%E5%BC%80%E5%AF%86%E9%92%A5%E5%8A%A0%E5%AF%86</a></li>
+<li>Install OpenSSH for Windows：<a href="https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse">https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse</a></li>
+<li>Use SSH keys to communicate with GitLab：<a href="https://docs.gitlab.com/ee/user/ssh.html">https://docs.gitlab.com/ee/user/ssh.html</a></li>
+<li>Ed25519：<a href="https://ed25519.cr.yp.to/">https://ed25519.cr.yp.to/</a></li>
+<li>使用 Ed25519 算法生成你的 SSH 密钥：<a href="https://zhuanlan.zhihu.com/p/110413836">https://zhuanlan.zhihu.com/p/110413836</a></li>
+<li>Multiple GitHub accounts on the same computer?：<a href="https://stackoverflow.com/questions/3860112/multiple-github-accounts-on-the-same-computer">https://stackoverflow.com/questions/3860112/multiple-github-accounts-on-the-same-computer</a></li>
+</ul>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/SSH" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> SSH</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/ime-and-keydown-event" class="unset">输入法与 keydown 事件</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/inno-setup" class="unset">Inno Setup</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2024</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>
