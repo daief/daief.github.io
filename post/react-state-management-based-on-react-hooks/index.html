@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>基于 React Hooks 的小型状态管理 | daief的个人日志</title><meta property="og:title" content="基于 React Hooks 的小型状态管理 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"react-state-management-based-on-react-hooks","slug":"post/react-state-management-based-on-react-hooks","path":"/post/react-state-management-based-on-react-hooks","title":"基于 React Hooks 的小型状态管理","comments":true,"published":true,"date":"2021-12-26T18:20:42.000Z","updated":"","tags":[{"id":"50ce2da63bea6a618e7578fa50690040","name":"React","postCount":2,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"50ce2da63bea6a618e7578fa50690040","name":"React","slug":"categories/React","path":"/categories/React","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":2,"postIds":[]}],"excerpt":"<p>一年又又又要过去了，在这 2021 年的尾巴，来写写 React 的状态管理。</p>\n<p>本文主要介绍一种基于 React Hooks 的状态共享方案，介绍其实现，并总结一下使用感受，目的是在状态管理方面提供多一种选择方式。</p>\n","more":"\n\n<h2 id=\"实现基于 React Hooks 的状态共享\">实现基于 React Hooks 的状态共享<a name=\"实现基于 React Hooks 的状态共享\" class=\"headerlink\" href=\"#实现基于 React Hooks 的状态共享\"></a></h2><p>React 组件间的状态共享，是一个老生常谈的问题，也有很多解决方案，例如 Redux、MobX 等。这些方案很专业，也经历了时间的考验，但私以为他们不太适合一些不算复杂的项目，反而会引入一些额外的复杂度。</p>\n<p>实际上很多时候，我不想定义 mutation 和 action、我不想套一层 context，更不想写 connect 和 mapStateToProps；我想要的是一种轻量、简单的状态共享方案，简简单单引用、简简单单使用。</p>\n<p>随着 Hooks 的诞生、流行，我的想法得以如愿。</p>\n<p>接着介绍一下我目前在用的方案，将 Hooks 与发布/订阅模式结合，就能实现一种简单、实用的状态共享方案。因为代码不多，下面将给出完整的实现。</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-keyword\">import</span> {\n  <span class=\"hljs-title class_\">Dispatch</span>,\n  <span class=\"hljs-title class_\">SetStateAction</span>,\n  useCallback,\n  useEffect,\n  useReducer,\n  useRef,\n  useState,\n} <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&#x27;react&#x27;</span>;\n\n<span class=\"hljs-comment\">/**\n * <span class=\"hljs-doctag\">@see</span> https://github.com/facebook/react/blob/bb88ce95a87934a655ef842af776c164391131ac/packages/shared/objectIs.js\n * inlined Object.is polyfill to avoid requiring consumers ship their own\n * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is\n */</span>\n<span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">is</span>(<span class=\"hljs-params\">x: <span class=\"hljs-built_in\">any</span>, y: <span class=\"hljs-built_in\">any</span></span>): <span class=\"hljs-built_in\">boolean</span> {\n  <span class=\"hljs-keyword\">return</span> (x === y &amp;&amp; (x !== <span class=\"hljs-number\">0</span> || <span class=\"hljs-number\">1</span> / x === <span class=\"hljs-number\">1</span> / y)) || (x !== x &amp;&amp; y !== y);\n}\n\n<span class=\"hljs-keyword\">const</span> objectIs = <span class=\"hljs-keyword\">typeof</span> <span class=\"hljs-title class_\">Object</span>.<span class=\"hljs-property\">is</span> === <span class=\"hljs-string\">&#x27;function&#x27;</span> ? <span class=\"hljs-title class_\">Object</span>.<span class=\"hljs-property\">is</span> : is;\n\n<span class=\"hljs-comment\">/**\n * <span class=\"hljs-doctag\">@see</span> https://github.com/facebook/react/blob/933880b4544a83ce54c8a47f348effe725a58843/packages/shared/shallowEqual.js\n * Performs equality by iterating through keys on an object and returning false\n * when any key has values which are not strictly equal between the arguments.\n * Returns true when the values of all keys are strictly equal.\n */</span>\n<span class=\"hljs-keyword\">function</span> <span class=\"hljs-title function_\">shallowEqual</span>(<span class=\"hljs-params\">objA: <span class=\"hljs-built_in\">any</span>, objB: <span class=\"hljs-built_in\">any</span></span>): <span class=\"hljs-built_in\">boolean</span> {\n  <span class=\"hljs-keyword\">if</span> (<span class=\"hljs-title function_\">is</span>(objA, objB)) {\n    <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">true</span>;\n  }\n\n  <span class=\"hljs-keyword\">if</span> (\n    <span class=\"hljs-keyword\">typeof</span> objA !== <span class=\"hljs-string\">&#x27;object&#x27;</span> ||\n    objA === <span class=\"hljs-literal\">null</span> ||\n    <span class=\"hljs-keyword\">typeof</span> objB !== <span class=\"hljs-string\">&#x27;object&#x27;</span> ||\n    objB === <span class=\"hljs-literal\">null</span>\n  ) {\n    <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">false</span>;\n  }\n\n  <span class=\"hljs-keyword\">const</span> keysA = <span class=\"hljs-title class_\">Object</span>.<span class=\"hljs-title function_\">keys</span>(objA);\n  <span class=\"hljs-keyword\">const</span> keysB = <span class=\"hljs-title class_\">Object</span>.<span class=\"hljs-title function_\">keys</span>(objB);\n\n  <span class=\"hljs-keyword\">if</span> (keysA.<span class=\"hljs-property\">length</span> !== keysB.<span class=\"hljs-property\">length</span>) {\n    <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">false</span>;\n  }\n\n  <span class=\"hljs-comment\">// Test for A&#x27;s keys different from B.</span>\n  <span class=\"hljs-keyword\">for</span> (<span class=\"hljs-keyword\">let</span> i = <span class=\"hljs-number\">0</span>; i &lt; keysA.<span class=\"hljs-property\">length</span>; i++) {\n    <span class=\"hljs-keyword\">if</span> (\n      !<span class=\"hljs-title class_\">Object</span>.<span class=\"hljs-property\"><span class=\"hljs-keyword\">prototype</span></span>.<span class=\"hljs-property\">hasOwnProperty</span>.<span class=\"hljs-title function_\">call</span>(objB, keysA[i]) ||\n      !<span class=\"hljs-title function_\">is</span>(objA[keysA[i]], objB[keysA[i]])\n    ) {\n      <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">false</span>;\n    }\n  }\n\n  <span class=\"hljs-keyword\">return</span> <span class=\"hljs-literal\">true</span>;\n}\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">useForceUpdate</span> = (<span class=\"hljs-params\"></span>) =&gt; <span class=\"hljs-title function_\">useReducer</span>(<span class=\"hljs-function\">() =&gt;</span> ({}), {})[<span class=\"hljs-number\">1</span>] <span class=\"hljs-keyword\">as</span> <span class=\"hljs-title class_\">VoidFunction</span>;\n\n<span class=\"hljs-keyword\">type</span> <span class=\"hljs-title class_\">ISubscriber</span>&lt;T&gt; = <span class=\"hljs-function\">(<span class=\"hljs-params\">prevState: T, nextState: T</span>) =&gt;</span> <span class=\"hljs-built_in\">void</span>;\n\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">interface</span> <span class=\"hljs-title class_\">ISharedState</span>&lt;T&gt; {\n  <span class=\"hljs-comment\">/** 静态方式获取数据, 适合在非组件中或者数据无绑定视图的情况下使用 */</span>\n  <span class=\"hljs-attr\">get</span>: <span class=\"hljs-function\">() =&gt;</span> T;\n  <span class=\"hljs-comment\">/** 修改数据，赋予新值 */</span>\n  <span class=\"hljs-attr\">set</span>: <span class=\"hljs-title class_\">Dispatch</span>&lt;<span class=\"hljs-title class_\">SetStateAction</span>&lt;T&gt;&gt;;\n  <span class=\"hljs-comment\">/** （浅）合并更新数据 */</span>\n  <span class=\"hljs-attr\">update</span>: <span class=\"hljs-title class_\">Dispatch</span>&lt;<span class=\"hljs-title class_\">Partial</span>&lt;T&gt;&gt;;\n  <span class=\"hljs-comment\">/** hooks方式获取数据, 适合在组件中使用, 数据变更时会自动重渲染该组件 */</span>\n  <span class=\"hljs-attr\">use</span>: <span class=\"hljs-function\">() =&gt;</span> T;\n  <span class=\"hljs-comment\">/** 订阅数据的变更 */</span>\n  <span class=\"hljs-attr\">subscribe</span>: <span class=\"hljs-function\">(<span class=\"hljs-params\">cb: ISubscriber&lt;T&gt;</span>) =&gt;</span> <span class=\"hljs-function\">() =&gt;</span> <span class=\"hljs-built_in\">void</span>;\n  <span class=\"hljs-comment\">/** 取消订阅数据的变更 */</span>\n  <span class=\"hljs-attr\">unsubscribe</span>: <span class=\"hljs-function\">(<span class=\"hljs-params\">cb: ISubscriber&lt;T&gt;</span>) =&gt;</span> <span class=\"hljs-built_in\">void</span>;\n  <span class=\"hljs-comment\">/** 筛出部分 state */</span>\n  usePick&lt;R&gt;(<span class=\"hljs-attr\">picker</span>: <span class=\"hljs-function\">(<span class=\"hljs-params\">state: T</span>) =&gt;</span> R, deps?: <span class=\"hljs-keyword\">readonly</span> <span class=\"hljs-built_in\">any</span>[]): R;\n}\n\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">type</span> <span class=\"hljs-title class_\">IReadonlyState</span>&lt;T&gt; = <span class=\"hljs-title class_\">Omit</span>&lt;<span class=\"hljs-title class_\">ISharedState</span>&lt;T&gt;, <span class=\"hljs-string\">&#x27;set&#x27;</span> | <span class=\"hljs-string\">&#x27;update&#x27;</span>&gt;;\n\n<span class=\"hljs-comment\">/**\n * 创建不同实例之间可以共享的状态\n * <span class=\"hljs-doctag\">@param</span> initialState 初始数据\n */</span>\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">const</span> createSharedState = &lt;T&gt;(<span class=\"hljs-attr\">initialState</span>: T): <span class=\"hljs-title class_\">ISharedState</span>&lt;T&gt; =&gt; {\n  <span class=\"hljs-keyword\">let</span> state = initialState;\n  <span class=\"hljs-keyword\">const</span> <span class=\"hljs-attr\">subscribers</span>: <span class=\"hljs-title class_\">ISubscriber</span>&lt;T&gt;[] = [];\n\n  <span class=\"hljs-comment\">// 订阅 state 的变化</span>\n  <span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">subscribe</span> = (<span class=\"hljs-params\">subscriber: ISubscriber&lt;T&gt;</span>) =&gt; {\n    subscribers.<span class=\"hljs-title function_\">push</span>(subscriber);\n    <span class=\"hljs-keyword\">return</span> <span class=\"hljs-function\">() =&gt;</span> <span class=\"hljs-title function_\">unsubscribe</span>(subscriber);\n  };\n\n  <span class=\"hljs-comment\">// 取消订阅 state 的变化</span>\n  <span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">unsubscribe</span> = (<span class=\"hljs-params\">subscriber: ISubscriber&lt;T&gt;</span>) =&gt; {\n    <span class=\"hljs-keyword\">const</span> index = subscribers.<span class=\"hljs-title function_\">indexOf</span>(subscriber);\n    index &gt; -<span class=\"hljs-number\">1</span> &amp;&amp; subscribers.<span class=\"hljs-title function_\">splice</span>(index, <span class=\"hljs-number\">1</span>);\n  };\n\n  <span class=\"hljs-comment\">// 获取当前最新的 state</span>\n  <span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">get</span> = (<span class=\"hljs-params\"></span>) =&gt; state;\n\n  <span class=\"hljs-comment\">// 变更 state</span>\n  <span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">set</span> = (<span class=\"hljs-params\">next: SetStateAction&lt;T&gt;</span>) =&gt; {\n    <span class=\"hljs-keyword\">const</span> prevState = state;\n    <span class=\"hljs-comment\">// @ts-ignore</span>\n    <span class=\"hljs-keyword\">const</span> nextState = <span class=\"hljs-keyword\">typeof</span> next === <span class=\"hljs-string\">&#x27;function&#x27;</span> ? <span class=\"hljs-title function_\">next</span>(prevState) : next;\n    <span class=\"hljs-keyword\">if</span> (<span class=\"hljs-title function_\">objectIs</span>(state, nextState)) {\n      <span class=\"hljs-keyword\">return</span>;\n    }\n    state = nextState;\n    subscribers.<span class=\"hljs-title function_\">forEach</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">cb</span>) =&gt;</span> <span class=\"hljs-title function_\">cb</span>(prevState, state));\n  };\n\n  <span class=\"hljs-comment\">// 获取当前最新的 state 的 hooks 用法</span>\n  <span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">use</span> = (<span class=\"hljs-params\"></span>) =&gt; {\n    <span class=\"hljs-keyword\">const</span> forceUpdate = <span class=\"hljs-title function_\">useForceUpdate</span>();\n\n    <span class=\"hljs-title function_\">useEffect</span>(<span class=\"hljs-function\">() =&gt;</span> {\n      <span class=\"hljs-keyword\">let</span> isMounted = <span class=\"hljs-literal\">true</span>;\n      <span class=\"hljs-comment\">// 组件挂载后立即更新一次, 避免无法使用到第一次更新数据</span>\n      <span class=\"hljs-title function_\">forceUpdate</span>();\n      <span class=\"hljs-keyword\">const</span> un = <span class=\"hljs-title function_\">subscribe</span>(<span class=\"hljs-function\">() =&gt;</span> {\n        <span class=\"hljs-keyword\">if</span> (!isMounted) <span class=\"hljs-keyword\">return</span>;\n        <span class=\"hljs-title function_\">forceUpdate</span>();\n      });\n      <span class=\"hljs-keyword\">return</span> <span class=\"hljs-function\">() =&gt;</span> {\n        <span class=\"hljs-title function_\">un</span>();\n        isMounted = <span class=\"hljs-literal\">false</span>;\n      };\n    }, []);\n\n    <span class=\"hljs-keyword\">return</span> state;\n  };\n\n  <span class=\"hljs-keyword\">const</span> usePick = &lt;R&gt;<span class=\"hljs-function\">(<span class=\"hljs-params\">picker: (s: T) =&gt; R, deps = []</span>) =&gt;</span> {\n    <span class=\"hljs-keyword\">const</span> ref = useRef&lt;<span class=\"hljs-built_in\">any</span>&gt;({});\n\n    ref.<span class=\"hljs-property\">current</span>.<span class=\"hljs-property\">picker</span> = picker;\n\n    <span class=\"hljs-keyword\">const</span> [pickedState, setPickedState] = useState&lt;R&gt;(<span class=\"hljs-function\">() =&gt;</span>\n      ref.<span class=\"hljs-property\">current</span>.<span class=\"hljs-title function_\">picker</span>(state),\n    );\n\n    ref.<span class=\"hljs-property\">current</span>.<span class=\"hljs-property\">oldState</span> = pickedState;\n\n    <span class=\"hljs-keyword\">const</span> sub = <span class=\"hljs-title function_\">useCallback</span>(<span class=\"hljs-function\">() =&gt;</span> {\n      <span class=\"hljs-keyword\">const</span> pickedOld = ref.<span class=\"hljs-property\">current</span>.<span class=\"hljs-property\">oldState</span>;\n      <span class=\"hljs-keyword\">const</span> pickedNew = ref.<span class=\"hljs-property\">current</span>.<span class=\"hljs-title function_\">picker</span>(state);\n      <span class=\"hljs-keyword\">if</span> (!<span class=\"hljs-title function_\">shallowEqual</span>(pickedOld, pickedNew)) {\n        <span class=\"hljs-comment\">// 避免 pickedNew 是一个 function</span>\n        <span class=\"hljs-title function_\">setPickedState</span>(<span class=\"hljs-function\">() =&gt;</span> pickedNew);\n      }\n    }, []);\n\n    <span class=\"hljs-title function_\">useEffect</span>(<span class=\"hljs-function\">() =&gt;</span> {\n      <span class=\"hljs-keyword\">const</span> un = <span class=\"hljs-title function_\">subscribe</span>(sub);\n      <span class=\"hljs-keyword\">return</span> un;\n    }, []);\n\n    <span class=\"hljs-title function_\">useEffect</span>(<span class=\"hljs-function\">() =&gt;</span> {\n      <span class=\"hljs-title function_\">sub</span>();\n    }, [...deps]);\n\n    <span class=\"hljs-keyword\">return</span> pickedState;\n  };\n\n  <span class=\"hljs-keyword\">return</span> {\n    get,\n    set,\n    <span class=\"hljs-attr\">update</span>: <span class=\"hljs-function\">(<span class=\"hljs-params\">input: Partial&lt;T&gt;</span>) =&gt;</span> {\n      <span class=\"hljs-title function_\">set</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">pre</span>) =&gt;</span> ({\n        ...pre,\n        ...input,\n      }));\n    },\n    use,\n    subscribe,\n    unsubscribe,\n    usePick,\n  };\n};</code></pre><p>拥有 <code>createSharedState</code> 之后，下一步就能轻易地创建出一个可共享的状态了，在组件中使用的方式也很直接。</p>\n<pre class=\"hljs language-tsx\" hljs-language=\"tsx\"><code style=\"display:block;\"><span class=\"hljs-comment\">// 创建一个状态实例</span>\n<span class=\"hljs-keyword\">const</span> countState = <span class=\"hljs-title function_\">createSharedState</span>(<span class=\"hljs-number\">0</span>);\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">A</span> = (<span class=\"hljs-params\"></span>) =&gt; {\n  <span class=\"hljs-comment\">// 在组件中使用 hooks 方式获取响应式数据</span>\n  <span class=\"hljs-keyword\">const</span> count = countState.<span class=\"hljs-title function_\">use</span>();\n  <span class=\"hljs-keyword\">return</span> <span class=\"language-xml\"><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">div</span>&gt;</span>A: {count}<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">div</span>&gt;</span></span>;\n};\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">B</span> = (<span class=\"hljs-params\"></span>) =&gt; {\n  <span class=\"hljs-comment\">// 使用 set 方法修改数据</span>\n  <span class=\"hljs-keyword\">return</span> <span class=\"language-xml\"><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">button</span> <span class=\"hljs-attr\">onClick</span>=<span class=\"hljs-string\">{()</span> =&gt;</span> countState.set(count + 1)}&gt;Add<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">button</span>&gt;</span></span>;\n};\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">C</span> = (<span class=\"hljs-params\"></span>) =&gt; {\n  <span class=\"hljs-keyword\">return</span> (\n    <span class=\"language-xml\"><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">button</span>\n      <span class=\"hljs-attr\">onClick</span>=<span class=\"hljs-string\">{()</span> =&gt;</span> {\n        // 使用 get 方法获取数据\n        console.log(countState.get());\n      }}\n    &gt;\n      Get\n    <span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">button</span>&gt;</span></span>\n  );\n};\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">App</span> = (<span class=\"hljs-params\"></span>) =&gt; {\n  <span class=\"hljs-keyword\">return</span> (\n    <span class=\"language-xml\"><span class=\"hljs-tag\">&lt;&gt;</span>\n      <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">A</span> /&gt;</span>\n      <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">B</span> /&gt;</span>\n      <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">C</span> /&gt;</span>\n    <span class=\"hljs-tag\">&lt;/&gt;</span></span>\n  );\n};</code></pre><p>对于复杂对象，还提供了一种方式，用于在组件中监听指定部分的数据变化，避免其他字段变更造成多余的 render：</p>\n<pre class=\"hljs language-tsx\" hljs-language=\"tsx\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> complexState = <span class=\"hljs-title function_\">createSharedState</span>({\n  <span class=\"hljs-attr\">a</span>: <span class=\"hljs-number\">0</span>,\n  <span class=\"hljs-attr\">b</span>: {\n    <span class=\"hljs-attr\">c</span>: <span class=\"hljs-number\">0</span>,\n  },\n});\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">A</span> = (<span class=\"hljs-params\"></span>) =&gt; {\n  <span class=\"hljs-keyword\">const</span> a = complexState.<span class=\"hljs-title function_\">usePick</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">state</span>) =&gt;</span> state.<span class=\"hljs-property\">a</span>);\n  <span class=\"hljs-keyword\">return</span> <span class=\"language-xml\"><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">div</span>&gt;</span>A: {a}<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">div</span>&gt;</span></span>;\n};</code></pre><p>但复杂对象一般更建议使用组合派生的方式，由多个简单的状态派生出一个复杂的对象。另外在有些时候，我们会需要一种基于原数据的计算结果，所以这里同时提供了一种派生数据的方式。</p>\n<p>通过显示声明依赖的方式监听数据源，再传入计算函数，那么就能得到一个响应式的派生结果了。</p>\n<pre class=\"hljs language-ts\" hljs-language=\"ts\"><code style=\"display:block;\"><span class=\"hljs-comment\">/**\n * 状态派生（或 computed）\n * ```ts\n * const count1 = createSharedState(1);\n * const count2 = createSharedState(2);\n * const count3 = createDerivedState([count1, count2], ([n1, n2]) =&gt; n1 + n2);\n * ```\n * <span class=\"hljs-doctag\">@param</span> <span class=\"hljs-variable\">stores</span>\n * <span class=\"hljs-doctag\">@param</span> <span class=\"hljs-variable\">fn</span>\n * <span class=\"hljs-doctag\">@param</span> <span class=\"hljs-variable\">initialValue</span>\n * <span class=\"hljs-doctag\">@returns</span>\n */</span>\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">function</span> createDerivedState&lt;T = <span class=\"hljs-built_in\">any</span>&gt;(\n  <span class=\"hljs-attr\">stores</span>: <span class=\"hljs-title class_\">IReadonlyState</span>&lt;<span class=\"hljs-built_in\">any</span>&gt;[],\n  <span class=\"hljs-attr\">fn</span>: <span class=\"hljs-function\">(<span class=\"hljs-params\">values: <span class=\"hljs-built_in\">any</span>[]</span>) =&gt;</span> T,\n  opts?: {\n    <span class=\"hljs-comment\">/**\n     * 是否同步响应\n     * <span class=\"hljs-doctag\">@default</span> <span class=\"hljs-variable\">false</span>\n     */</span>\n    sync?: <span class=\"hljs-built_in\">boolean</span>;\n  },\n): <span class=\"hljs-title class_\">IReadonlyState</span>&lt;T&gt; &amp; {\n  <span class=\"hljs-attr\">stop</span>: <span class=\"hljs-function\">() =&gt;</span> <span class=\"hljs-built_in\">void</span>;\n} {\n  <span class=\"hljs-keyword\">const</span> { sync } = { <span class=\"hljs-attr\">sync</span>: <span class=\"hljs-literal\">false</span>, ...opts };\n  <span class=\"hljs-keyword\">let</span> <span class=\"hljs-attr\">values</span>: <span class=\"hljs-built_in\">any</span>[] = stores.<span class=\"hljs-title function_\">map</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">it</span>) =&gt;</span> it.<span class=\"hljs-title function_\">get</span>());\n  <span class=\"hljs-keyword\">const</span> innerModel = createSharedState&lt;T&gt;(<span class=\"hljs-title function_\">fn</span>(values));\n\n  <span class=\"hljs-keyword\">let</span> <span class=\"hljs-attr\">promise</span>: <span class=\"hljs-title class_\">Promise</span>&lt;<span class=\"hljs-built_in\">void</span>&gt; | <span class=\"hljs-literal\">null</span> = <span class=\"hljs-literal\">null</span>;\n\n  <span class=\"hljs-keyword\">const</span> uns = stores.<span class=\"hljs-title function_\">map</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">it, i</span>) =&gt;</span> {\n    <span class=\"hljs-keyword\">return</span> it.<span class=\"hljs-title function_\">subscribe</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">_old, newValue</span>) =&gt;</span> {\n      values[i] = newValue;\n\n      <span class=\"hljs-keyword\">if</span> (sync) {\n        innerModel.<span class=\"hljs-title function_\">set</span>(<span class=\"hljs-function\">() =&gt;</span> <span class=\"hljs-title function_\">fn</span>(values));\n        <span class=\"hljs-keyword\">return</span>;\n      }\n\n      <span class=\"hljs-comment\">// 异步更新</span>\n      promise =\n        promise ||\n        <span class=\"hljs-title class_\">Promise</span>.<span class=\"hljs-title function_\">resolve</span>().<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\">() =&gt;</span> {\n          innerModel.<span class=\"hljs-title function_\">set</span>(<span class=\"hljs-function\">() =&gt;</span> <span class=\"hljs-title function_\">fn</span>(values));\n          promise = <span class=\"hljs-literal\">null</span>;\n        });\n    });\n  });\n\n  <span class=\"hljs-keyword\">return</span> {\n    <span class=\"hljs-attr\">get</span>: innerModel.<span class=\"hljs-property\">get</span>,\n    <span class=\"hljs-attr\">use</span>: innerModel.<span class=\"hljs-property\">use</span>,\n    <span class=\"hljs-attr\">subscribe</span>: innerModel.<span class=\"hljs-property\">subscribe</span>,\n    <span class=\"hljs-attr\">unsubscribe</span>: innerModel.<span class=\"hljs-property\">unsubscribe</span>,\n    <span class=\"hljs-attr\">usePick</span>: innerModel.<span class=\"hljs-property\">usePick</span>,\n    <span class=\"hljs-attr\">stop</span>: <span class=\"hljs-function\">() =&gt;</span> {\n      uns.<span class=\"hljs-title function_\">forEach</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">un</span>) =&gt;</span> <span class=\"hljs-title function_\">un</span>());\n    },\n  };\n}</code></pre><p>至此，基于 Hooks 的状态共享方的实现介绍就结束了。</p>\n<p>在最近的项目中，有需要状态共享的场景，我都选择了上述方式，在 Web 项目和小程序 Taro 项目中均能使用同一套实现，一直都比较顺利。</p>\n<h2 id=\"使用感受\">使用感受<a name=\"使用感受\" class=\"headerlink\" href=\"#使用感受\"></a></h2><p>最后总结一下目前这种方式的几个特点：</p>\n<ul>\n<li><p>实现简单，不引入其他概念，仅在 Hooks 的基础上结合发布/订阅模式，类 React 的场景都能使用，比如 Taro；</p>\n</li>\n<li><p>使用简单，因为没有其他概念，直接调用 create 方法即可得到 state 的引用，调用 state 实例上的 use 方法即完成了组件和数据的绑定；</p>\n</li>\n<li><p>类型友好，创建 state 时无需定义多余的类型，使用的时候也能较好地自动推导出类型；</p>\n</li>\n<li><p>避免了 Hooks 的“闭包陷阱”，因为 state 的引用是恒定的，通过 state 的 get 方法总是能获取到最新的值：</p>\n<pre class=\"hljs language-tsx\" hljs-language=\"tsx\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> countState = <span class=\"hljs-title function_\">createSharedState</span>(<span class=\"hljs-number\">0</span>);\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">App</span> = (<span class=\"hljs-params\"></span>) =&gt; {\n  <span class=\"hljs-title function_\">useEffect</span>(<span class=\"hljs-function\">() =&gt;</span> {\n    <span class=\"hljs-built_in\">setInterval</span>(<span class=\"hljs-function\">() =&gt;</span> {\n      <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(countState.<span class=\"hljs-title function_\">get</span>());\n    }, <span class=\"hljs-number\">1000</span>);\n  }, []);\n  <span class=\"hljs-comment\">// return ...</span>\n};</code></pre></li>\n<li><p>直接支持在多个 React 应用之间共享，在使用一些弹框的时候是比较容易出现多个 React 应用的场景：</p>\n<pre class=\"hljs language-tsx\" hljs-language=\"tsx\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> countState = <span class=\"hljs-title function_\">createSharedState</span>(<span class=\"hljs-number\">0</span>);\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">Content</span> = (<span class=\"hljs-params\"></span>) =&gt; {\n  <span class=\"hljs-keyword\">const</span> count = countState.<span class=\"hljs-title function_\">use</span>();\n  <span class=\"hljs-keyword\">return</span> <span class=\"language-xml\"><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">div</span>&gt;</span>{count}<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">div</span>&gt;</span></span>;\n};\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">A</span> = (<span class=\"hljs-params\"></span>) =&gt; (\n  <span class=\"language-xml\"><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">button</span>\n    <span class=\"hljs-attr\">onClick</span>=<span class=\"hljs-string\">{()</span> =&gt;</span> {\n      Dialog.info({\n        title: &#x27;Alert&#x27;,\n        content: <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">Content</span> /&gt;</span>,\n      });\n    }}\n  &gt;\n    open\n  <span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">button</span>&gt;</span></span>\n);</code></pre></li>\n<li><p>支持在组件外的场景获取/更新数据</p>\n</li>\n<li><p>在 SSR 的场景有较大局限性：state 是细碎、分散创建的，而且 state 的生命周期不是跟随 React 应用，导致无法用同构的方式编写 SSR 应用代码</p>\n</li>\n</ul>\n<p>以上，便是本文的全部内容，实际上 Hooks 到目前流行了这么久，社区当中已有不少新型的状态共享实现方式，这里仅作为一种参考。</p>\n<p>根据以上特点，这种方式有明显的优点，也有致命的缺陷（对于 SSR 而言），但在实际使用中，可以根据具体的情况来选择合适的方式。比如在 Taro2 的小程序应用中，无需关心 SSR，那么我更倾向于这种方式；如果在 SSR 的同构项目中，那么定还是老老实实选择 Redux。</p>\n<p>总之，是多了一种选择，到底怎么选还得视具体情况而定。</p>\n","hash":"7339a57fb5fac85352fa2dd99cdf25b9","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"blog-link-card","slug":"post/blog-link-card","path":"/post/blog-link-card","title":"在博客中添加卡片式链接","comments":true,"published":true,"date":"2021-08-21T14:27:25.000Z","updated":"","tags":[{"id":"be8df1f28c0abc85a0ed0c6860e5d832","name":"Blog","postCount":3,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>最近升级了的企业微信，发现发送链接信息的时候，企信会自动拉取链接的标题、描述和图片信息，并组合成卡片的形式进行展示，给人的感觉就很棒，既传递了更多的信息，又显得美观，就想着在博客里也加上这个功能。</p>\n<p>效果是下面这样的，如果展示的还是链接，那可能是还没加载出来或者背后的服务挂了（白嫖不易）：<a data-layout=\"card\" href=\"https://github.com\">Github</a></p>\n<p>截图效果如下：</p>\n<p><img alt=\"卡片截图\" loading=\"lazy\" width=\"390px\" title=\"卡片截图\" class=\"post-image \" src=\"/images/c45ab84aae2e07bf5593e504cc2394ef.blog-link-card.png\" onerror=\"this.onerror=null;this.src='/images/image-error.jpg';\"></p>\n","more":"","hash":"957d422fedf0b641b5ee56d1ac9e676b","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"ime-and-keydown-event","slug":"post/ime-and-keydown-event","path":"/post/ime-and-keydown-event","title":"输入法与 keydown 事件","comments":true,"published":true,"date":"2022-10-20T17:01:39.000Z","updated":"","tags":[],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>输入、回车提交，这是一组在搜索场景中常见、友好的交互形式，但要将其做好以获得更好的用户体验，还需要关注其中的小小细节。</p>\n","more":"","hash":"1bd48204dba8dd8ca9efa567b07e63e0","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"fabb5629b694584be9ff314ab8187577","slug":"resume-v2","path":"/resume-v2"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">基于 React Hooks 的小型状态管理</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2021-12-26</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span>，</span><!--]--><!--[--><a href="/categories/React" class="unset">React</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>一年又又又要过去了，在这 2021 年的尾巴，来写写 React 的状态管理。</p>
+<p>本文主要介绍一种基于 React Hooks 的状态共享方案，介绍其实现，并总结一下使用感受，目的是在状态管理方面提供多一种选择方式。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h2 id="实现基于 React Hooks 的状态共享">实现基于 React Hooks 的状态共享<a name="实现基于 React Hooks 的状态共享" class="headerlink" href="#实现基于 React Hooks 的状态共享"></a></h2><p>React 组件间的状态共享，是一个老生常谈的问题，也有很多解决方案，例如 Redux、MobX 等。这些方案很专业，也经历了时间的考验，但私以为他们不太适合一些不算复杂的项目，反而会引入一些额外的复杂度。</p>
+<p>实际上很多时候，我不想定义 mutation 和 action、我不想套一层 context，更不想写 connect 和 mapStateToProps；我想要的是一种轻量、简单的状态共享方案，简简单单引用、简简单单使用。</p>
+<p>随着 Hooks 的诞生、流行，我的想法得以如愿。</p>
+<p>接着介绍一下我目前在用的方案，将 Hooks 与发布/订阅模式结合，就能实现一种简单、实用的状态共享方案。因为代码不多，下面将给出完整的实现。</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-keyword">import</span> {
+  <span class="hljs-title class_">Dispatch</span>,
+  <span class="hljs-title class_">SetStateAction</span>,
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;react&#x27;</span>;
+
+<span class="hljs-comment">/**
+ * <span class="hljs-doctag">@see</span> https://github.com/facebook/react/blob/bb88ce95a87934a655ef842af776c164391131ac/packages/shared/objectIs.js
+ * inlined Object.is polyfill to avoid requiring consumers ship their own
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+ */</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">is</span>(<span class="hljs-params">x: <span class="hljs-built_in">any</span>, y: <span class="hljs-built_in">any</span></span>): <span class="hljs-built_in">boolean</span> {
+  <span class="hljs-keyword">return</span> (x === y &amp;&amp; (x !== <span class="hljs-number">0</span> || <span class="hljs-number">1</span> / x === <span class="hljs-number">1</span> / y)) || (x !== x &amp;&amp; y !== y);
+}
+
+<span class="hljs-keyword">const</span> objectIs = <span class="hljs-keyword">typeof</span> <span class="hljs-title class_">Object</span>.<span class="hljs-property">is</span> === <span class="hljs-string">&#x27;function&#x27;</span> ? <span class="hljs-title class_">Object</span>.<span class="hljs-property">is</span> : is;
+
+<span class="hljs-comment">/**
+ * <span class="hljs-doctag">@see</span> https://github.com/facebook/react/blob/933880b4544a83ce54c8a47f348effe725a58843/packages/shared/shallowEqual.js
+ * Performs equality by iterating through keys on an object and returning false
+ * when any key has values which are not strictly equal between the arguments.
+ * Returns true when the values of all keys are strictly equal.
+ */</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">shallowEqual</span>(<span class="hljs-params">objA: <span class="hljs-built_in">any</span>, objB: <span class="hljs-built_in">any</span></span>): <span class="hljs-built_in">boolean</span> {
+  <span class="hljs-keyword">if</span> (<span class="hljs-title function_">is</span>(objA, objB)) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+  }
+
+  <span class="hljs-keyword">if</span> (
+    <span class="hljs-keyword">typeof</span> objA !== <span class="hljs-string">&#x27;object&#x27;</span> ||
+    objA === <span class="hljs-literal">null</span> ||
+    <span class="hljs-keyword">typeof</span> objB !== <span class="hljs-string">&#x27;object&#x27;</span> ||
+    objB === <span class="hljs-literal">null</span>
+  ) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+  }
+
+  <span class="hljs-keyword">const</span> keysA = <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">keys</span>(objA);
+  <span class="hljs-keyword">const</span> keysB = <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">keys</span>(objB);
+
+  <span class="hljs-keyword">if</span> (keysA.<span class="hljs-property">length</span> !== keysB.<span class="hljs-property">length</span>) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+  }
+
+  <span class="hljs-comment">// Test for A&#x27;s keys different from B.</span>
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; keysA.<span class="hljs-property">length</span>; i++) {
+    <span class="hljs-keyword">if</span> (
+      !<span class="hljs-title class_">Object</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>.<span class="hljs-property">hasOwnProperty</span>.<span class="hljs-title function_">call</span>(objB, keysA[i]) ||
+      !<span class="hljs-title function_">is</span>(objA[keysA[i]], objB[keysA[i]])
+    ) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+    }
+  }
+
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+}
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">useForceUpdate</span> = (<span class="hljs-params"></span>) =&gt; <span class="hljs-title function_">useReducer</span>(<span class="hljs-function">() =&gt;</span> ({}), {})[<span class="hljs-number">1</span>] <span class="hljs-keyword">as</span> <span class="hljs-title class_">VoidFunction</span>;
+
+<span class="hljs-keyword">type</span> <span class="hljs-title class_">ISubscriber</span>&lt;T&gt; = <span class="hljs-function">(<span class="hljs-params">prevState: T, nextState: T</span>) =&gt;</span> <span class="hljs-built_in">void</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ISharedState</span>&lt;T&gt; {
+  <span class="hljs-comment">/** 静态方式获取数据, 适合在非组件中或者数据无绑定视图的情况下使用 */</span>
+  <span class="hljs-attr">get</span>: <span class="hljs-function">() =&gt;</span> T;
+  <span class="hljs-comment">/** 修改数据，赋予新值 */</span>
+  <span class="hljs-attr">set</span>: <span class="hljs-title class_">Dispatch</span>&lt;<span class="hljs-title class_">SetStateAction</span>&lt;T&gt;&gt;;
+  <span class="hljs-comment">/** （浅）合并更新数据 */</span>
+  <span class="hljs-attr">update</span>: <span class="hljs-title class_">Dispatch</span>&lt;<span class="hljs-title class_">Partial</span>&lt;T&gt;&gt;;
+  <span class="hljs-comment">/** hooks方式获取数据, 适合在组件中使用, 数据变更时会自动重渲染该组件 */</span>
+  <span class="hljs-attr">use</span>: <span class="hljs-function">() =&gt;</span> T;
+  <span class="hljs-comment">/** 订阅数据的变更 */</span>
+  <span class="hljs-attr">subscribe</span>: <span class="hljs-function">(<span class="hljs-params">cb: ISubscriber&lt;T&gt;</span>) =&gt;</span> <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>;
+  <span class="hljs-comment">/** 取消订阅数据的变更 */</span>
+  <span class="hljs-attr">unsubscribe</span>: <span class="hljs-function">(<span class="hljs-params">cb: ISubscriber&lt;T&gt;</span>) =&gt;</span> <span class="hljs-built_in">void</span>;
+  <span class="hljs-comment">/** 筛出部分 state */</span>
+  usePick&lt;R&gt;(<span class="hljs-attr">picker</span>: <span class="hljs-function">(<span class="hljs-params">state: T</span>) =&gt;</span> R, deps?: <span class="hljs-keyword">readonly</span> <span class="hljs-built_in">any</span>[]): R;
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">type</span> <span class="hljs-title class_">IReadonlyState</span>&lt;T&gt; = <span class="hljs-title class_">Omit</span>&lt;<span class="hljs-title class_">ISharedState</span>&lt;T&gt;, <span class="hljs-string">&#x27;set&#x27;</span> | <span class="hljs-string">&#x27;update&#x27;</span>&gt;;
+
+<span class="hljs-comment">/**
+ * 创建不同实例之间可以共享的状态
+ * <span class="hljs-doctag">@param</span> initialState 初始数据
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> createSharedState = &lt;T&gt;(<span class="hljs-attr">initialState</span>: T): <span class="hljs-title class_">ISharedState</span>&lt;T&gt; =&gt; {
+  <span class="hljs-keyword">let</span> state = initialState;
+  <span class="hljs-keyword">const</span> <span class="hljs-attr">subscribers</span>: <span class="hljs-title class_">ISubscriber</span>&lt;T&gt;[] = [];
+
+  <span class="hljs-comment">// 订阅 state 的变化</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-title function_">subscribe</span> = (<span class="hljs-params">subscriber: ISubscriber&lt;T&gt;</span>) =&gt; {
+    subscribers.<span class="hljs-title function_">push</span>(subscriber);
+    <span class="hljs-keyword">return</span> <span class="hljs-function">() =&gt;</span> <span class="hljs-title function_">unsubscribe</span>(subscriber);
+  };
+
+  <span class="hljs-comment">// 取消订阅 state 的变化</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-title function_">unsubscribe</span> = (<span class="hljs-params">subscriber: ISubscriber&lt;T&gt;</span>) =&gt; {
+    <span class="hljs-keyword">const</span> index = subscribers.<span class="hljs-title function_">indexOf</span>(subscriber);
+    index &gt; -<span class="hljs-number">1</span> &amp;&amp; subscribers.<span class="hljs-title function_">splice</span>(index, <span class="hljs-number">1</span>);
+  };
+
+  <span class="hljs-comment">// 获取当前最新的 state</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-title function_">get</span> = (<span class="hljs-params"></span>) =&gt; state;
+
+  <span class="hljs-comment">// 变更 state</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-title function_">set</span> = (<span class="hljs-params">next: SetStateAction&lt;T&gt;</span>) =&gt; {
+    <span class="hljs-keyword">const</span> prevState = state;
+    <span class="hljs-comment">// @ts-ignore</span>
+    <span class="hljs-keyword">const</span> nextState = <span class="hljs-keyword">typeof</span> next === <span class="hljs-string">&#x27;function&#x27;</span> ? <span class="hljs-title function_">next</span>(prevState) : next;
+    <span class="hljs-keyword">if</span> (<span class="hljs-title function_">objectIs</span>(state, nextState)) {
+      <span class="hljs-keyword">return</span>;
+    }
+    state = nextState;
+    subscribers.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">cb</span>) =&gt;</span> <span class="hljs-title function_">cb</span>(prevState, state));
+  };
+
+  <span class="hljs-comment">// 获取当前最新的 state 的 hooks 用法</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-title function_">use</span> = (<span class="hljs-params"></span>) =&gt; {
+    <span class="hljs-keyword">const</span> forceUpdate = <span class="hljs-title function_">useForceUpdate</span>();
+
+    <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+      <span class="hljs-keyword">let</span> isMounted = <span class="hljs-literal">true</span>;
+      <span class="hljs-comment">// 组件挂载后立即更新一次, 避免无法使用到第一次更新数据</span>
+      <span class="hljs-title function_">forceUpdate</span>();
+      <span class="hljs-keyword">const</span> un = <span class="hljs-title function_">subscribe</span>(<span class="hljs-function">() =&gt;</span> {
+        <span class="hljs-keyword">if</span> (!isMounted) <span class="hljs-keyword">return</span>;
+        <span class="hljs-title function_">forceUpdate</span>();
+      });
+      <span class="hljs-keyword">return</span> <span class="hljs-function">() =&gt;</span> {
+        <span class="hljs-title function_">un</span>();
+        isMounted = <span class="hljs-literal">false</span>;
+      };
+    }, []);
+
+    <span class="hljs-keyword">return</span> state;
+  };
+
+  <span class="hljs-keyword">const</span> usePick = &lt;R&gt;<span class="hljs-function">(<span class="hljs-params">picker: (s: T) =&gt; R, deps = []</span>) =&gt;</span> {
+    <span class="hljs-keyword">const</span> ref = useRef&lt;<span class="hljs-built_in">any</span>&gt;({});
+
+    ref.<span class="hljs-property">current</span>.<span class="hljs-property">picker</span> = picker;
+
+    <span class="hljs-keyword">const</span> [pickedState, setPickedState] = useState&lt;R&gt;(<span class="hljs-function">() =&gt;</span>
+      ref.<span class="hljs-property">current</span>.<span class="hljs-title function_">picker</span>(state),
+    );
+
+    ref.<span class="hljs-property">current</span>.<span class="hljs-property">oldState</span> = pickedState;
+
+    <span class="hljs-keyword">const</span> sub = <span class="hljs-title function_">useCallback</span>(<span class="hljs-function">() =&gt;</span> {
+      <span class="hljs-keyword">const</span> pickedOld = ref.<span class="hljs-property">current</span>.<span class="hljs-property">oldState</span>;
+      <span class="hljs-keyword">const</span> pickedNew = ref.<span class="hljs-property">current</span>.<span class="hljs-title function_">picker</span>(state);
+      <span class="hljs-keyword">if</span> (!<span class="hljs-title function_">shallowEqual</span>(pickedOld, pickedNew)) {
+        <span class="hljs-comment">// 避免 pickedNew 是一个 function</span>
+        <span class="hljs-title function_">setPickedState</span>(<span class="hljs-function">() =&gt;</span> pickedNew);
+      }
+    }, []);
+
+    <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+      <span class="hljs-keyword">const</span> un = <span class="hljs-title function_">subscribe</span>(sub);
+      <span class="hljs-keyword">return</span> un;
+    }, []);
+
+    <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+      <span class="hljs-title function_">sub</span>();
+    }, [...deps]);
+
+    <span class="hljs-keyword">return</span> pickedState;
+  };
+
+  <span class="hljs-keyword">return</span> {
+    get,
+    set,
+    <span class="hljs-attr">update</span>: <span class="hljs-function">(<span class="hljs-params">input: Partial&lt;T&gt;</span>) =&gt;</span> {
+      <span class="hljs-title function_">set</span>(<span class="hljs-function">(<span class="hljs-params">pre</span>) =&gt;</span> ({
+        ...pre,
+        ...input,
+      }));
+    },
+    use,
+    subscribe,
+    unsubscribe,
+    usePick,
+  };
+};</code></pre><p>拥有 <code>createSharedState</code> 之后，下一步就能轻易地创建出一个可共享的状态了，在组件中使用的方式也很直接。</p>
+<pre class="hljs language-tsx" hljs-language="tsx"><code style="display:block;"><span class="hljs-comment">// 创建一个状态实例</span>
+<span class="hljs-keyword">const</span> countState = <span class="hljs-title function_">createSharedState</span>(<span class="hljs-number">0</span>);
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">A</span> = (<span class="hljs-params"></span>) =&gt; {
+  <span class="hljs-comment">// 在组件中使用 hooks 方式获取响应式数据</span>
+  <span class="hljs-keyword">const</span> count = countState.<span class="hljs-title function_">use</span>();
+  <span class="hljs-keyword">return</span> <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>A: {count}<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>;
+};
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">B</span> = (<span class="hljs-params"></span>) =&gt; {
+  <span class="hljs-comment">// 使用 set 方法修改数据</span>
+  <span class="hljs-keyword">return</span> <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">onClick</span>=<span class="hljs-string">{()</span> =&gt;</span> countState.set(count + 1)}&gt;Add<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></span>;
+};
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">C</span> = (<span class="hljs-params"></span>) =&gt; {
+  <span class="hljs-keyword">return</span> (
+    <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">button</span>
+      <span class="hljs-attr">onClick</span>=<span class="hljs-string">{()</span> =&gt;</span> {
+        // 使用 get 方法获取数据
+        console.log(countState.get());
+      }}
+    &gt;
+      Get
+    <span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></span>
+  );
+};
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">App</span> = (<span class="hljs-params"></span>) =&gt; {
+  <span class="hljs-keyword">return</span> (
+    <span class="language-xml"><span class="hljs-tag">&lt;&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">A</span> /&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">B</span> /&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">C</span> /&gt;</span>
+    <span class="hljs-tag">&lt;/&gt;</span></span>
+  );
+};</code></pre><p>对于复杂对象，还提供了一种方式，用于在组件中监听指定部分的数据变化，避免其他字段变更造成多余的 render：</p>
+<pre class="hljs language-tsx" hljs-language="tsx"><code style="display:block;"><span class="hljs-keyword">const</span> complexState = <span class="hljs-title function_">createSharedState</span>({
+  <span class="hljs-attr">a</span>: <span class="hljs-number">0</span>,
+  <span class="hljs-attr">b</span>: {
+    <span class="hljs-attr">c</span>: <span class="hljs-number">0</span>,
+  },
+});
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">A</span> = (<span class="hljs-params"></span>) =&gt; {
+  <span class="hljs-keyword">const</span> a = complexState.<span class="hljs-title function_">usePick</span>(<span class="hljs-function">(<span class="hljs-params">state</span>) =&gt;</span> state.<span class="hljs-property">a</span>);
+  <span class="hljs-keyword">return</span> <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>A: {a}<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>;
+};</code></pre><p>但复杂对象一般更建议使用组合派生的方式，由多个简单的状态派生出一个复杂的对象。另外在有些时候，我们会需要一种基于原数据的计算结果，所以这里同时提供了一种派生数据的方式。</p>
+<p>通过显示声明依赖的方式监听数据源，再传入计算函数，那么就能得到一个响应式的派生结果了。</p>
+<pre class="hljs language-ts" hljs-language="ts"><code style="display:block;"><span class="hljs-comment">/**
+ * 状态派生（或 computed）
+ * ```ts
+ * const count1 = createSharedState(1);
+ * const count2 = createSharedState(2);
+ * const count3 = createDerivedState([count1, count2], ([n1, n2]) =&gt; n1 + n2);
+ * ```
+ * <span class="hljs-doctag">@param</span> <span class="hljs-variable">stores</span>
+ * <span class="hljs-doctag">@param</span> <span class="hljs-variable">fn</span>
+ * <span class="hljs-doctag">@param</span> <span class="hljs-variable">initialValue</span>
+ * <span class="hljs-doctag">@returns</span>
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">function</span> createDerivedState&lt;T = <span class="hljs-built_in">any</span>&gt;(
+  <span class="hljs-attr">stores</span>: <span class="hljs-title class_">IReadonlyState</span>&lt;<span class="hljs-built_in">any</span>&gt;[],
+  <span class="hljs-attr">fn</span>: <span class="hljs-function">(<span class="hljs-params">values: <span class="hljs-built_in">any</span>[]</span>) =&gt;</span> T,
+  opts?: {
+    <span class="hljs-comment">/**
+     * 是否同步响应
+     * <span class="hljs-doctag">@default</span> <span class="hljs-variable">false</span>
+     */</span>
+    sync?: <span class="hljs-built_in">boolean</span>;
+  },
+): <span class="hljs-title class_">IReadonlyState</span>&lt;T&gt; &amp; {
+  <span class="hljs-attr">stop</span>: <span class="hljs-function">() =&gt;</span> <span class="hljs-built_in">void</span>;
+} {
+  <span class="hljs-keyword">const</span> { sync } = { <span class="hljs-attr">sync</span>: <span class="hljs-literal">false</span>, ...opts };
+  <span class="hljs-keyword">let</span> <span class="hljs-attr">values</span>: <span class="hljs-built_in">any</span>[] = stores.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">it</span>) =&gt;</span> it.<span class="hljs-title function_">get</span>());
+  <span class="hljs-keyword">const</span> innerModel = createSharedState&lt;T&gt;(<span class="hljs-title function_">fn</span>(values));
+
+  <span class="hljs-keyword">let</span> <span class="hljs-attr">promise</span>: <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-built_in">void</span>&gt; | <span class="hljs-literal">null</span> = <span class="hljs-literal">null</span>;
+
+  <span class="hljs-keyword">const</span> uns = stores.<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">it, i</span>) =&gt;</span> {
+    <span class="hljs-keyword">return</span> it.<span class="hljs-title function_">subscribe</span>(<span class="hljs-function">(<span class="hljs-params">_old, newValue</span>) =&gt;</span> {
+      values[i] = newValue;
+
+      <span class="hljs-keyword">if</span> (sync) {
+        innerModel.<span class="hljs-title function_">set</span>(<span class="hljs-function">() =&gt;</span> <span class="hljs-title function_">fn</span>(values));
+        <span class="hljs-keyword">return</span>;
+      }
+
+      <span class="hljs-comment">// 异步更新</span>
+      promise =
+        promise ||
+        <span class="hljs-title class_">Promise</span>.<span class="hljs-title function_">resolve</span>().<span class="hljs-title function_">then</span>(<span class="hljs-function">() =&gt;</span> {
+          innerModel.<span class="hljs-title function_">set</span>(<span class="hljs-function">() =&gt;</span> <span class="hljs-title function_">fn</span>(values));
+          promise = <span class="hljs-literal">null</span>;
+        });
+    });
+  });
+
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-attr">get</span>: innerModel.<span class="hljs-property">get</span>,
+    <span class="hljs-attr">use</span>: innerModel.<span class="hljs-property">use</span>,
+    <span class="hljs-attr">subscribe</span>: innerModel.<span class="hljs-property">subscribe</span>,
+    <span class="hljs-attr">unsubscribe</span>: innerModel.<span class="hljs-property">unsubscribe</span>,
+    <span class="hljs-attr">usePick</span>: innerModel.<span class="hljs-property">usePick</span>,
+    <span class="hljs-attr">stop</span>: <span class="hljs-function">() =&gt;</span> {
+      uns.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">un</span>) =&gt;</span> <span class="hljs-title function_">un</span>());
+    },
+  };
+}</code></pre><p>至此，基于 Hooks 的状态共享方的实现介绍就结束了。</p>
+<p>在最近的项目中，有需要状态共享的场景，我都选择了上述方式，在 Web 项目和小程序 Taro 项目中均能使用同一套实现，一直都比较顺利。</p>
+<h2 id="使用感受">使用感受<a name="使用感受" class="headerlink" href="#使用感受"></a></h2><p>最后总结一下目前这种方式的几个特点：</p>
+<ul>
+<li><p>实现简单，不引入其他概念，仅在 Hooks 的基础上结合发布/订阅模式，类 React 的场景都能使用，比如 Taro；</p>
+</li>
+<li><p>使用简单，因为没有其他概念，直接调用 create 方法即可得到 state 的引用，调用 state 实例上的 use 方法即完成了组件和数据的绑定；</p>
+</li>
+<li><p>类型友好，创建 state 时无需定义多余的类型，使用的时候也能较好地自动推导出类型；</p>
+</li>
+<li><p>避免了 Hooks 的“闭包陷阱”，因为 state 的引用是恒定的，通过 state 的 get 方法总是能获取到最新的值：</p>
+<pre class="hljs language-tsx" hljs-language="tsx"><code style="display:block;"><span class="hljs-keyword">const</span> countState = <span class="hljs-title function_">createSharedState</span>(<span class="hljs-number">0</span>);
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">App</span> = (<span class="hljs-params"></span>) =&gt; {
+  <span class="hljs-title function_">useEffect</span>(<span class="hljs-function">() =&gt;</span> {
+    <span class="hljs-built_in">setInterval</span>(<span class="hljs-function">() =&gt;</span> {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(countState.<span class="hljs-title function_">get</span>());
+    }, <span class="hljs-number">1000</span>);
+  }, []);
+  <span class="hljs-comment">// return ...</span>
+};</code></pre></li>
+<li><p>直接支持在多个 React 应用之间共享，在使用一些弹框的时候是比较容易出现多个 React 应用的场景：</p>
+<pre class="hljs language-tsx" hljs-language="tsx"><code style="display:block;"><span class="hljs-keyword">const</span> countState = <span class="hljs-title function_">createSharedState</span>(<span class="hljs-number">0</span>);
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">Content</span> = (<span class="hljs-params"></span>) =&gt; {
+  <span class="hljs-keyword">const</span> count = countState.<span class="hljs-title function_">use</span>();
+  <span class="hljs-keyword">return</span> <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>{count}<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></span>;
+};
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">A</span> = (<span class="hljs-params"></span>) =&gt; (
+  <span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">button</span>
+    <span class="hljs-attr">onClick</span>=<span class="hljs-string">{()</span> =&gt;</span> {
+      Dialog.info({
+        title: &#x27;Alert&#x27;,
+        content: <span class="hljs-tag">&lt;<span class="hljs-name">Content</span> /&gt;</span>,
+      });
+    }}
+  &gt;
+    open
+  <span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></span>
+);</code></pre></li>
+<li><p>支持在组件外的场景获取/更新数据</p>
+</li>
+<li><p>在 SSR 的场景有较大局限性：state 是细碎、分散创建的，而且 state 的生命周期不是跟随 React 应用，导致无法用同构的方式编写 SSR 应用代码</p>
+</li>
+</ul>
+<p>以上，便是本文的全部内容，实际上 Hooks 到目前流行了这么久，社区当中已有不少新型的状态共享实现方式，这里仅作为一种参考。</p>
+<p>根据以上特点，这种方式有明显的优点，也有致命的缺陷（对于 SSR 而言），但在实际使用中，可以根据具体的情况来选择合适的方式。比如在 Taro2 的小程序应用中，无需关心 SSR，那么我更倾向于这种方式；如果在 SSR 的同构项目中，那么定还是老老实实选择 Redux。</p>
+<p>总之，是多了一种选择，到底怎么选还得视具体情况而定。</p>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/React" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> React</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/blog-link-card" class="unset">在博客中添加卡片式链接</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/ime-and-keydown-event" class="unset">输入法与 keydown 事件</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

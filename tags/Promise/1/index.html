@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>「Promise」标签 - 第1页 | daief的个人日志</title><meta property="og:title" content="「Promise」标签 - 第1页 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":null},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"fabb5629b694584be9ff314ab8187577","slug":"resume-v2","path":"/resume-v2"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":1,"result":[{"id":"encapsulate-setTimeout-with-promise","slug":"post/encapsulate-setTimeout-with-promise","path":"/post/encapsulate-setTimeout-with-promise","title":"使用promise封装setTimeout","comments":true,"published":true,"date":"2018-08-21T22:17:59.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"a5a3f0f287a448982aac520cffe4779a","name":"Promise","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","slug":"categories/JavaScript","path":"/categories/JavaScript","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":11,"postIds":[]}],"excerpt":"<p>使用 Promise 对 setTimeout 进行封装，从而支持链式的调用。</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">delay</span> = (<span class=\"hljs-params\">func, millisec, options</span>) =&gt; {\n  <span class=\"hljs-keyword\">let</span> timer = <span class=\"hljs-number\">0</span>\n  <span class=\"hljs-keyword\">let</span> reject = <span class=\"hljs-literal\">null</span>\n  <span class=\"hljs-keyword\">const</span> promise = <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Promise</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">resolve, _reject</span>) =&gt;</span> {\n    reject = _reject\n    timer = <span class=\"hljs-built_in\">setTimeout</span>(<span class=\"hljs-function\">() =&gt;</span> {\n      <span class=\"hljs-title function_\">resolve</span>(<span class=\"hljs-title function_\">func</span>(options))\n    }, millisec)\n  })\n\n  <span class=\"hljs-keyword\">return</span> {\n    <span class=\"hljs-keyword\">get</span> <span class=\"hljs-title function_\">promise</span>() {\n      <span class=\"hljs-keyword\">return</span> promise\n    },\n    <span class=\"hljs-title function_\">cancel</span>(<span class=\"hljs-params\"></span>) {\n      <span class=\"hljs-keyword\">if</span> (timer) {\n        <span class=\"hljs-built_in\">clearTimeout</span>(timer)\n        timer = <span class=\"hljs-number\">0</span>\n        <span class=\"hljs-title function_\">reject</span>(<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Error</span>(<span class=\"hljs-string\">&#x27;timer is cancelled&#x27;</span>))\n        reject = <span class=\"hljs-literal\">null</span>\n      }\n    },\n  }\n}</code></pre><p>使用🌰：</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">const</span> d = <span class=\"hljs-title function_\">delay</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">{a, b}</span>) =&gt;</span> {\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(a, b)\n  <span class=\"hljs-keyword\">return</span> a + b\n}, <span class=\"hljs-number\">2000</span>, {<span class=\"hljs-attr\">a</span>: <span class=\"hljs-number\">1</span>, <span class=\"hljs-attr\">b</span>: <span class=\"hljs-number\">3</span>})\n\nd.<span class=\"hljs-property\">promise</span>.<span class=\"hljs-title function_\">then</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">result</span>) =&gt;</span> {\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(<span class=\"hljs-string\">&#x27;result&#x27;</span>, result)\n}).<span class=\"hljs-title function_\">catch</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">err</span>) =&gt;</span> {\n  <span class=\"hljs-variable language_\">console</span>.<span class=\"hljs-title function_\">log</span>(err)\n})\n\n<span class=\"hljs-comment\">// cancel</span>\n<span class=\"hljs-comment\">// setTimeout(() =&gt; {</span>\n<span class=\"hljs-comment\">//   d.cancel()</span>\n<span class=\"hljs-comment\">// }, 1000)</span></code></pre>","more":"","hash":"9ba631ac47c7a3d0d8944d90e3b28661","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box p-8"><div class="mb-6 has-child mb-6 mb-6" data-v-3adb2250><!--[--><h1 class="text-lg"> 「Promise」 <small class="text-c-secondary">标签</small></h1><!--]--></div><!--[--><div class="post-item border-b border-gray-200 pb-6 mb-6" data-v-97e5a67a><h1 class="text-xl font-normal break-words" data-v-97e5a67a><a href="/post/encapsulate-setTimeout-with-promise" class="unset post-title" data-v-97e5a67a>使用promise封装setTimeout</a></h1><div class="my-4 break-words" data-v-97e5a67a><div class="markdown-body text-sm text-gray-800 leading-loose" data-v-97e5a67a><p>使用 Promise 对 setTimeout 进行封装，从而支持链式的调用。</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">const</span> <span class="hljs-title function_">delay</span> = (<span class="hljs-params">func, millisec, options</span>) =&gt; {
+  <span class="hljs-keyword">let</span> timer = <span class="hljs-number">0</span>
+  <span class="hljs-keyword">let</span> reject = <span class="hljs-literal">null</span>
+  <span class="hljs-keyword">const</span> promise = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve, _reject</span>) =&gt;</span> {
+    reject = _reject
+    timer = <span class="hljs-built_in">setTimeout</span>(<span class="hljs-function">() =&gt;</span> {
+      <span class="hljs-title function_">resolve</span>(<span class="hljs-title function_">func</span>(options))
+    }, millisec)
+  })
+
+  <span class="hljs-keyword">return</span> {
+    <span class="hljs-keyword">get</span> <span class="hljs-title function_">promise</span>() {
+      <span class="hljs-keyword">return</span> promise
+    },
+    <span class="hljs-title function_">cancel</span>(<span class="hljs-params"></span>) {
+      <span class="hljs-keyword">if</span> (timer) {
+        <span class="hljs-built_in">clearTimeout</span>(timer)
+        timer = <span class="hljs-number">0</span>
+        <span class="hljs-title function_">reject</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&#x27;timer is cancelled&#x27;</span>))
+        reject = <span class="hljs-literal">null</span>
+      }
+    },
+  }
+}</code></pre><p>使用🌰：</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">const</span> d = <span class="hljs-title function_">delay</span>(<span class="hljs-function">(<span class="hljs-params">{a, b}</span>) =&gt;</span> {
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(a, b)
+  <span class="hljs-keyword">return</span> a + b
+}, <span class="hljs-number">2000</span>, {<span class="hljs-attr">a</span>: <span class="hljs-number">1</span>, <span class="hljs-attr">b</span>: <span class="hljs-number">3</span>})
+
+d.<span class="hljs-property">promise</span>.<span class="hljs-title function_">then</span>(<span class="hljs-function">(<span class="hljs-params">result</span>) =&gt;</span> {
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&#x27;result&#x27;</span>, result)
+}).<span class="hljs-title function_">catch</span>(<span class="hljs-function">(<span class="hljs-params">err</span>) =&gt;</span> {
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(err)
+})
+
+<span class="hljs-comment">// cancel</span>
+<span class="hljs-comment">// setTimeout(() =&gt; {</span>
+<span class="hljs-comment">//   d.cancel()</span>
+<span class="hljs-comment">// }, 1000)</span></code></pre></div></div><div class="text-xs flex justify-between items-center" data-v-97e5a67a><div class="flex items-center flex-wrap" data-v-97e5a67a><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2018-08-21</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span>，</span><!--]--><!--[--><a href="/categories/JavaScript" class="unset">JavaScript</a><span></span><!--]--><!--]--></div><!--]--><!----></div><a href="/post/encapsulate-setTimeout-with-promise#more" class="unset whitespace-nowrap" data-v-97e5a67a>查看全文<svg class="if-icon transform rotate-180 transform rotate-180" aria-hidden="true" data-v-43154e2c data-v-97e5a67a><use xlink:href="#if-arrow-left" data-v-43154e2c></use></svg></a></div></div><!--]--></div><div class="my-8"><!----></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

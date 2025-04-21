@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>博客框架 —— gugu | daief的个人日志</title><meta property="og:title" content="博客框架 —— gugu | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"site-engine-gugu","slug":"post/site-engine-gugu","path":"/post/site-engine-gugu","title":"博客框架 —— gugu","comments":true,"published":true,"date":"2021-07-25T22:18:00.000Z","updated":"","tags":[{"id":"be8df1f28c0abc85a0ed0c6860e5d832","name":"Blog","postCount":3,"postIds":[]},{"id":"1d9db1ebcf1c30ffc9485e981aec4f04","name":"Vite","postCount":1,"postIds":[]},{"id":"79dcf464d3e1b41635e194883d0c939a","name":"Vue3","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>很久之就一直想把博客改成单页的，而中间发生了不少咕咕咕（<del>懂得都懂，不懂的我也不用再说了 🐶</del>）的事情，别说改造了，连文都没更新。在咕了大半年之后，终于完成了大改造，将原来使用的 <a href=\"https://hexo.io/\">Hexo</a> 替换成了个人实现的博客框架 <a href=\"https://github.com/daief/blog/tree/master/packages/gugu\">gugu</a>。</p>\n","more":"\n\n<h2 id=\"为什么？\">为什么？<a name=\"为什么？\" class=\"headerlink\" href=\"#为什么？\"></a></h2><p>最初的想法是想将整个博客应用改造成单页应用，想着带来不一样的体验；其次想尝试一些新的东西、想实践一些想法，所以就去做了。</p>\n<h2 id=\"技术栈的选择\">技术栈的选择<a name=\"技术栈的选择\" class=\"headerlink\" href=\"#技术栈的选择\"></a></h2><p>工作上一直在使用 React，所以在写个人项目的时候就想用些不一样的。正巧 Svelte 和 Vue3 都在风头上，Tailwind CSS 热度也不小，刚好都可以接触一下来练练手。</p>\n<p>虽然最初尝试了 Svelte，照着官网教程写下来十分容易上手，结合 VSCode 相关的插件，编程体验也不错。但考虑到对恰饭的帮助，没有去过多深入，最终是选择了 Vue3。</p>\n<p>构建工具方面对 Vite 和 Webpack5 都进行了尝试：Webpack5 因为没有使用什么新的特性，整体用下来没有什么新的感受；当使用 Vite 之后，就有很多新的感受，只能说 Vite 真香，速度的确快、配置也简单，只能再说一次很香了。</p>\n<p>所以最终的技术栈组成是：</p>\n<ul>\n<li>Vue3</li>\n<li>Vite</li>\n<li>Tailwind CSS</li>\n<li>Less</li>\n<li>TypeScript</li>\n</ul>\n<p>全文另一项重点技术的应用是 SSR 和 SSG。因为博客类应用需要 SEO、以及为了首屏更好地体验，所以不能仅仅只使用客户端渲染，故引出了 SSR；但自己又没有服务器，也不想专门搞个服务器，只想用纯静态托管的方式达到目的，故进一步引出了 SSG。加上博客本身都是静态的内容，使用 SSG 再合适不过了。</p>\n<h2 id=\"实践过程\">实践过程<a name=\"实践过程\" class=\"headerlink\" href=\"#实践过程\"></a></h2><h3 id=\"Hexo 主题\">Hexo 主题<a name=\"Hexo 主题\" class=\"headerlink\" href=\"#Hexo 主题\"></a></h3><p>博客原本就是基于 Hexo 框架的，因此最初的想法是构建一套 Hexo 主题来达到目的。虽然完成了一套功能达到目的的主题，但心里感觉是不够痛快，不过这里还是简要记录一下实现过程中涉及的主要部分，处理好以下主要部分，基本就能基于 hexo 走通了。</p>\n<p>半成品的主题：<a href=\"https://github.com/daief/hexo-theme-spa\">hexo-theme-spa</a>。</p>\n<h4 id=\"Layout：\">Layout：<a name=\"Layout：\" class=\"headerlink\" href=\"#Layout：\"></a></h4><p>只需保留一个 vue 文件，作为整个应用的入口组件：</p>\n<pre class=\"hljs language-html\" hljs-language=\"html\"><code style=\"display:block;\"><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">template</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">App</span> /&gt;</span>\n<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">template</span>&gt;</span>\n\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">script</span> <span class=\"hljs-attr\">lang</span>=<span class=\"hljs-string\">&quot;ts&quot;</span>&gt;</span><span class=\"language-javascript\">\n  <span class=\"hljs-keyword\">import</span> <span class=\"hljs-title class_\">App</span> <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&#x27;@/App.vue&#x27;</span>; <span class=\"hljs-comment\">// 另外存储源码的地方</span>\n  <span class=\"hljs-keyword\">import</span> { defineComponent } <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&#x27;vue&#x27;</span>;\n\n  <span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> <span class=\"hljs-title function_\">defineComponent</span>({\n    <span class=\"hljs-attr\">components</span>: { <span class=\"hljs-title class_\">App</span> },\n    <span class=\"hljs-attr\">name</span>: <span class=\"hljs-string\">&#x27;Index_layut&#x27;</span>,\n  });\n</span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">script</span>&gt;</span></code></pre><h4 id=\"扩展 renderer：\">扩展 renderer：<a name=\"扩展 renderer：\" class=\"headerlink\" href=\"#扩展 renderer：\"></a></h4><pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\">hexo.<span class=\"hljs-property\">extend</span>.<span class=\"hljs-property\">renderer</span>.<span class=\"hljs-title function_\">register</span>(<span class=\"hljs-string\">&#x27;vue&#x27;</span>, <span class=\"hljs-string\">&#x27;html&#x27;</span>, <span class=\"hljs-keyword\">async</span> (data) =&gt; {\n  <span class=\"hljs-comment\">// 导入 webpack 或 vite 构建器</span>\n  <span class=\"hljs-keyword\">const</span> build = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;./compile&#x27;</span>);\n\n  <span class=\"hljs-comment\">// 启动构建服务，同时构建 client 和 server 端两份 bundle</span>\n  <span class=\"hljs-keyword\">const</span> { clientManifest } = <span class=\"hljs-keyword\">await</span> <span class=\"hljs-title function_\">build</span>();\n\n  <span class=\"hljs-comment\">// 引用上一步构建的 server 结果</span>\n  <span class=\"hljs-keyword\">const</span> { renderHtml } = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;../source/ssr/main&#x27;</span>);\n\n  <span class=\"hljs-comment\">// SSR 渲染出首屏 html，内部实际上就是调用 @vue/server-renderer 的 renderToString</span>\n  <span class=\"hljs-keyword\">const</span> htmlStr = <span class=\"hljs-keyword\">await</span> <span class=\"hljs-title function_\">renderHtml</span>(data, clientManifest);\n\n  <span class=\"hljs-comment\">// 将结果返回，hexo 会输出成静态 html</span>\n  <span class=\"hljs-keyword\">return</span> htmlStr;\n});</code></pre><h4 id=\"路由页面的处理\">路由页面的处理<a name=\"路由页面的处理\" class=\"headerlink\" href=\"#路由页面的处理\"></a></h4><p>需要注册一个 <code>generator</code>，枚举站点所涵盖的页面：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\">hexo.<span class=\"hljs-property\">extend</span>.<span class=\"hljs-property\">generator</span>.<span class=\"hljs-title function_\">register</span>(<span class=\"hljs-string\">&#x27;spa&#x27;</span>, <span class=\"hljs-keyword\">function</span> (<span class=\"hljs-params\">locals</span>) {\n  <span class=\"hljs-keyword\">const</span> { generator } = <span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-property\">theme</span>.<span class=\"hljs-property\">config</span>;\n  <span class=\"hljs-keyword\">const</span> { <span class=\"hljs-attr\">per_page</span>: perPage } = generator;\n\n  <span class=\"hljs-keyword\">const</span> result = [\n    <span class=\"hljs-comment\">// 文章分页</span>\n    {\n      <span class=\"hljs-attr\">path</span>: <span class=\"hljs-string\">&#x27;&#x27;</span>,\n      <span class=\"hljs-attr\">data</span>: { <span class=\"hljs-attr\">__index</span>: <span class=\"hljs-literal\">true</span> },\n    },\n    ...<span class=\"hljs-title function_\">paginationUtil</span>(locals.<span class=\"hljs-property\">posts</span>, {\n      perPage,\n      <span class=\"hljs-attr\">pathPattern</span>: <span class=\"hljs-string\">&#x27;page/%d/&#x27;</span>,\n      <span class=\"hljs-attr\">data</span>: { <span class=\"hljs-attr\">__index</span>: <span class=\"hljs-literal\">true</span> },\n    }),\n    { <span class=\"hljs-attr\">path</span>: <span class=\"hljs-string\">&#x27;categories/&#x27;</span> },\n    <span class=\"hljs-comment\">// category 分页</span>\n    ...locals.<span class=\"hljs-property\">categories</span>.<span class=\"hljs-title function_\">reduce</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">rs, category</span>) =&gt;</span> {\n      <span class=\"hljs-keyword\">if</span> (!category.<span class=\"hljs-property\">length</span>) <span class=\"hljs-keyword\">return</span> rs;\n      <span class=\"hljs-keyword\">return</span> [\n        ...rs,\n        { <span class=\"hljs-attr\">path</span>: category.<span class=\"hljs-property\">path</span> },\n        ...<span class=\"hljs-title function_\">paginationUtil</span>(category.<span class=\"hljs-property\">posts</span>, {\n          perPage,\n          <span class=\"hljs-attr\">pathPattern</span>: category.<span class=\"hljs-property\">path</span>.<span class=\"hljs-title function_\">replace</span>(<span class=\"hljs-regexp\">/\\/?$/</span>, <span class=\"hljs-string\">&#x27;&#x27;</span>) + <span class=\"hljs-string\">&#x27;/page/%d/&#x27;</span>,\n        }),\n      ];\n    }, []),\n    <span class=\"hljs-comment\">// tag 分页</span>\n    ...locals.<span class=\"hljs-property\">tags</span>.<span class=\"hljs-title function_\">reduce</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">rs, tag</span>) =&gt;</span> {\n      <span class=\"hljs-keyword\">if</span> (!tag.<span class=\"hljs-property\">length</span>) <span class=\"hljs-keyword\">return</span> rs;\n      <span class=\"hljs-keyword\">return</span> [\n        ...rs,\n        { <span class=\"hljs-attr\">path</span>: tag.<span class=\"hljs-property\">path</span> },\n        ...<span class=\"hljs-title function_\">paginationUtil</span>(tag.<span class=\"hljs-property\">posts</span>, {\n          perPage,\n          <span class=\"hljs-attr\">pathPattern</span>: tag.<span class=\"hljs-property\">path</span>.<span class=\"hljs-title function_\">replace</span>(<span class=\"hljs-regexp\">/\\/?$/</span>, <span class=\"hljs-string\">&#x27;&#x27;</span>) + <span class=\"hljs-string\">&#x27;/page/%d/&#x27;</span>,\n        }),\n      ];\n    }, []),\n    <span class=\"hljs-comment\">// 归档 archives</span>\n    { <span class=\"hljs-attr\">path</span>: <span class=\"hljs-string\">&#x27;archives/&#x27;</span> },\n    ...<span class=\"hljs-title function_\">paginationUtil</span>(locals.<span class=\"hljs-property\">posts</span>, {\n      perPage,\n      <span class=\"hljs-attr\">pathPattern</span>: <span class=\"hljs-string\">&#x27;archives/page/%d/&#x27;</span>,\n    }),\n    <span class=\"hljs-comment\">// 404</span>\n    {\n      <span class=\"hljs-attr\">path</span>: <span class=\"hljs-string\">&#x27;404.html&#x27;</span>,\n    },\n  ].<span class=\"hljs-title function_\">map</span>(<span class=\"hljs-function\">(<span class=\"hljs-params\">it</span>) =&gt;</span> ({\n    <span class=\"hljs-attr\">layout</span>: [<span class=\"hljs-string\">&#x27;index&#x27;</span>],\n    ...it,\n  }));\n\n  <span class=\"hljs-keyword\">return</span> result;\n});</code></pre><h4 id=\"数据的处理\">数据的处理<a name=\"数据的处理\" class=\"headerlink\" href=\"#数据的处理\"></a></h4><p>当页面运行在浏览器之后，路由模式转变为前端路由，页面切换后数据需要异步拉取，这里就可以借助 <code>server_middleware</code> 钩子：</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\">hexo.<span class=\"hljs-property\">extend</span>.<span class=\"hljs-property\">filter</span>.<span class=\"hljs-title function_\">register</span>(<span class=\"hljs-string\">&#x27;server_middleware&#x27;</span>, <span class=\"hljs-keyword\">function</span> (<span class=\"hljs-params\">app</span>) {\n  app.<span class=\"hljs-title function_\">use</span>(<span class=\"hljs-keyword\">function</span> (<span class=\"hljs-params\">req, res, next</span>) {\n    <span class=\"hljs-keyword\">if</span> (<span class=\"hljs-regexp\">/^\\/json\\/.*\\.json$/i</span>.<span class=\"hljs-title function_\">test</span>(req.<span class=\"hljs-property\">url</span>)) {\n      <span class=\"hljs-keyword\">const</span> key = req.<span class=\"hljs-property\">url</span>.<span class=\"hljs-title function_\">replace</span>(<span class=\"hljs-regexp\">/^\\/json\\//i</span>, <span class=\"hljs-string\">&#x27;&#x27;</span>).<span class=\"hljs-title function_\">replace</span>(<span class=\"hljs-regexp\">/\\.json$/i</span>, <span class=\"hljs-string\">&#x27;&#x27;</span>);\n      <span class=\"hljs-keyword\">const</span> { renderData } = <span class=\"hljs-title function_\">loadModule</span>(<span class=\"hljs-string\">&#x27;../source/ssr/main&#x27;</span>);\n      <span class=\"hljs-keyword\">const</span> path = <span class=\"hljs-title class_\">Buffer</span>.<span class=\"hljs-title function_\">from</span>(key, <span class=\"hljs-string\">&#x27;base64&#x27;</span>).<span class=\"hljs-title function_\">toString</span>();\n      <span class=\"hljs-keyword\">const</span> data = <span class=\"hljs-title function_\">renderData</span>(path, savedLocals);\n      res.<span class=\"hljs-title function_\">writeHead</span>(<span class=\"hljs-number\">200</span>, {\n        <span class=\"hljs-string\">&#x27;Content-type&#x27;</span>: <span class=\"hljs-string\">&#x27;application/json&#x27;</span>,\n      });\n      res.<span class=\"hljs-title function_\">write</span>(<span class=\"hljs-title class_\">JSON</span>.<span class=\"hljs-title function_\">stringify</span>(data));\n      res.<span class=\"hljs-title function_\">end</span>();\n      <span class=\"hljs-keyword\">return</span>;\n    }\n    <span class=\"hljs-title function_\">next</span>();\n  });\n});</code></pre><p>而构建的时候，只需遍历每个路由，将每个路由页面所需的数据写入静态的 json 文件，这样一来数据也静态化了。再使用约定好的方式将路由与 json 文件进行映射，最终前端路由切换时只需去请求对应的 json 即可，即整个站点就单页化了。</p>\n<p>PS：hexo 运行时会将 Markdown 文件序列化，将所有数据存储于一个小型的、运行时的数据库，可通过 <code>hexo.model(&#39;Post&#39;)</code> 的形式获取到具体的数据，数据库的底层是基于 <a href=\"https://github.com/hexojs/warehouse\">warehouse</a>，支持丰富灵活的查询方式。</p>\n<h3 id=\"自定义框架 - gugu\">自定义框架 - gugu<a name=\"自定义框架 - gugu\" class=\"headerlink\" href=\"#自定义框架 - gugu\"></a></h3><p>基于 hexo 就得遵循它的一套规则，有些细节还总是得翻看源码，写起来也不够自由，总体就感觉不痛快，所以又转换思路：从头完整地写了一个简单的博客框架。</p>\n<p>过程就不展开了，因为核心思路与上述主题的实现是相近的，而且一些数据的处理也借鉴了 hexo，就是底层构建更换成 vite 了。</p>\n<p>核心依旧是 SSR 渲染，而 vite 的<a href=\"https://cn.vitejs.dev/guide/ssr.html\">服务端渲染</a>其实在官网上写得十分清楚了。</p>\n<p>数据的处理同样是两种情况：</p>\n<ul>\n<li>开发时：使用 expres 中间件的方式返回页面数据</li>\n<li>SSG：将数据写入静态 json</li>\n</ul>\n<p>SSG 的过程就是在开发服务的基础上，枚举所有路由去访问本地服务，将响应的 HTML 输出成一个个 html 文件。</p>\n<p>源码地址：<a data-layout=\"card\" href=\"https://github.com/daief/blog/tree/master/packages/gugu\">gugu</a></p>\n<p>期间有个问题值得一提，框架的改造重新设计了博客的链接，格式从 <code>/YYYY-MM-DD/:id.html</code> 改成了 <code>post/:id</code>，这样一来使用新框架之后，原本被搜索引擎收录的链接就都变成 404 了，这是一种不好的体验。正常的做法是需要在服务器上对迁移的链接配置 301 重定向，而我的应用托管在 github pages 上，不具备配置服务器的能力。幸运的是，meta 标签支持定义页面的重定向，只要配置如下内容，浏览器在加载文档之后就会根据配置跳转至目标链接，对搜索引擎也是比较友好的，相当于实现了客户端层面的 301 重定向。</p>\n<pre class=\"hljs language-html\" hljs-language=\"html\"><code style=\"display:block;\"><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">head</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">meta</span>\n    <span class=\"hljs-attr\">http-equiv</span>=<span class=\"hljs-string\">&quot;Refresh&quot;</span>\n    <span class=\"hljs-attr\">content</span>=<span class=\"hljs-string\">&quot;0; URL=https://daief.tech/post/git-general-knowledge&quot;</span>\n  /&gt;</span>\n<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">head</span>&gt;</span></code></pre><p>最后要提的一点是 <code>gugu</code> 这个名字，<code>gugu</code> 即<code>咕咕~</code>，表示作者鸽了自己大半年。</p>\n","hash":"a8a32cd67619054f427012f0acc946d0","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"build-a-poor-vue","slug":"post/build-a-poor-vue","path":"/post/build-a-poor-vue","title":"学写一个乞丐版 Vue","comments":true,"published":true,"date":"2020-04-02T13:03:54.000Z","updated":"","tags":[{"id":"2d8ec58babcec05d3fe8f712968de749","name":"Vue","postCount":5,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"2d8ec58babcec05d3fe8f712968de749","name":"Vue","slug":"categories/Vue","path":"/categories/Vue","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":1,"postIds":[]}],"excerpt":"<p><del>没有钱了，肯定要学啊，不学没有钱用。</del></p>\n<p><del>看源码是不可能看的，这辈子不可能看的。写东西又不会写，就是看这种东西，才能维持得了生活这样子。</del></p>\n<p><del>什么 Github、掘金、知乎上面个个都是人才，说话又好听，技术又厉害，超喜欢在上面逛的。</del></p>\n","more":"","hash":"c761fb966e40f6a6bbc0e4ed3f58a5a1","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"git-subtree","slug":"post/git-subtree","path":"/post/git-subtree","title":"Git Subtree 的使用","comments":true,"published":true,"date":"2021-08-15T21:07:02.000Z","updated":"","tags":[{"id":"0bcc70105ad279503e31fe7b3f47b665","name":"Git","postCount":2,"postIds":[]}],"categories":[{"id":"0bcc70105ad279503e31fe7b3f47b665","name":"Git","slug":"categories/Git","path":"/categories/Git","parentId":"","postCount":2,"postIds":[]}],"excerpt":"<p>git 的 <code>subtree</code> 是一种复用源代码的方式，可以让多个仓库引用某个仓库的代码，也可以将仓库中的某个目录拆分成一个子仓库以供其他仓库使用。</p>\n<p>相较于 git 的 <code>submodule</code>，目前社区中多更推崇 subtree，自己在使用了一段时间后总体也是认为 subtree 会更好用一些。</p>\n<p>但同时，两者都有各自的一些问题，而 subtree 的问题目前有其他方式规避，整体用起来比较流畅，所以最终选择了 subtree。</p>\n<blockquote>\n<p>实际上 subtree 命令需要在某个版本的 git 之后才被支持，但目前 git 的常用版本是完全足够的，所以也没去深究过。</p>\n</blockquote>\n","more":"","hash":"3a609768a9270469788f7c56233a2ed6","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"fabb5629b694584be9ff314ab8187577","slug":"resume-v2","path":"/resume-v2"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">博客框架 —— gugu</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2021-07-25</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>很久之就一直想把博客改成单页的，而中间发生了不少咕咕咕（<del>懂得都懂，不懂的我也不用再说了 🐶</del>）的事情，别说改造了，连文都没更新。在咕了大半年之后，终于完成了大改造，将原来使用的 <a href="https://hexo.io/">Hexo</a> 替换成了个人实现的博客框架 <a href="https://github.com/daief/blog/tree/master/packages/gugu">gugu</a>。</p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h2 id="为什么？">为什么？<a name="为什么？" class="headerlink" href="#为什么？"></a></h2><p>最初的想法是想将整个博客应用改造成单页应用，想着带来不一样的体验；其次想尝试一些新的东西、想实践一些想法，所以就去做了。</p>
+<h2 id="技术栈的选择">技术栈的选择<a name="技术栈的选择" class="headerlink" href="#技术栈的选择"></a></h2><p>工作上一直在使用 React，所以在写个人项目的时候就想用些不一样的。正巧 Svelte 和 Vue3 都在风头上，Tailwind CSS 热度也不小，刚好都可以接触一下来练练手。</p>
+<p>虽然最初尝试了 Svelte，照着官网教程写下来十分容易上手，结合 VSCode 相关的插件，编程体验也不错。但考虑到对恰饭的帮助，没有去过多深入，最终是选择了 Vue3。</p>
+<p>构建工具方面对 Vite 和 Webpack5 都进行了尝试：Webpack5 因为没有使用什么新的特性，整体用下来没有什么新的感受；当使用 Vite 之后，就有很多新的感受，只能说 Vite 真香，速度的确快、配置也简单，只能再说一次很香了。</p>
+<p>所以最终的技术栈组成是：</p>
+<ul>
+<li>Vue3</li>
+<li>Vite</li>
+<li>Tailwind CSS</li>
+<li>Less</li>
+<li>TypeScript</li>
+</ul>
+<p>全文另一项重点技术的应用是 SSR 和 SSG。因为博客类应用需要 SEO、以及为了首屏更好地体验，所以不能仅仅只使用客户端渲染，故引出了 SSR；但自己又没有服务器，也不想专门搞个服务器，只想用纯静态托管的方式达到目的，故进一步引出了 SSG。加上博客本身都是静态的内容，使用 SSG 再合适不过了。</p>
+<h2 id="实践过程">实践过程<a name="实践过程" class="headerlink" href="#实践过程"></a></h2><h3 id="Hexo 主题">Hexo 主题<a name="Hexo 主题" class="headerlink" href="#Hexo 主题"></a></h3><p>博客原本就是基于 Hexo 框架的，因此最初的想法是构建一套 Hexo 主题来达到目的。虽然完成了一套功能达到目的的主题，但心里感觉是不够痛快，不过这里还是简要记录一下实现过程中涉及的主要部分，处理好以下主要部分，基本就能基于 hexo 走通了。</p>
+<p>半成品的主题：<a href="https://github.com/daief/hexo-theme-spa">hexo-theme-spa</a>。</p>
+<h4 id="Layout：">Layout：<a name="Layout：" class="headerlink" href="#Layout："></a></h4><p>只需保留一个 vue 文件，作为整个应用的入口组件：</p>
+<pre class="hljs language-html" hljs-language="html"><code style="display:block;"><span class="hljs-tag">&lt;<span class="hljs-name">template</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">App</span> /&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;ts&quot;</span>&gt;</span><span class="language-javascript">
+  <span class="hljs-keyword">import</span> <span class="hljs-title class_">App</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;@/App.vue&#x27;</span>; <span class="hljs-comment">// 另外存储源码的地方</span>
+  <span class="hljs-keyword">import</span> { defineComponent } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;vue&#x27;</span>;
+
+  <span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-title function_">defineComponent</span>({
+    <span class="hljs-attr">components</span>: { <span class="hljs-title class_">App</span> },
+    <span class="hljs-attr">name</span>: <span class="hljs-string">&#x27;Index_layut&#x27;</span>,
+  });
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre><h4 id="扩展 renderer：">扩展 renderer：<a name="扩展 renderer：" class="headerlink" href="#扩展 renderer："></a></h4><pre class="hljs language-js" hljs-language="js"><code style="display:block;">hexo.<span class="hljs-property">extend</span>.<span class="hljs-property">renderer</span>.<span class="hljs-title function_">register</span>(<span class="hljs-string">&#x27;vue&#x27;</span>, <span class="hljs-string">&#x27;html&#x27;</span>, <span class="hljs-keyword">async</span> (data) =&gt; {
+  <span class="hljs-comment">// 导入 webpack 或 vite 构建器</span>
+  <span class="hljs-keyword">const</span> build = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;./compile&#x27;</span>);
+
+  <span class="hljs-comment">// 启动构建服务，同时构建 client 和 server 端两份 bundle</span>
+  <span class="hljs-keyword">const</span> { clientManifest } = <span class="hljs-keyword">await</span> <span class="hljs-title function_">build</span>();
+
+  <span class="hljs-comment">// 引用上一步构建的 server 结果</span>
+  <span class="hljs-keyword">const</span> { renderHtml } = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;../source/ssr/main&#x27;</span>);
+
+  <span class="hljs-comment">// SSR 渲染出首屏 html，内部实际上就是调用 @vue/server-renderer 的 renderToString</span>
+  <span class="hljs-keyword">const</span> htmlStr = <span class="hljs-keyword">await</span> <span class="hljs-title function_">renderHtml</span>(data, clientManifest);
+
+  <span class="hljs-comment">// 将结果返回，hexo 会输出成静态 html</span>
+  <span class="hljs-keyword">return</span> htmlStr;
+});</code></pre><h4 id="路由页面的处理">路由页面的处理<a name="路由页面的处理" class="headerlink" href="#路由页面的处理"></a></h4><p>需要注册一个 <code>generator</code>，枚举站点所涵盖的页面：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;">hexo.<span class="hljs-property">extend</span>.<span class="hljs-property">generator</span>.<span class="hljs-title function_">register</span>(<span class="hljs-string">&#x27;spa&#x27;</span>, <span class="hljs-keyword">function</span> (<span class="hljs-params">locals</span>) {
+  <span class="hljs-keyword">const</span> { generator } = <span class="hljs-variable language_">this</span>.<span class="hljs-property">theme</span>.<span class="hljs-property">config</span>;
+  <span class="hljs-keyword">const</span> { <span class="hljs-attr">per_page</span>: perPage } = generator;
+
+  <span class="hljs-keyword">const</span> result = [
+    <span class="hljs-comment">// 文章分页</span>
+    {
+      <span class="hljs-attr">path</span>: <span class="hljs-string">&#x27;&#x27;</span>,
+      <span class="hljs-attr">data</span>: { <span class="hljs-attr">__index</span>: <span class="hljs-literal">true</span> },
+    },
+    ...<span class="hljs-title function_">paginationUtil</span>(locals.<span class="hljs-property">posts</span>, {
+      perPage,
+      <span class="hljs-attr">pathPattern</span>: <span class="hljs-string">&#x27;page/%d/&#x27;</span>,
+      <span class="hljs-attr">data</span>: { <span class="hljs-attr">__index</span>: <span class="hljs-literal">true</span> },
+    }),
+    { <span class="hljs-attr">path</span>: <span class="hljs-string">&#x27;categories/&#x27;</span> },
+    <span class="hljs-comment">// category 分页</span>
+    ...locals.<span class="hljs-property">categories</span>.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">rs, category</span>) =&gt;</span> {
+      <span class="hljs-keyword">if</span> (!category.<span class="hljs-property">length</span>) <span class="hljs-keyword">return</span> rs;
+      <span class="hljs-keyword">return</span> [
+        ...rs,
+        { <span class="hljs-attr">path</span>: category.<span class="hljs-property">path</span> },
+        ...<span class="hljs-title function_">paginationUtil</span>(category.<span class="hljs-property">posts</span>, {
+          perPage,
+          <span class="hljs-attr">pathPattern</span>: category.<span class="hljs-property">path</span>.<span class="hljs-title function_">replace</span>(<span class="hljs-regexp">/\/?$/</span>, <span class="hljs-string">&#x27;&#x27;</span>) + <span class="hljs-string">&#x27;/page/%d/&#x27;</span>,
+        }),
+      ];
+    }, []),
+    <span class="hljs-comment">// tag 分页</span>
+    ...locals.<span class="hljs-property">tags</span>.<span class="hljs-title function_">reduce</span>(<span class="hljs-function">(<span class="hljs-params">rs, tag</span>) =&gt;</span> {
+      <span class="hljs-keyword">if</span> (!tag.<span class="hljs-property">length</span>) <span class="hljs-keyword">return</span> rs;
+      <span class="hljs-keyword">return</span> [
+        ...rs,
+        { <span class="hljs-attr">path</span>: tag.<span class="hljs-property">path</span> },
+        ...<span class="hljs-title function_">paginationUtil</span>(tag.<span class="hljs-property">posts</span>, {
+          perPage,
+          <span class="hljs-attr">pathPattern</span>: tag.<span class="hljs-property">path</span>.<span class="hljs-title function_">replace</span>(<span class="hljs-regexp">/\/?$/</span>, <span class="hljs-string">&#x27;&#x27;</span>) + <span class="hljs-string">&#x27;/page/%d/&#x27;</span>,
+        }),
+      ];
+    }, []),
+    <span class="hljs-comment">// 归档 archives</span>
+    { <span class="hljs-attr">path</span>: <span class="hljs-string">&#x27;archives/&#x27;</span> },
+    ...<span class="hljs-title function_">paginationUtil</span>(locals.<span class="hljs-property">posts</span>, {
+      perPage,
+      <span class="hljs-attr">pathPattern</span>: <span class="hljs-string">&#x27;archives/page/%d/&#x27;</span>,
+    }),
+    <span class="hljs-comment">// 404</span>
+    {
+      <span class="hljs-attr">path</span>: <span class="hljs-string">&#x27;404.html&#x27;</span>,
+    },
+  ].<span class="hljs-title function_">map</span>(<span class="hljs-function">(<span class="hljs-params">it</span>) =&gt;</span> ({
+    <span class="hljs-attr">layout</span>: [<span class="hljs-string">&#x27;index&#x27;</span>],
+    ...it,
+  }));
+
+  <span class="hljs-keyword">return</span> result;
+});</code></pre><h4 id="数据的处理">数据的处理<a name="数据的处理" class="headerlink" href="#数据的处理"></a></h4><p>当页面运行在浏览器之后，路由模式转变为前端路由，页面切换后数据需要异步拉取，这里就可以借助 <code>server_middleware</code> 钩子：</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;">hexo.<span class="hljs-property">extend</span>.<span class="hljs-property">filter</span>.<span class="hljs-title function_">register</span>(<span class="hljs-string">&#x27;server_middleware&#x27;</span>, <span class="hljs-keyword">function</span> (<span class="hljs-params">app</span>) {
+  app.<span class="hljs-title function_">use</span>(<span class="hljs-keyword">function</span> (<span class="hljs-params">req, res, next</span>) {
+    <span class="hljs-keyword">if</span> (<span class="hljs-regexp">/^\/json\/.*\.json$/i</span>.<span class="hljs-title function_">test</span>(req.<span class="hljs-property">url</span>)) {
+      <span class="hljs-keyword">const</span> key = req.<span class="hljs-property">url</span>.<span class="hljs-title function_">replace</span>(<span class="hljs-regexp">/^\/json\//i</span>, <span class="hljs-string">&#x27;&#x27;</span>).<span class="hljs-title function_">replace</span>(<span class="hljs-regexp">/\.json$/i</span>, <span class="hljs-string">&#x27;&#x27;</span>);
+      <span class="hljs-keyword">const</span> { renderData } = <span class="hljs-title function_">loadModule</span>(<span class="hljs-string">&#x27;../source/ssr/main&#x27;</span>);
+      <span class="hljs-keyword">const</span> path = <span class="hljs-title class_">Buffer</span>.<span class="hljs-title function_">from</span>(key, <span class="hljs-string">&#x27;base64&#x27;</span>).<span class="hljs-title function_">toString</span>();
+      <span class="hljs-keyword">const</span> data = <span class="hljs-title function_">renderData</span>(path, savedLocals);
+      res.<span class="hljs-title function_">writeHead</span>(<span class="hljs-number">200</span>, {
+        <span class="hljs-string">&#x27;Content-type&#x27;</span>: <span class="hljs-string">&#x27;application/json&#x27;</span>,
+      });
+      res.<span class="hljs-title function_">write</span>(<span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">stringify</span>(data));
+      res.<span class="hljs-title function_">end</span>();
+      <span class="hljs-keyword">return</span>;
+    }
+    <span class="hljs-title function_">next</span>();
+  });
+});</code></pre><p>而构建的时候，只需遍历每个路由，将每个路由页面所需的数据写入静态的 json 文件，这样一来数据也静态化了。再使用约定好的方式将路由与 json 文件进行映射，最终前端路由切换时只需去请求对应的 json 即可，即整个站点就单页化了。</p>
+<p>PS：hexo 运行时会将 Markdown 文件序列化，将所有数据存储于一个小型的、运行时的数据库，可通过 <code>hexo.model(&#39;Post&#39;)</code> 的形式获取到具体的数据，数据库的底层是基于 <a href="https://github.com/hexojs/warehouse">warehouse</a>，支持丰富灵活的查询方式。</p>
+<h3 id="自定义框架 - gugu">自定义框架 - gugu<a name="自定义框架 - gugu" class="headerlink" href="#自定义框架 - gugu"></a></h3><p>基于 hexo 就得遵循它的一套规则，有些细节还总是得翻看源码，写起来也不够自由，总体就感觉不痛快，所以又转换思路：从头完整地写了一个简单的博客框架。</p>
+<p>过程就不展开了，因为核心思路与上述主题的实现是相近的，而且一些数据的处理也借鉴了 hexo，就是底层构建更换成 vite 了。</p>
+<p>核心依旧是 SSR 渲染，而 vite 的<a href="https://cn.vitejs.dev/guide/ssr.html">服务端渲染</a>其实在官网上写得十分清楚了。</p>
+<p>数据的处理同样是两种情况：</p>
+<ul>
+<li>开发时：使用 expres 中间件的方式返回页面数据</li>
+<li>SSG：将数据写入静态 json</li>
+</ul>
+<p>SSG 的过程就是在开发服务的基础上，枚举所有路由去访问本地服务，将响应的 HTML 输出成一个个 html 文件。</p>
+<p>源码地址：<a data-layout="card" href="https://github.com/daief/blog/tree/master/packages/gugu">gugu</a></p>
+<p>期间有个问题值得一提，框架的改造重新设计了博客的链接，格式从 <code>/YYYY-MM-DD/:id.html</code> 改成了 <code>post/:id</code>，这样一来使用新框架之后，原本被搜索引擎收录的链接就都变成 404 了，这是一种不好的体验。正常的做法是需要在服务器上对迁移的链接配置 301 重定向，而我的应用托管在 github pages 上，不具备配置服务器的能力。幸运的是，meta 标签支持定义页面的重定向，只要配置如下内容，浏览器在加载文档之后就会根据配置跳转至目标链接，对搜索引擎也是比较友好的，相当于实现了客户端层面的 301 重定向。</p>
+<pre class="hljs language-html" hljs-language="html"><code style="display:block;"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span>
+    <span class="hljs-attr">http-equiv</span>=<span class="hljs-string">&quot;Refresh&quot;</span>
+    <span class="hljs-attr">content</span>=<span class="hljs-string">&quot;0; URL=https://daief.tech/post/git-general-knowledge&quot;</span>
+  /&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></code></pre><p>最后要提的一点是 <code>gugu</code> 这个名字，<code>gugu</code> 即<code>咕咕~</code>，表示作者鸽了自己大半年。</p>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/Blog" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> Blog</a><a href="/tags/Vite" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> Vite</a><a href="/tags/Vue3" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> Vue3</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/build-a-poor-vue" class="unset">学写一个乞丐版 Vue</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/git-subtree" class="unset">Git Subtree 的使用</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

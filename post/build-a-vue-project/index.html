@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue, vue-router, vuex项目构建 | daief的个人日志</title><meta property="og:title" content="Vue, vue-router, vuex项目构建 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"build-a-vue-project","slug":"post/build-a-vue-project","path":"/post/build-a-vue-project","title":"Vue, vue-router, vuex项目构建","comments":true,"published":true,"date":"2017-07-20T16:48:54.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"2d8ec58babcec05d3fe8f712968de749","name":"Vue","postCount":5,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<blockquote>\n<p>Vue.js（读音 /vjuː/，类似于 view） 是一套构建用户界面的渐进式框架。与其他重量级框架不同的是，Vue 采用自底向上增量开发的设计。Vue 的核心库只关注视图层，它不仅易于上手，还便于与第三方库或既有项目整合。另一方面，当与单文件组件和 Vue 生态系统支持的库结合使用时，Vue 也完全能够为复杂的单页应用程序提供驱动。\n本篇记录如何构建 vue，vue-router，vuex 项目的步骤。</p>\n</blockquote>\n","more":"\n\n<p><a href=\"https://github.com/daief/vue-demo\">简单 demo</a>\n在项目的<code>src/</code>中进行工作</p>\n<p><a href=\"https://cn.vuejs.org/v2/guide/\">Vue.js 官方教程</a>\n<a href=\"https://router.vuejs.org/zh-cn/\">vue-router 官方中文教程</a>\n<a href=\"https://vuex.vuejs.org/zh-cn/\">vuex 官方中文教程</a></p>\n<h1 id=\"vue-cli 创建项目\">vue-cli 创建项目<a name=\"vue-cli 创建项目\" class=\"headerlink\" href=\"#vue-cli 创建项目\"></a></h1><h2 id=\"vue.js 项目\">vue.js 项目<a name=\"vue.js 项目\" class=\"headerlink\" href=\"#vue.js 项目\"></a></h2><p>使用<code>npm</code>需要提前安装 node.js，因为 node.js 自带了<code>npm</code>模块，调试的时候也需要用到 node.js，需要一些对<code>npm</code>的认识，另外需要一些<code>webpack</code>的知识，不需要自己配置的时候问题不大，根据教程键入命令行即可</p>\n<p>创建空文件夹，在当前目录下打开命令行工具，使用 vue-cli：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\"><span class=\"hljs-comment\"># 全局安装 vue-cli</span>\n$ npm install --global vue-cli\n\n<span class=\"hljs-comment\"># 创建一个基于 webpack 模板的新项目</span>\n$ vue init webpack vue-example\n\n? Project name vue-example\n? Project description A Vue.js project\n? Author DeFeNG &lt;1437931235@qq.com&gt;\n? Vue build standalone\n? Install vue-router? No    <span class=\"hljs-comment\">#是否安装vue-router</span>\n? Use ESLint to lint your code? No  <span class=\"hljs-comment\"># 是否使用ESLint规范代码风格</span>\n? Setup unit tests with Karma + Mocha? No   <span class=\"hljs-comment\"># 是否安装测试</span>\n? Setup e2e tests with Nightwatch? No\n\n  vue-cli · Generated <span class=\"hljs-string\">&quot;vue-example&quot;</span>.\n\n  To get started:\n\n    <span class=\"hljs-built_in\">cd</span> vue-example\n    npm install\n    npm run dev\n\n  Documentation can be found at https://vuejs-templates.github.io/webpack\n\n\n<span class=\"hljs-comment\"># 安装依赖，走你</span>\n$ <span class=\"hljs-built_in\">cd</span> vue-example\n\n<span class=\"hljs-comment\"># 安装依赖模块，根据package.json的依赖安装，等待即可</span>\n$ npm install\n\n<span class=\"hljs-comment\"># 开启本地服务器进行调试，默认localhost:8080</span>\n<span class=\"hljs-comment\"># 改动代码页面能够自动更新，ctrl+c可停止服务</span>\n$ npm run dev\n\n<span class=\"hljs-comment\"># 将最终代码打包到dist/目录下</span>\n$ npm run build</code></pre><h2 id=\"安装 vue-router\">安装 vue-router<a name=\"安装 vue-router\" class=\"headerlink\" href=\"#安装 vue-router\"></a></h2><p><code>vue init webpack vue-example</code>的时候，是否安装<code>vue-router</code>选择 yes 即可</p>\n<h2 id=\"安装 vuex\">安装 vuex<a name=\"安装 vuex\" class=\"headerlink\" href=\"#安装 vuex\"></a></h2><p><a href=\"http://www.wdshare.org/article/58dc8ec813a809c753831529\">参考来源:http://www.wdshare.org/article/58dc8ec813a809c753831529</a></p>\n<p>安装 vuex 模块，在根目录下：</p>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">$ npm install --save vuex   <span class=\"hljs-comment\"># --save相对--global，只在当前目录安装</span></code></pre><p>创建以下路径文件<code>/src/stores/index.js</code>并添加如下代码:</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-comment\">// 引入依赖</span>\n<span class=\"hljs-keyword\">import</span> <span class=\"hljs-title class_\">Vue</span> <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;vue&quot;</span>;\n<span class=\"hljs-keyword\">import</span> <span class=\"hljs-title class_\">Vuex</span> <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;vuex&quot;</span>;\n<span class=\"hljs-comment\">// 使用vuex</span>\n<span class=\"hljs-title class_\">Vue</span>.<span class=\"hljs-title function_\">use</span>(<span class=\"hljs-title class_\">Vuex</span>);\n<span class=\"hljs-comment\">// 引入state模块</span>\n<span class=\"hljs-keyword\">import</span> states <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;./states&quot;</span>;\n<span class=\"hljs-keyword\">import</span> mutations <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;./mutations&quot;</span>;\n<span class=\"hljs-keyword\">import</span> actions <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;./actions&quot;</span>;\n<span class=\"hljs-comment\">/*\n * 第一种 state模块化\n * 适合大型项目以及状态多的项目写法\n * 注：模块化状态只是模块化state不分，其余getters，mutations，actions，是不分模块的，注意不要重命名\n */</span>\n<span class=\"hljs-comment\">// vuex 模块</span>\n<span class=\"hljs-comment\">// const index = {</span>\n<span class=\"hljs-comment\">//   state: states,</span>\n<span class=\"hljs-comment\">//   mutations: mutations,</span>\n<span class=\"hljs-comment\">//   actions: actions</span>\n<span class=\"hljs-comment\">// }</span>\n<span class=\"hljs-comment\">//</span>\n<span class=\"hljs-comment\">// const store = new Vuex.Store({</span>\n<span class=\"hljs-comment\">//   modules: {</span>\n<span class=\"hljs-comment\">//     index: index</span>\n<span class=\"hljs-comment\">//   }</span>\n<span class=\"hljs-comment\">// })</span>\n<span class=\"hljs-comment\">/*\n * 第二种 不分模块状态共享\n * 适合中小型项目以及状态少的项目写法\n */</span>\n<span class=\"hljs-keyword\">const</span> store = <span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Vuex</span>.<span class=\"hljs-title class_\">Store</span>({\n  <span class=\"hljs-attr\">state</span>: states,\n  <span class=\"hljs-attr\">mutations</span>: mutations,\n  <span class=\"hljs-attr\">actions</span>: actions\n});\n\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> store;</code></pre><p>创建/src/stores/states/index.js 添加如下代码</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-comment\">// states</span>\n<span class=\"hljs-keyword\">const</span> states = {};\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> states;</code></pre><p>创建/src/stores/mutations/index.js 添加如下代码</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-comment\">// mutations</span>\n<span class=\"hljs-keyword\">const</span> mutations = {};\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> mutations;</code></pre><p>创建/src/stores/actions/index.js 添加如下代码</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-comment\">// actions</span>\n<span class=\"hljs-keyword\">const</span> actions = {};\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> actions;\n到此vuex的引入和目录搭建已经完了;</code></pre><p>在<code>main.js</code>中引入:</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">import</span> <span class=\"hljs-title class_\">Vue</span> <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;vue&quot;</span>;\n<span class=\"hljs-keyword\">import</span> <span class=\"hljs-title class_\">App</span> <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;./App&quot;</span>;\n<span class=\"hljs-keyword\">import</span> router <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;./router&quot;</span>;\n\n<span class=\"hljs-comment\">// 引入vuex创建的store实例，路径 &#x27;./stores&#x27; 为 &#x27;./stores/index.js&#x27;的简写</span>\n<span class=\"hljs-keyword\">import</span> store <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;./stores&quot;</span>;\n\n<span class=\"hljs-title class_\">Vue</span>.<span class=\"hljs-property\">config</span>.<span class=\"hljs-property\">productionTip</span> = <span class=\"hljs-literal\">false</span>;\n\n<span class=\"hljs-comment\">/* eslint-disable no-new */</span>\n<span class=\"hljs-keyword\">new</span> <span class=\"hljs-title class_\">Vue</span>({\n  <span class=\"hljs-attr\">el</span>: <span class=\"hljs-string\">&quot;#app&quot;</span>,\n  router,\n  store, <span class=\"hljs-comment\">// store: store的简写</span>\n  <span class=\"hljs-attr\">template</span>: <span class=\"hljs-string\">&quot;&lt;App/&gt;&quot;</span>,\n  <span class=\"hljs-attr\">components</span>: { <span class=\"hljs-title class_\">App</span> }\n});</code></pre><blockquote>\n<p><code>stores/</code>结构不固定，<a href=\"https://vuex.vuejs.org/zh-cn/structure.html\">可使用官方的推荐</a>：</p>\n</blockquote>\n<pre class=\"hljs language-bash\" hljs-language=\"bash\"><code style=\"display:block;\">store\n  ├── index.js          <span class=\"hljs-comment\"># 我们组装模块并导出 store 的地方</span>\n  ├── actions.js        <span class=\"hljs-comment\"># 根级别的 action</span>\n  ├── mutations.js      <span class=\"hljs-comment\"># 根级别的 mutation</span>\n  └── modules\n    ├── cart.js         <span class=\"hljs-comment\"># 购物车模块</span>\n    └── products.js     <span class=\"hljs-comment\"># 产品模块</span></code></pre>","hash":"6a4e1d1ce772d100ae5a55e2165b3f0c","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"git-general-knowledge","slug":"post/git-general-knowledge","path":"/post/git-general-knowledge","title":"Git 学习的简单记录","comments":true,"published":true,"date":"2017-07-16T21:01:31.000Z","updated":"","tags":[{"id":"0bcc70105ad279503e31fe7b3f47b665","name":"Git","postCount":2,"postIds":[]},{"id":"d3b7c913cd04ebfec0e9ec32cb6fd58c","name":"GitHub","postCount":1,"postIds":[]}],"categories":[{"id":"0bcc70105ad279503e31fe7b3f47b665","name":"Git","slug":"categories/Git","path":"/categories/Git","parentId":"","postCount":2,"postIds":[]}],"excerpt":"<p>回想自己最初接触 git，先是在 GitHub 上注册账号，接着是下载 git bash，然后根据 GitHub 的提示建了个仓库，最后就不知道干嘛了，克隆仓库都不会，当时也没有再继续学习了。现在学会用了一点点，做个记录加深印象。</p>\n","more":"","hash":"919447367b541b6de09b69af50ee3858","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"learn-webpack","slug":"post/learn-webpack","path":"/post/learn-webpack","title":"webpack学习","comments":true,"published":true,"date":"2017-07-20T16:52:48.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"424516ca53b4ad4bef37ed04f8795a88","name":"webpack","postCount":2,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<blockquote>\n<p>webpack 是近期最火的一款模块加载器兼打包工具，它能把各种资源，例如 JS（含 JSX）、coffee、样式（含 less/sass）、图片等都作为模块来使用和处理。\n我们可以直接使用 require(XXX) 的形式来引入各模块，即使它们可能需要经过编译（比如 JSX 和 sass），但我们无须在上面花费太多心思，因为 webpack 有着各种健全的加载器（loader）在默默处理这些事情。</p>\n</blockquote>\n<p><a href=\"http://webpack.github.io/\">webpack 官网</a></p>\n","more":"","hash":"25e655ed0f5b0814eb0fb35a6b1d4810","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"fabb5629b694584be9ff314ab8187577","slug":"resume-v2","path":"/resume-v2"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">Vue, vue-router, vuex项目构建</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2017-07-20</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><blockquote>
+<p>Vue.js（读音 /vjuː/，类似于 view） 是一套构建用户界面的渐进式框架。与其他重量级框架不同的是，Vue 采用自底向上增量开发的设计。Vue 的核心库只关注视图层，它不仅易于上手，还便于与第三方库或既有项目整合。另一方面，当与单文件组件和 Vue 生态系统支持的库结合使用时，Vue 也完全能够为复杂的单页应用程序提供驱动。
+本篇记录如何构建 vue，vue-router，vuex 项目的步骤。</p>
+</blockquote>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<p><a href="https://github.com/daief/vue-demo">简单 demo</a>
+在项目的<code>src/</code>中进行工作</p>
+<p><a href="https://cn.vuejs.org/v2/guide/">Vue.js 官方教程</a>
+<a href="https://router.vuejs.org/zh-cn/">vue-router 官方中文教程</a>
+<a href="https://vuex.vuejs.org/zh-cn/">vuex 官方中文教程</a></p>
+<h1 id="vue-cli 创建项目">vue-cli 创建项目<a name="vue-cli 创建项目" class="headerlink" href="#vue-cli 创建项目"></a></h1><h2 id="vue.js 项目">vue.js 项目<a name="vue.js 项目" class="headerlink" href="#vue.js 项目"></a></h2><p>使用<code>npm</code>需要提前安装 node.js，因为 node.js 自带了<code>npm</code>模块，调试的时候也需要用到 node.js，需要一些对<code>npm</code>的认识，另外需要一些<code>webpack</code>的知识，不需要自己配置的时候问题不大，根据教程键入命令行即可</p>
+<p>创建空文件夹，在当前目录下打开命令行工具，使用 vue-cli：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;"><span class="hljs-comment"># 全局安装 vue-cli</span>
+$ npm install --global vue-cli
+
+<span class="hljs-comment"># 创建一个基于 webpack 模板的新项目</span>
+$ vue init webpack vue-example
+
+? Project name vue-example
+? Project description A Vue.js project
+? Author DeFeNG &lt;1437931235@qq.com&gt;
+? Vue build standalone
+? Install vue-router? No    <span class="hljs-comment">#是否安装vue-router</span>
+? Use ESLint to lint your code? No  <span class="hljs-comment"># 是否使用ESLint规范代码风格</span>
+? Setup unit tests with Karma + Mocha? No   <span class="hljs-comment"># 是否安装测试</span>
+? Setup e2e tests with Nightwatch? No
+
+  vue-cli · Generated <span class="hljs-string">&quot;vue-example&quot;</span>.
+
+  To get started:
+
+    <span class="hljs-built_in">cd</span> vue-example
+    npm install
+    npm run dev
+
+  Documentation can be found at https://vuejs-templates.github.io/webpack
+
+
+<span class="hljs-comment"># 安装依赖，走你</span>
+$ <span class="hljs-built_in">cd</span> vue-example
+
+<span class="hljs-comment"># 安装依赖模块，根据package.json的依赖安装，等待即可</span>
+$ npm install
+
+<span class="hljs-comment"># 开启本地服务器进行调试，默认localhost:8080</span>
+<span class="hljs-comment"># 改动代码页面能够自动更新，ctrl+c可停止服务</span>
+$ npm run dev
+
+<span class="hljs-comment"># 将最终代码打包到dist/目录下</span>
+$ npm run build</code></pre><h2 id="安装 vue-router">安装 vue-router<a name="安装 vue-router" class="headerlink" href="#安装 vue-router"></a></h2><p><code>vue init webpack vue-example</code>的时候，是否安装<code>vue-router</code>选择 yes 即可</p>
+<h2 id="安装 vuex">安装 vuex<a name="安装 vuex" class="headerlink" href="#安装 vuex"></a></h2><p><a href="http://www.wdshare.org/article/58dc8ec813a809c753831529">参考来源:http://www.wdshare.org/article/58dc8ec813a809c753831529</a></p>
+<p>安装 vuex 模块，在根目录下：</p>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">$ npm install --save vuex   <span class="hljs-comment"># --save相对--global，只在当前目录安装</span></code></pre><p>创建以下路径文件<code>/src/stores/index.js</code>并添加如下代码:</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-comment">// 引入依赖</span>
+<span class="hljs-keyword">import</span> <span class="hljs-title class_">Vue</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;vue&quot;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-title class_">Vuex</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;vuex&quot;</span>;
+<span class="hljs-comment">// 使用vuex</span>
+<span class="hljs-title class_">Vue</span>.<span class="hljs-title function_">use</span>(<span class="hljs-title class_">Vuex</span>);
+<span class="hljs-comment">// 引入state模块</span>
+<span class="hljs-keyword">import</span> states <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;./states&quot;</span>;
+<span class="hljs-keyword">import</span> mutations <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;./mutations&quot;</span>;
+<span class="hljs-keyword">import</span> actions <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;./actions&quot;</span>;
+<span class="hljs-comment">/*
+ * 第一种 state模块化
+ * 适合大型项目以及状态多的项目写法
+ * 注：模块化状态只是模块化state不分，其余getters，mutations，actions，是不分模块的，注意不要重命名
+ */</span>
+<span class="hljs-comment">// vuex 模块</span>
+<span class="hljs-comment">// const index = {</span>
+<span class="hljs-comment">//   state: states,</span>
+<span class="hljs-comment">//   mutations: mutations,</span>
+<span class="hljs-comment">//   actions: actions</span>
+<span class="hljs-comment">// }</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// const store = new Vuex.Store({</span>
+<span class="hljs-comment">//   modules: {</span>
+<span class="hljs-comment">//     index: index</span>
+<span class="hljs-comment">//   }</span>
+<span class="hljs-comment">// })</span>
+<span class="hljs-comment">/*
+ * 第二种 不分模块状态共享
+ * 适合中小型项目以及状态少的项目写法
+ */</span>
+<span class="hljs-keyword">const</span> store = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Vuex</span>.<span class="hljs-title class_">Store</span>({
+  <span class="hljs-attr">state</span>: states,
+  <span class="hljs-attr">mutations</span>: mutations,
+  <span class="hljs-attr">actions</span>: actions
+});
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> store;</code></pre><p>创建/src/stores/states/index.js 添加如下代码</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-comment">// states</span>
+<span class="hljs-keyword">const</span> states = {};
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> states;</code></pre><p>创建/src/stores/mutations/index.js 添加如下代码</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-comment">// mutations</span>
+<span class="hljs-keyword">const</span> mutations = {};
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> mutations;</code></pre><p>创建/src/stores/actions/index.js 添加如下代码</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-comment">// actions</span>
+<span class="hljs-keyword">const</span> actions = {};
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> actions;
+到此vuex的引入和目录搭建已经完了;</code></pre><p>在<code>main.js</code>中引入:</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">import</span> <span class="hljs-title class_">Vue</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;vue&quot;</span>;
+<span class="hljs-keyword">import</span> <span class="hljs-title class_">App</span> <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;./App&quot;</span>;
+<span class="hljs-keyword">import</span> router <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;./router&quot;</span>;
+
+<span class="hljs-comment">// 引入vuex创建的store实例，路径 &#x27;./stores&#x27; 为 &#x27;./stores/index.js&#x27;的简写</span>
+<span class="hljs-keyword">import</span> store <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;./stores&quot;</span>;
+
+<span class="hljs-title class_">Vue</span>.<span class="hljs-property">config</span>.<span class="hljs-property">productionTip</span> = <span class="hljs-literal">false</span>;
+
+<span class="hljs-comment">/* eslint-disable no-new */</span>
+<span class="hljs-keyword">new</span> <span class="hljs-title class_">Vue</span>({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">&quot;#app&quot;</span>,
+  router,
+  store, <span class="hljs-comment">// store: store的简写</span>
+  <span class="hljs-attr">template</span>: <span class="hljs-string">&quot;&lt;App/&gt;&quot;</span>,
+  <span class="hljs-attr">components</span>: { <span class="hljs-title class_">App</span> }
+});</code></pre><blockquote>
+<p><code>stores/</code>结构不固定，<a href="https://vuex.vuejs.org/zh-cn/structure.html">可使用官方的推荐</a>：</p>
+</blockquote>
+<pre class="hljs language-bash" hljs-language="bash"><code style="display:block;">store
+  ├── index.js          <span class="hljs-comment"># 我们组装模块并导出 store 的地方</span>
+  ├── actions.js        <span class="hljs-comment"># 根级别的 action</span>
+  ├── mutations.js      <span class="hljs-comment"># 根级别的 mutation</span>
+  └── modules
+    ├── cart.js         <span class="hljs-comment"># 购物车模块</span>
+    └── products.js     <span class="hljs-comment"># 产品模块</span></code></pre></div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/JavaScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> JavaScript</a><a href="/tags/Vue" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> Vue</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/git-general-knowledge" class="unset">Git 学习的简单记录</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/learn-webpack" class="unset">webpack学习</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

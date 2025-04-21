@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>使用 prismjs 自定义 Hexo 代码高亮 | daief的个人日志</title><meta property="og:title" content="使用 prismjs 自定义 Hexo 代码高亮 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"hexo-custom-code-highlight-by-prismjs","slug":"post/hexo-custom-code-highlight-by-prismjs","path":"/post/hexo-custom-code-highlight-by-prismjs","title":"使用 prismjs 自定义 Hexo 代码高亮","comments":true,"published":true,"date":"2020-03-23T16:50:24.000Z","updated":"","tags":[{"id":"be8df1f28c0abc85a0ed0c6860e5d832","name":"Blog","postCount":3,"postIds":[]},{"id":"c00d1eb68b529768ba98c975c76a9b66","name":"Hexo","postCount":1,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"c00d1eb68b529768ba98c975c76a9b66","name":"Hexo","slug":"categories/Hexo","path":"/categories/Hexo","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":1,"postIds":[]}],"excerpt":"<p>一直就想优化一下 Hexo 的代码高亮部分来着，对 <code>ts</code>、<code>tsx</code> 部分的支持一直不太好；也许直接更新 Next 就能直接解决，但博客部分已经魔改了不少，本着这个原则就继续魔改下去好了。</p>\n<blockquote>\n<p>本站是在 Next 5 的基础上建成的，不过本文内容与 Next 5 的关系不大</p>\n</blockquote>\n","more":"\n\n<h2 id=\"重写代码块的 render\">重写代码块的 render<a name=\"重写代码块的 render\" class=\"headerlink\" href=\"#重写代码块的 render\"></a></h2><p>我使用了 <a href=\"https://github.com/hexojs/hexo-renderer-marked\">hexo-renderer-marked</a> 插件，这个插件的作用就是将 <code>Markdown</code> 文件渲染成 <code>HTML</code>。</p>\n<p>查阅文档，发现 <code>hexo-renderer-marked</code> 提供了扩展 <a href=\"https://github.com/chjj/marked\">marked</a> 插件的功能，<code>marked</code> 是真正进行 Markdown 转换的工具。</p>\n<blockquote>\n<p>目前（<a href=\"mailto:&amp;#x68;&amp;#101;&amp;#120;&amp;#x6f;&amp;#x2d;&amp;#x72;&amp;#101;&amp;#x6e;&amp;#x64;&amp;#101;&amp;#114;&amp;#101;&amp;#114;&amp;#45;&amp;#109;&amp;#97;&amp;#x72;&amp;#x6b;&amp;#x65;&amp;#x64;&amp;#x40;&amp;#50;&amp;#46;&amp;#48;&amp;#46;&amp;#x30;\">&#x68;&#101;&#120;&#x6f;&#x2d;&#x72;&#101;&#x6e;&#x64;&#101;&#114;&#101;&#114;&#45;&#109;&#97;&#x72;&#x6b;&#x65;&#x64;&#x40;&#50;&#46;&#48;&#46;&#x30;</a> 版本）暂未实现该功能，不过主分支上已经支持了，所以我暂时是直接使用了主分支上的代码。</p>\n</blockquote>\n<p><code>package.json</code> 中可以这么写：</p>\n<pre class=\"hljs language-json\" hljs-language=\"json\"><code style=\"display:block;\"><span class=\"hljs-punctuation\">{</span>\n  <span class=\"hljs-attr\">&quot;devDependencies&quot;</span><span class=\"hljs-punctuation\">:</span> <span class=\"hljs-punctuation\">{</span>\n    <span class=\"hljs-comment\">// ...</span>\n    <span class=\"hljs-attr\">&quot;hexo-renderer-marked&quot;</span><span class=\"hljs-punctuation\">:</span> <span class=\"hljs-string\">&quot;https://github.com/hexojs/hexo-renderer-marked#40d8ca4532363dba74da7661335bbd8eea689cea&quot;</span>\n    <span class=\"hljs-comment\">// ...</span>\n  <span class=\"hljs-punctuation\">}</span>\n<span class=\"hljs-punctuation\">}</span></code></pre><p>不过在重写之前需要关闭默认的 highlight 功能，在根目录下 <code>_config.yml</code> 修改：</p>\n<pre class=\"hljs language-diff\" hljs-language=\"diff\"><code style=\"display:block;\">highlight:\n<span class=\"hljs-addition\">+  enable: false</span>\n<span class=\"hljs-deletion\">-  enable: true</span></code></pre><p>那么事情就简单了，在 <code>scripts</code> 下创建脚本，命名随意，我将其放在了 <code>themes/next/scripts/daief/highlight.js</code>：</p>\n<blockquote>\n<p><code>scripts</code> 下的脚本会在 Hexo 运行时自动被加载，可在此实现一些自定义的插件等。</p>\n</blockquote>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-comment\">/**\n * 借助 hexo-renderer-marked 扩展，自定义渲染 code\n * ref：https://github.com/hexojs/hexo-renderer-marked/blob/master/README.md#extensibility\n */</span>\n\n<span class=\"hljs-keyword\">const</span> prism = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;prismjs&#x27;</span>);\n<span class=\"hljs-keyword\">const</span> loadLanguages = <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;prismjs/components/index&#x27;</span>);\n<span class=\"hljs-title function_\">loadLanguages</span>();\n\n<span class=\"hljs-keyword\">const</span> <span class=\"hljs-title function_\">escapeHtml</span> = (<span class=\"hljs-params\">str</span>) =&gt;\n  str.<span class=\"hljs-title function_\">replace</span>(\n    <span class=\"hljs-regexp\">/[&amp;&lt;&gt;&#x27;&quot;]/g</span>,\n    <span class=\"hljs-function\">(<span class=\"hljs-params\">tag</span>) =&gt;</span>\n      ({\n        <span class=\"hljs-string\">&#x27;&amp;&#x27;</span>: <span class=\"hljs-string\">&#x27;&amp;amp;&#x27;</span>,\n        <span class=\"hljs-string\">&#x27;&lt;&#x27;</span>: <span class=\"hljs-string\">&#x27;&amp;lt;&#x27;</span>,\n        <span class=\"hljs-string\">&#x27;&gt;&#x27;</span>: <span class=\"hljs-string\">&#x27;&amp;gt;&#x27;</span>,\n        <span class=\"hljs-string\">&quot;&#x27;&quot;</span>: <span class=\"hljs-string\">&#x27;&amp;#39;&#x27;</span>,\n        <span class=\"hljs-string\">&#x27;&quot;&#x27;</span>: <span class=\"hljs-string\">&#x27;&amp;quot;&#x27;</span>,\n      }[tag] || tag),\n  );\n\nhexo.<span class=\"hljs-property\">extend</span>.<span class=\"hljs-property\">filter</span>.<span class=\"hljs-title function_\">register</span>(<span class=\"hljs-string\">&#x27;marked:renderer&#x27;</span>, <span class=\"hljs-keyword\">function</span> (<span class=\"hljs-params\">renderer</span>) {\n  <span class=\"hljs-comment\">// 定义 renderer.code 来自定义代码块的解析行为</span>\n  renderer.<span class=\"hljs-property\">code</span> = <span class=\"hljs-function\">(<span class=\"hljs-params\">sourceCode, language</span>) =&gt;</span> {\n    <span class=\"hljs-keyword\">const</span> codeResult =\n      prism.<span class=\"hljs-property\">languages</span>[language] &amp;&amp; sourceCode\n        ? prism.<span class=\"hljs-title function_\">highlight</span>(sourceCode, prism.<span class=\"hljs-property\">languages</span>[language])\n        : escapeHtml(sourceCode);\n\n    <span class=\"hljs-keyword\">return</span> <span class=\"hljs-string\">`&lt;pre class=&quot;line-numbers language-<span class=\"hljs-subst\">${language}</span>&quot;&gt;&lt;code&gt;<span class=\"hljs-subst\">${codeResult}</span>&lt;/code&gt;&lt;/pre&gt;`</span>;\n  };\n});</code></pre><p>该脚本的功能就是使用 <a href=\"https://github.com/PrismJS/prism\">prismjs</a> 来解析代码块，重写默认的行为。</p>\n<h2 id=\"添加样式文件\">添加样式文件<a name=\"添加样式文件\" class=\"headerlink\" href=\"#添加样式文件\"></a></h2><p>在主题配置文件（<code>themes/next/_config.yml</code>）下添加一个自定义选项 <code>prismjs</code>，这样一来版本的维护就比较方便了：</p>\n<pre class=\"hljs language-diff\" hljs-language=\"diff\"><code style=\"display:block;\"><span class=\"hljs-addition\">+ prismjs: https://cdn.jsdelivr.net/npm/prismjs@1.19.0</span></code></pre><p>自己添加的东西最好跟库分开，Next 也已经考虑到了这一点，如果需要在每个页面的 <code>&lt;head&gt;</code> 中添加内容，只需在 <code>themes/next/layout/_partials/head/custom-head.swig</code> 中编辑即可，<code>prismjs</code> 的样式也在此处添加：</p>\n<pre class=\"hljs language-html\" hljs-language=\"html\"><code style=\"display:block;\"><span class=\"hljs-comment\">&lt;!-- prismjs style --&gt;</span>\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">link</span>\n  <span class=\"hljs-attr\">rel</span>=<span class=\"hljs-string\">&quot;stylesheet&quot;</span>\n  <span class=\"hljs-attr\">href</span>=<span class=\"hljs-string\">&quot;{% raw %}{{ theme.prismjs }}{% endraw %}/plugins/line-numbers/prism-line-numbers.css&quot;</span>\n/&gt;</span>\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">link</span>\n  <span class=\"hljs-attr\">rel</span>=<span class=\"hljs-string\">&quot;stylesheet&quot;</span>\n  <span class=\"hljs-attr\">href</span>=<span class=\"hljs-string\">&quot;{% raw %}{{ theme.prismjs }}{% endraw %}/themes/prism.css&quot;</span>\n/&gt;</span>\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">style</span>&gt;</span><span class=\"language-css\">\n  <span class=\"hljs-selector-class\">.code</span><span class=\"hljs-selector-attr\">[class*=<span class=\"hljs-string\">&#x27;language-&#x27;</span>]</span>,\n  pre<span class=\"hljs-selector-attr\">[class*=<span class=\"hljs-string\">&#x27;language-&#x27;</span>]</span> {\n    <span class=\"hljs-attribute\">font-size</span>: <span class=\"hljs-number\">13px</span>;\n    <span class=\"hljs-attribute\">padding-top</span>: <span class=\"hljs-number\">10px</span> <span class=\"hljs-meta\">!important</span>;\n    <span class=\"hljs-attribute\">padding-bottom</span>: <span class=\"hljs-number\">10px</span> <span class=\"hljs-meta\">!important</span>;\n  }\n</span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">style</span>&gt;</span></code></pre><h2 id=\"添加行号（或是其他 prismjs 插件）\">添加行号（或是其他 prismjs 插件）<a name=\"添加行号（或是其他 prismjs 插件）\" class=\"headerlink\" href=\"#添加行号（或是其他 prismjs 插件）\"></a></h2><blockquote>\n<p>这一步有点坑，我期望的是在构建阶段就完成代码块标签的解析，最终页面在浏览器中展示时只需添加样式支持即可。</p>\n<p>HTML 解析已经成功在构建阶段完成了，但像行号以及一些其他 prismjs 插件的功能则需要在浏览器中进行。如果仅仅是在浏览中多加一次调用插件的步骤也就算了，可偏偏插件的触发是在 prismjs 的 hooks 中绑死的；</p>\n<p>若是想正常触发 prismjs 的 hooks，那么 prismjs 会在浏览器当中对代码块再次进行解析（这里的意思是假如此时 HTML 没有提前处理，将纯文本的代码块传给 prismjs，prismjs 也能解析出操作符、关键字并包裹上相应的标签和类名），也就是说第一步重写代码块解析的步骤就相当于白费了；</p>\n<p>可在浏览器当中解析的结果竟与构建阶段的解析会有不同，有些高亮会有问题；奈何行号插件只能运行在浏览器，同时又不想改太多，最终还是按照 prismjs 官方推荐的方式来使用了。</p>\n<p>如果可能大概以后有空的话再来优化一下吧。</p>\n</blockquote>\n<p>行号插件需要在 HTML 中添加 <code>line-numbers</code> 类名以进行标注，这一步在重写代码块的解析过程中（提前解析并不是白费的，确信！）已经完成。</p>\n<p>同样本着自定义内容分离的原则，先在 <code>themes/next/layout/_layout.swig</code> 中新增：</p>\n<pre class=\"hljs language-diff\" hljs-language=\"diff\"><code style=\"display:block;\"><span class=\"hljs-addition\">+  {% raw %}{% include &#x27;_custom/page-tail.swig&#x27; %}{% endraw %}</span>\n&lt;/body&gt;\n&lt;/html&gt;</code></pre><p>接着创建 <code>themes/next/layout/_custom/page-tail.swig</code> 并添加以下内容，参照官方文档来即可：</p>\n<pre class=\"hljs language-html\" hljs-language=\"html\"><code style=\"display:block;\"><span class=\"hljs-comment\">&lt;!--\nprismjs 功能\nref：https://prismjs.com/#basic-usage\n--&gt;</span>\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">script</span>&gt;</span><span class=\"language-javascript\">\n  <span class=\"hljs-variable language_\">window</span>.<span class=\"hljs-property\">Prism</span> = <span class=\"hljs-variable language_\">window</span>.<span class=\"hljs-property\">Prism</span> || {};\n  <span class=\"hljs-comment\">// 打开注释的话就不会自动处理了</span>\n  <span class=\"hljs-comment\">// window.Prism.manual = true;</span>\n</span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">script</span>&gt;</span>\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">script</span> <span class=\"hljs-attr\">src</span>=<span class=\"hljs-string\">&quot;{% raw %}{{ theme.prismjs }}{% endraw %}/components/prism-core.min.js&quot;</span>&gt;</span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">script</span>&gt;</span>\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">script</span> <span class=\"hljs-attr\">src</span>=<span class=\"hljs-string\">&quot;{% raw %}{{ theme.prismjs }}{% endraw %}/plugins/autoloader/prism-autoloader.min.js&quot;</span>&gt;</span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">script</span>&gt;</span>\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">script</span> <span class=\"hljs-attr\">src</span>=<span class=\"hljs-string\">&quot;{% raw %}{{ theme.prismjs }}{% endraw %}/plugins/line-numbers/prism-line-numbers.min.js&quot;</span>&gt;</span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">script</span>&gt;</span></code></pre><h2 id=\"结语\">结语<a name=\"结语\" class=\"headerlink\" href=\"#结语\"></a></h2><p>这么一来就结束了，这么个处理，还是有点不满意的；不过现在至少能支持 <code>ts</code>、<code>tsx</code> 了，这样暂且就够了。</p>\n<p>完。</p>\n","hash":"5cb61feaa8a607c534c6e7936c2bb437","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"encapsulation-in-react","slug":"post/encapsulation-in-react","path":"/post/encapsulation-in-react","title":"React 中的一些封装","comments":true,"published":true,"date":"2020-03-22T21:06:34.000Z","updated":"","tags":[{"id":"50ce2da63bea6a618e7578fa50690040","name":"React","postCount":2,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"50ce2da63bea6a618e7578fa50690040","name":"React","slug":"categories/React","path":"/categories/React","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":2,"postIds":[]}],"excerpt":"<p>结合资料以及一直以来的开发情况，总结记录一下 React 中的封装方式，具体是以下三种：</p>\n<ul>\n<li>HOC</li>\n<li>Render Props</li>\n<li>React Hooks</li>\n</ul>\n","more":"","hash":"f15591dc7b027ccb9301580f6b438c26","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"build-a-poor-vue","slug":"post/build-a-poor-vue","path":"/post/build-a-poor-vue","title":"学写一个乞丐版 Vue","comments":true,"published":true,"date":"2020-04-02T13:03:54.000Z","updated":"","tags":[{"id":"2d8ec58babcec05d3fe8f712968de749","name":"Vue","postCount":5,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]},{"id":"2d8ec58babcec05d3fe8f712968de749","name":"Vue","slug":"categories/Vue","path":"/categories/Vue","parentId":"9abfe4a03928eb88a75a5cd95822dfef","postCount":1,"postIds":[]}],"excerpt":"<p><del>没有钱了，肯定要学啊，不学没有钱用。</del></p>\n<p><del>看源码是不可能看的，这辈子不可能看的。写东西又不会写，就是看这种东西，才能维持得了生活这样子。</del></p>\n<p><del>什么 Github、掘金、知乎上面个个都是人才，说话又好听，技术又厉害，超喜欢在上面逛的。</del></p>\n","more":"","hash":"c761fb966e40f6a6bbc0e4ed3f58a5a1","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"fabb5629b694584be9ff314ab8187577","slug":"resume-v2","path":"/resume-v2"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">使用 prismjs 自定义 Hexo 代码高亮</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2020-03-23</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span>，</span><!--]--><!--[--><a href="/categories/Hexo" class="unset">Hexo</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>一直就想优化一下 Hexo 的代码高亮部分来着，对 <code>ts</code>、<code>tsx</code> 部分的支持一直不太好；也许直接更新 Next 就能直接解决，但博客部分已经魔改了不少，本着这个原则就继续魔改下去好了。</p>
+<blockquote>
+<p>本站是在 Next 5 的基础上建成的，不过本文内容与 Next 5 的关系不大</p>
+</blockquote>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h2 id="重写代码块的 render">重写代码块的 render<a name="重写代码块的 render" class="headerlink" href="#重写代码块的 render"></a></h2><p>我使用了 <a href="https://github.com/hexojs/hexo-renderer-marked">hexo-renderer-marked</a> 插件，这个插件的作用就是将 <code>Markdown</code> 文件渲染成 <code>HTML</code>。</p>
+<p>查阅文档，发现 <code>hexo-renderer-marked</code> 提供了扩展 <a href="https://github.com/chjj/marked">marked</a> 插件的功能，<code>marked</code> 是真正进行 Markdown 转换的工具。</p>
+<blockquote>
+<p>目前（<a href="mailto:&amp;#x68;&amp;#101;&amp;#120;&amp;#x6f;&amp;#x2d;&amp;#x72;&amp;#101;&amp;#x6e;&amp;#x64;&amp;#101;&amp;#114;&amp;#101;&amp;#114;&amp;#45;&amp;#109;&amp;#97;&amp;#x72;&amp;#x6b;&amp;#x65;&amp;#x64;&amp;#x40;&amp;#50;&amp;#46;&amp;#48;&amp;#46;&amp;#x30;">&#x68;&#101;&#120;&#x6f;&#x2d;&#x72;&#101;&#x6e;&#x64;&#101;&#114;&#101;&#114;&#45;&#109;&#97;&#x72;&#x6b;&#x65;&#x64;&#x40;&#50;&#46;&#48;&#46;&#x30;</a> 版本）暂未实现该功能，不过主分支上已经支持了，所以我暂时是直接使用了主分支上的代码。</p>
+</blockquote>
+<p><code>package.json</code> 中可以这么写：</p>
+<pre class="hljs language-json" hljs-language="json"><code style="display:block;"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;devDependencies&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-comment">// ...</span>
+    <span class="hljs-attr">&quot;hexo-renderer-marked&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;https://github.com/hexojs/hexo-renderer-marked#40d8ca4532363dba74da7661335bbd8eea689cea&quot;</span>
+    <span class="hljs-comment">// ...</span>
+  <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span></code></pre><p>不过在重写之前需要关闭默认的 highlight 功能，在根目录下 <code>_config.yml</code> 修改：</p>
+<pre class="hljs language-diff" hljs-language="diff"><code style="display:block;">highlight:
+<span class="hljs-addition">+  enable: false</span>
+<span class="hljs-deletion">-  enable: true</span></code></pre><p>那么事情就简单了，在 <code>scripts</code> 下创建脚本，命名随意，我将其放在了 <code>themes/next/scripts/daief/highlight.js</code>：</p>
+<blockquote>
+<p><code>scripts</code> 下的脚本会在 Hexo 运行时自动被加载，可在此实现一些自定义的插件等。</p>
+</blockquote>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-comment">/**
+ * 借助 hexo-renderer-marked 扩展，自定义渲染 code
+ * ref：https://github.com/hexojs/hexo-renderer-marked/blob/master/README.md#extensibility
+ */</span>
+
+<span class="hljs-keyword">const</span> prism = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;prismjs&#x27;</span>);
+<span class="hljs-keyword">const</span> loadLanguages = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;prismjs/components/index&#x27;</span>);
+<span class="hljs-title function_">loadLanguages</span>();
+
+<span class="hljs-keyword">const</span> <span class="hljs-title function_">escapeHtml</span> = (<span class="hljs-params">str</span>) =&gt;
+  str.<span class="hljs-title function_">replace</span>(
+    <span class="hljs-regexp">/[&amp;&lt;&gt;&#x27;&quot;]/g</span>,
+    <span class="hljs-function">(<span class="hljs-params">tag</span>) =&gt;</span>
+      ({
+        <span class="hljs-string">&#x27;&amp;&#x27;</span>: <span class="hljs-string">&#x27;&amp;amp;&#x27;</span>,
+        <span class="hljs-string">&#x27;&lt;&#x27;</span>: <span class="hljs-string">&#x27;&amp;lt;&#x27;</span>,
+        <span class="hljs-string">&#x27;&gt;&#x27;</span>: <span class="hljs-string">&#x27;&amp;gt;&#x27;</span>,
+        <span class="hljs-string">&quot;&#x27;&quot;</span>: <span class="hljs-string">&#x27;&amp;#39;&#x27;</span>,
+        <span class="hljs-string">&#x27;&quot;&#x27;</span>: <span class="hljs-string">&#x27;&amp;quot;&#x27;</span>,
+      }[tag] || tag),
+  );
+
+hexo.<span class="hljs-property">extend</span>.<span class="hljs-property">filter</span>.<span class="hljs-title function_">register</span>(<span class="hljs-string">&#x27;marked:renderer&#x27;</span>, <span class="hljs-keyword">function</span> (<span class="hljs-params">renderer</span>) {
+  <span class="hljs-comment">// 定义 renderer.code 来自定义代码块的解析行为</span>
+  renderer.<span class="hljs-property">code</span> = <span class="hljs-function">(<span class="hljs-params">sourceCode, language</span>) =&gt;</span> {
+    <span class="hljs-keyword">const</span> codeResult =
+      prism.<span class="hljs-property">languages</span>[language] &amp;&amp; sourceCode
+        ? prism.<span class="hljs-title function_">highlight</span>(sourceCode, prism.<span class="hljs-property">languages</span>[language])
+        : escapeHtml(sourceCode);
+
+    <span class="hljs-keyword">return</span> <span class="hljs-string">`&lt;pre class=&quot;line-numbers language-<span class="hljs-subst">${language}</span>&quot;&gt;&lt;code&gt;<span class="hljs-subst">${codeResult}</span>&lt;/code&gt;&lt;/pre&gt;`</span>;
+  };
+});</code></pre><p>该脚本的功能就是使用 <a href="https://github.com/PrismJS/prism">prismjs</a> 来解析代码块，重写默认的行为。</p>
+<h2 id="添加样式文件">添加样式文件<a name="添加样式文件" class="headerlink" href="#添加样式文件"></a></h2><p>在主题配置文件（<code>themes/next/_config.yml</code>）下添加一个自定义选项 <code>prismjs</code>，这样一来版本的维护就比较方便了：</p>
+<pre class="hljs language-diff" hljs-language="diff"><code style="display:block;"><span class="hljs-addition">+ prismjs: https://cdn.jsdelivr.net/npm/prismjs@1.19.0</span></code></pre><p>自己添加的东西最好跟库分开，Next 也已经考虑到了这一点，如果需要在每个页面的 <code>&lt;head&gt;</code> 中添加内容，只需在 <code>themes/next/layout/_partials/head/custom-head.swig</code> 中编辑即可，<code>prismjs</code> 的样式也在此处添加：</p>
+<pre class="hljs language-html" hljs-language="html"><code style="display:block;"><span class="hljs-comment">&lt;!-- prismjs style --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">link</span>
+  <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span>
+  <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;{% raw %}{{ theme.prismjs }}{% endraw %}/plugins/line-numbers/prism-line-numbers.css&quot;</span>
+/&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">link</span>
+  <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span>
+  <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;{% raw %}{{ theme.prismjs }}{% endraw %}/themes/prism.css&quot;</span>
+/&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">style</span>&gt;</span><span class="language-css">
+  <span class="hljs-selector-class">.code</span><span class="hljs-selector-attr">[class*=<span class="hljs-string">&#x27;language-&#x27;</span>]</span>,
+  pre<span class="hljs-selector-attr">[class*=<span class="hljs-string">&#x27;language-&#x27;</span>]</span> {
+    <span class="hljs-attribute">font-size</span>: <span class="hljs-number">13px</span>;
+    <span class="hljs-attribute">padding-top</span>: <span class="hljs-number">10px</span> <span class="hljs-meta">!important</span>;
+    <span class="hljs-attribute">padding-bottom</span>: <span class="hljs-number">10px</span> <span class="hljs-meta">!important</span>;
+  }
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">style</span>&gt;</span></code></pre><h2 id="添加行号（或是其他 prismjs 插件）">添加行号（或是其他 prismjs 插件）<a name="添加行号（或是其他 prismjs 插件）" class="headerlink" href="#添加行号（或是其他 prismjs 插件）"></a></h2><blockquote>
+<p>这一步有点坑，我期望的是在构建阶段就完成代码块标签的解析，最终页面在浏览器中展示时只需添加样式支持即可。</p>
+<p>HTML 解析已经成功在构建阶段完成了，但像行号以及一些其他 prismjs 插件的功能则需要在浏览器中进行。如果仅仅是在浏览中多加一次调用插件的步骤也就算了，可偏偏插件的触发是在 prismjs 的 hooks 中绑死的；</p>
+<p>若是想正常触发 prismjs 的 hooks，那么 prismjs 会在浏览器当中对代码块再次进行解析（这里的意思是假如此时 HTML 没有提前处理，将纯文本的代码块传给 prismjs，prismjs 也能解析出操作符、关键字并包裹上相应的标签和类名），也就是说第一步重写代码块解析的步骤就相当于白费了；</p>
+<p>可在浏览器当中解析的结果竟与构建阶段的解析会有不同，有些高亮会有问题；奈何行号插件只能运行在浏览器，同时又不想改太多，最终还是按照 prismjs 官方推荐的方式来使用了。</p>
+<p>如果可能大概以后有空的话再来优化一下吧。</p>
+</blockquote>
+<p>行号插件需要在 HTML 中添加 <code>line-numbers</code> 类名以进行标注，这一步在重写代码块的解析过程中（提前解析并不是白费的，确信！）已经完成。</p>
+<p>同样本着自定义内容分离的原则，先在 <code>themes/next/layout/_layout.swig</code> 中新增：</p>
+<pre class="hljs language-diff" hljs-language="diff"><code style="display:block;"><span class="hljs-addition">+  {% raw %}{% include &#x27;_custom/page-tail.swig&#x27; %}{% endraw %}</span>
+&lt;/body&gt;
+&lt;/html&gt;</code></pre><p>接着创建 <code>themes/next/layout/_custom/page-tail.swig</code> 并添加以下内容，参照官方文档来即可：</p>
+<pre class="hljs language-html" hljs-language="html"><code style="display:block;"><span class="hljs-comment">&lt;!--
+prismjs 功能
+ref：https://prismjs.com/#basic-usage
+--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="language-javascript">
+  <span class="hljs-variable language_">window</span>.<span class="hljs-property">Prism</span> = <span class="hljs-variable language_">window</span>.<span class="hljs-property">Prism</span> || {};
+  <span class="hljs-comment">// 打开注释的话就不会自动处理了</span>
+  <span class="hljs-comment">// window.Prism.manual = true;</span>
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;{% raw %}{{ theme.prismjs }}{% endraw %}/components/prism-core.min.js&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;{% raw %}{{ theme.prismjs }}{% endraw %}/plugins/autoloader/prism-autoloader.min.js&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;{% raw %}{{ theme.prismjs }}{% endraw %}/plugins/line-numbers/prism-line-numbers.min.js&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre><h2 id="结语">结语<a name="结语" class="headerlink" href="#结语"></a></h2><p>这么一来就结束了，这么个处理，还是有点不满意的；不过现在至少能支持 <code>ts</code>、<code>tsx</code> 了，这样暂且就够了。</p>
+<p>完。</p>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/Blog" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> Blog</a><a href="/tags/Hexo" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> Hexo</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/encapsulation-in-react" class="unset">React 中的一些封装</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/build-a-poor-vue" class="unset">学写一个乞丐版 Vue</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>

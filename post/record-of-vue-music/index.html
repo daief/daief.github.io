@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html  data-head-attrs="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vue-music记录 | daief的个人日志</title><meta property="og:title" content="vue-music记录 | daief的个人日志"><meta property="author" content="daief"><meta name="head:count" content="2">
+<script>window.__INITIAL_STATE__={"global":{"site":{"postCount":51,"tagCount":42,"categoryCount":16,"site_pv":0,"page_pv":0,"site_uv":0},"indexPostPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]},"postDetail":{"post":{"id":"record-of-vue-music","slug":"post/record-of-vue-music","path":"/post/record-of-vue-music","title":"vue-music记录","comments":true,"published":true,"date":"2017-09-04T19:39:02.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"558b544cf685f39d34e4903e39c38b67","name":"TypeScript","postCount":6,"postIds":[]},{"id":"2d8ec58babcec05d3fe8f712968de749","name":"Vue","postCount":5,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<p>使用 Vue（2.x）全家桶，仿造网易云音乐 pc 网页版制作的一个单页应用，接口使用<a href=\"https://github.com/Binaryify/NeteaseCloudMusicApi\">NeteaseCloudMusicApi</a>。</p>\n<p><del>演示链接</del>\n<a href=\"https://github.com/daief/vue-music\">项目链接</a></p>\n","more":"\n\n<h1 id=\"数据方面的处理简述\">数据方面的处理简述<a name=\"数据方面的处理简述\" class=\"headerlink\" href=\"#数据方面的处理简述\"></a></h1><p>使用中：\n<a href=\"https://github.com/Binaryify/NeteaseCloudMusicApi\">NeteaseCloudMusicApi</a></p>\n<p>最初的做法：\n<del>一个关键的问题是如何获得歌曲的 url，先看看网易云的链接，比如 id 为<code>25640828</code>的歌曲，对应的 url 是<code>http://m10.music.126.net/20170917181558/f1d4858ba2af5098b54f5261d821a76d/ymusic/7244/d140/31c4/acec84bc90b4e474bd3eeda288ad5617.mp3</code>，显然是经过加密处理的。因为不知道加密方案，无法通过 id 去获取对应的 url，所以使用了<code>http://link.hhtjim.com/</code>外链转换，歌曲的 url 格式形如：<code>http://link.hhtjim.com/25640828.mp3</code>。如此就能方便地知道歌曲所对应的 url。</del></p>\n<h1 id=\"实现过程中的问题记录\">实现过程中的问题记录<a name=\"实现过程中的问题记录\" class=\"headerlink\" href=\"#实现过程中的问题记录\"></a></h1><p>偷懒是坏文明，然而我…………</p>\n<h2 id=\"项目打包（npm run build）之后静态资源路径错误\">项目打包（npm run build）之后静态资源路径错误<a name=\"项目打包（npm run build）之后静态资源路径错误\" class=\"headerlink\" href=\"#项目打包（npm run build）之后静态资源路径错误\"></a></h2><h3 id=\"JS、CSS 等路径错误\">JS、CSS 等路径错误<a name=\"JS、CSS 等路径错误\" class=\"headerlink\" href=\"#JS、CSS 等路径错误\"></a></h3><p>webpack 配置：config/index.js</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-attr\">build</span>: {\n  <span class=\"hljs-attr\">env</span>: <span class=\"hljs-built_in\">require</span>(<span class=\"hljs-string\">&#x27;./prod.env&#x27;</span>),\n  <span class=\"hljs-attr\">index</span>: path.<span class=\"hljs-title function_\">resolve</span>(__dirname, <span class=\"hljs-string\">&#x27;../dist/index.html&#x27;</span>),\n  <span class=\"hljs-attr\">assetsRoot</span>: path.<span class=\"hljs-title function_\">resolve</span>(__dirname, <span class=\"hljs-string\">&#x27;../dist&#x27;</span>),\n  <span class=\"hljs-attr\">assetsSubDirectory</span>: <span class=\"hljs-string\">&#x27;static&#x27;</span>,\n  <span class=\"hljs-comment\">// 修改此处，默认是：assetsPublicPath: &#x27;/&#x27;</span>\n  <span class=\"hljs-attr\">assetsPublicPath</span>: <span class=\"hljs-string\">&#x27;./&#x27;</span>,\n  <span class=\"hljs-attr\">productionSourceMap</span>: <span class=\"hljs-literal\">true</span>,\n  <span class=\"hljs-attr\">productionGzip</span>: <span class=\"hljs-literal\">false</span>,\n  <span class=\"hljs-attr\">productionGzipExtensions</span>: [<span class=\"hljs-string\">&#x27;js&#x27;</span>, <span class=\"hljs-string\">&#x27;css&#x27;</span>],\n  <span class=\"hljs-attr\">bundleAnalyzerReport</span>: process.<span class=\"hljs-property\">env</span>.<span class=\"hljs-property\">npm_config_report</span>\n}</code></pre><h3 id=\"打包后 CSS 中的图片路径错误\">打包后 CSS 中的图片路径错误<a name=\"打包后 CSS 中的图片路径错误\" class=\"headerlink\" href=\"#打包后 CSS 中的图片路径错误\"></a></h3><p>路径会出现 <code>/static/css/static/img</code> 这样的重复现象，在 <code>build/utils.js</code> 中添加一行</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">if</span> (options.<span class=\"hljs-property\">extract</span>) {\n  <span class=\"hljs-keyword\">return</span> <span class=\"hljs-title class_\">ExtractTextPlugin</span>.<span class=\"hljs-title function_\">extract</span>({\n    <span class=\"hljs-attr\">use</span>: loaders,\n    <span class=\"hljs-attr\">fallback</span>: <span class=\"hljs-string\">&quot;vue-style-loader&quot;</span>,\n    <span class=\"hljs-comment\">// 新增 publicPath: &#x27;../../&#x27;</span>\n    <span class=\"hljs-attr\">publicPath</span>: <span class=\"hljs-string\">&quot;../../&quot;</span>\n  });\n} <span class=\"hljs-keyword\">else</span> {\n  <span class=\"hljs-keyword\">return</span> [<span class=\"hljs-string\">&quot;vue-style-loader&quot;</span>].<span class=\"hljs-title function_\">concat</span>(loaders);\n}</code></pre><h2 id=\"如何 watch 一个 vuex 中的状态\">如何 watch 一个 vuex 中的状态<a name=\"如何 watch 一个 vuex 中的状态\" class=\"headerlink\" href=\"#如何 watch 一个 vuex 中的状态\"></a></h2><p><code>stores/index.js</code>中，有一个 id 变量和对应的 getter</p>\n<pre class=\"hljs language-js\" hljs-language=\"js\"><code style=\"display:block;\"><span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> {\n  <span class=\"hljs-attr\">state</span>: {\n    <span class=\"hljs-attr\">id</span>: <span class=\"hljs-number\">1</span>\n  },\n  <span class=\"hljs-attr\">getters</span>: {\n    <span class=\"hljs-title class_\">Id</span>: <span class=\"hljs-function\"><span class=\"hljs-params\">state</span> =&gt;</span> state.<span class=\"hljs-property\">id</span>\n  }\n  <span class=\"hljs-attr\">mutations</span>: {\n    <span class=\"hljs-title function_\">setId</span>(<span class=\"hljs-params\">state, newId</span>) {\n      state.<span class=\"hljs-property\">id</span> = newId\n    }\n  },\n  <span class=\"hljs-attr\">actions</span>: {\n    <span class=\"hljs-title function_\">setId</span>(<span class=\"hljs-params\">{commit}, id</span>) {\n      <span class=\"hljs-title function_\">commit</span>(<span class=\"hljs-string\">&#x27;setId&#x27;</span>, id)\n    }\n  }\n}</code></pre><p>在想要 watch 的组件中</p>\n<pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">import</span> { mapGetters } <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;vuex&quot;</span>;\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> {\n  <span class=\"hljs-attr\">computed</span>: {\n    ...<span class=\"hljs-title function_\">mapGetters</span>([\n      <span class=\"hljs-string\">&quot;Id&quot;</span> <span class=\"hljs-comment\">// 与getters对应</span>\n    ])\n  },\n  <span class=\"hljs-attr\">watch</span>: {\n    <span class=\"hljs-comment\">// 这样就可以在任何组件调用commit(&#x27;setId&#x27;, xxx);时watch到全局state中id的变化</span>\n    <span class=\"hljs-title class_\">Id</span>: <span class=\"hljs-keyword\">function</span>(<span class=\"hljs-params\">newvalue, oldvalue</span>) {\n      <span class=\"hljs-comment\">// 处理</span>\n    }\n  }\n};</code></pre><h2 id=\"在 mounted 生命周期钩子中可以对 window 事件进行监听\">在 mounted 生命周期钩子中可以对 window 事件进行监听<a name=\"在 mounted 生命周期钩子中可以对 window 事件进行监听\" class=\"headerlink\" href=\"#在 mounted 生命周期钩子中可以对 window 事件进行监听\"></a></h2><pre class=\"hljs language-javascript\" hljs-language=\"javascript\"><code style=\"display:block;\"><span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> {\n  <span class=\"hljs-comment\">// ...</span>\n  <span class=\"hljs-title function_\">mounted</span>(<span class=\"hljs-params\"></span>) {\n    <span class=\"hljs-comment\">// 对window滚动事件的监听</span>\n    <span class=\"hljs-variable language_\">window</span>.<span class=\"hljs-title function_\">addEventListener</span>(<span class=\"hljs-string\">&quot;scroll&quot;</span>, <span class=\"hljs-variable language_\">this</span>.<span class=\"hljs-property\">appScroll</span>);\n  }\n  <span class=\"hljs-comment\">// ...</span>\n};</code></pre><h2 id=\"在变量中保存静态图片路径，然后动态绑定到元素上\">在变量中保存静态图片路径，然后动态绑定到元素上<a name=\"在变量中保存静态图片路径，然后动态绑定到元素上\" class=\"headerlink\" href=\"#在变量中保存静态图片路径，然后动态绑定到元素上\"></a></h2><p>比如 App.vue，不能这样去做，因为 url 会被当成字符串处理，需要告诉 webpack 加载模块（此处指图片，图片也会被当成模块，<code>此处表述不知是否得当</code>）</p>\n<pre class=\"hljs language-html\" hljs-language=\"html\"><code style=\"display:block;\"><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">template</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">div</span>&gt;</span>\n    <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">img</span> <span class=\"hljs-attr\">:src</span>=<span class=\"hljs-string\">&quot;url&quot;</span> <span class=\"hljs-attr\">alt</span>=<span class=\"hljs-string\">&quot;&quot;</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">div</span>&gt;</span>\n<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">template</span>&gt;</span>\n\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">script</span>&gt;</span><span class=\"language-javascript\">\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> {\n  <span class=\"hljs-attr\">name</span>: <span class=\"hljs-string\">&quot;app&quot;</span>,\n  <span class=\"hljs-title function_\">data</span>(<span class=\"hljs-params\"></span>) {\n    <span class=\"hljs-keyword\">return</span> {\n      <span class=\"hljs-attr\">url</span>: <span class=\"hljs-string\">&quot;./assets/avrtar.jpg&quot;</span>\n    };\n  },\n  <span class=\"hljs-attr\">watch</span>: {}\n};\n</span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">script</span>&gt;</span></code></pre><p>修改写法，App.vue</p>\n<pre class=\"hljs language-html\" hljs-language=\"html\"><code style=\"display:block;\"><span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">template</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">div</span>&gt;</span>\n    <span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">img</span> <span class=\"hljs-attr\">:src</span>=<span class=\"hljs-string\">&quot;url&quot;</span> <span class=\"hljs-attr\">alt</span>=<span class=\"hljs-string\">&quot;&quot;</span>&gt;</span>\n  <span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">div</span>&gt;</span>\n<span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">template</span>&gt;</span>\n\n<span class=\"hljs-tag\">&lt;<span class=\"hljs-name\">script</span>&gt;</span><span class=\"language-javascript\">\n<span class=\"hljs-comment\">// 导入</span>\n<span class=\"hljs-keyword\">import</span> avatar <span class=\"hljs-keyword\">from</span> <span class=\"hljs-string\">&quot;./assets/avrtar.jpg&quot;</span>;\n<span class=\"hljs-keyword\">export</span> <span class=\"hljs-keyword\">default</span> {\n  <span class=\"hljs-attr\">name</span>: <span class=\"hljs-string\">&quot;app&quot;</span>,\n  <span class=\"hljs-title function_\">data</span>(<span class=\"hljs-params\"></span>) {\n    <span class=\"hljs-keyword\">return</span> {\n      <span class=\"hljs-comment\">// 使用</span>\n      <span class=\"hljs-attr\">url</span>: avatar\n    };\n  },\n  <span class=\"hljs-attr\">watch</span>: {}\n};\n</span><span class=\"hljs-tag\">&lt;/<span class=\"hljs-name\">script</span>&gt;</span></code></pre><h2 id=\"2018-03-24 Mac 下 npm install 时报错\">2018-03-24 Mac 下 npm install 时报错<a name=\"2018-03-24 Mac 下 npm install 时报错\" class=\"headerlink\" href=\"#2018-03-24 Mac 下 npm install 时报错\"></a></h2><ol>\n<li><code>npm install</code> 失败</li>\n<li>终止安装后，提示更新 npm，<code>npm i -g npm</code> 失败</li>\n<li>权限问题使用 <code>sudo npm i -g npm</code>，删除 <code>node_modules</code> 后重新 <code>sudo npm install</code> 后成功<ul>\n<li>2018-09-18 补充（Mac）：提示无权限时可能是因为用户组的原因，多半因为被设置成<code>root</code>，而当前用户组不是<code>root</code>，<code>ll</code>可查看文件信息  包含用户组信息，<code>chown -R user ./dir</code>可将<code>./dir</code>的用户组改为<code>user</code></li>\n</ul>\n</li>\n</ol>\n<h1 id=\"2018-11-02 重写计划\">2018-11-02 重写计划<a name=\"2018-11-02 重写计划\" class=\"headerlink\" href=\"#2018-11-02 重写计划\"></a></h1><p>主要出于对 Vue 系列重新熟悉、学习的目的，并尝试使用 TypeScript 进行编写，基于 Vue 2.x、Vue Cli 3。</p>\n<p>新的记录文章：{% post_link happy-vue-with-typescript %}</p>\n","hash":"aebdd1f1c413052863eb33fc0f758003","isArticle":true,"sort":0,"filename":"","raw":"","prev":{"id":"learn-webpack","slug":"post/learn-webpack","path":"/post/learn-webpack","title":"webpack学习","comments":true,"published":true,"date":"2017-07-20T16:52:48.000Z","updated":"","tags":[{"id":"686155af75a60a0f6e9d80c1f7edd3e9","name":"JavaScript","postCount":16,"postIds":[]},{"id":"424516ca53b4ad4bef37ed04f8795a88","name":"webpack","postCount":2,"postIds":[]}],"categories":[{"id":"9abfe4a03928eb88a75a5cd95822dfef","name":"前端","slug":"categories/前端","path":"/categories/前端","parentId":"","postCount":36,"postIds":[]}],"excerpt":"<blockquote>\n<p>webpack 是近期最火的一款模块加载器兼打包工具，它能把各种资源，例如 JS（含 JSX）、coffee、样式（含 less/sass）、图片等都作为模块来使用和处理。\n我们可以直接使用 require(XXX) 的形式来引入各模块，即使它们可能需要经过编译（比如 JSX 和 sass），但我们无须在上面花费太多心思，因为 webpack 有着各种健全的加载器（loader）在默默处理这些事情。</p>\n</blockquote>\n<p><a href=\"http://webpack.github.io/\">webpack 官网</a></p>\n","more":"","hash":"25e655ed0f5b0814eb0fb35a6b1d4810","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""},"next":{"id":"install-java-tomcat-on-linux","slug":"post/install-java-tomcat-on-linux","path":"/post/install-java-tomcat-on-linux","title":"Linux-Java环境、Tomcat服务器的安装","comments":true,"published":true,"date":"2017-09-10T21:56:44.000Z","updated":"","tags":[{"id":"edc9f0a5a5d57797bf68e37364743831","name":"Linux","postCount":3,"postIds":[]},{"id":"46cff7c2e22c5fb804c02d5b561b39f8","name":"JDK","postCount":1,"postIds":[]},{"id":"8f72e28063c30c7468fb6af4653f4f9c","name":"Tomcat","postCount":1,"postIds":[]}],"categories":[{"id":"edc9f0a5a5d57797bf68e37364743831","name":"Linux","slug":"categories/Linux","path":"/categories/Linux","parentId":"","postCount":4,"postIds":[]}],"excerpt":"<p>CentOS 云主机上安装 Java 环境和 Tomcat 服务器。</p>\n","more":"","hash":"922b7695516b6cdb528635a8bd54ff5c","isArticle":true,"sort":0,"filename":"","raw":"","prev":null,"next":null,"tocHtml":""}}},"tocHtml":"","simplePages":[{"id":"41a3cc43f8af362b82fbe2aa97817528","slug":"resume","path":"/resume"},{"id":"fabb5629b694584be9ff314ab8187577","slug":"resume-v2","path":"/resume-v2"},{"id":"34787f8e18c76ce0f4c3cc680ab728ef","slug":"resume-v1","path":"/resume-v1"},{"id":"ac298b1fdf5a34ac83bb9376ccdde006","slug":"about","path":"/about"}],"simplePageDetail":{"post":null}},"labels":{"labels":[],"postPagination":{"current":1,"pageSize":10,"totalPages":0,"result":[]}}}</script>
+    <script>
+      if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+        // redirect IE to Edge
+        // This browser is no longer supported
+        window.location.href = 'microsoft-edge:' + window.location.href;
+        alert('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+        throw new Error('请使用 Chrome/Edge/Firefox/Safari 等现代浏览器。');
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index.bf8c73c6.js"></script>
+    <link rel="stylesheet" href="/assets/index.48ca4a1c.css">
+  </head>
+  <body  data-head-attrs="">
+    <div id="app"><!--[--><div class="m-4 max-w-screen-xl flex flex-wrap md:m-6 xl:mx-auto md:flex-nowrap"><div class="w-full flex-shrink-0 self-start md:sticky md:top-6 md:w-48"><div class="blog-base-area-box py-6 mb-4"><img class="block w-24 h-24 rounded-full mx-auto" src="https://avatars.githubusercontent.com/u/19222089?v=4"><div class="mt-5 px-3 text-center"><h1 class="text-c-title font-normal"><a href="" class="unset">daief的个人日志</a></h1><p class="mt-2 text-sm text-c-secondary break-words">遇见你，遇见幸运💫</p><div class="mt-3 text-xs flex justify-center"><a href="/" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-wenzhang" data-v-43154e2c></use></svg>(51) </a><span class="mx-1 text-c-secondary">|</span><a href="/tags" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg>(42) </a><span class="mx-1 text-c-secondary">|</span><a href="/categories" class="unset"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-category" data-v-43154e2c></use></svg>(16) </a></div><div class="mt-6 flex justify-center"><a to="https://github.com/daief" replace="false" href="https://github.com/daief" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-github" data-v-43154e2c></use></svg><!--]--></a><span class="mx-2"></span><a to="mailto:defeng_mail@163.com" replace="false" href="mailto:defeng_mail@163.com" target="_blank" class="unset cursor-pointer"><!--[--><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-email" data-v-43154e2c></use></svg><!--]--></a></div></div><div class="mt-6"><div class="text-center" data-v-73630894><!--[--><a href="/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>首页</a><a href="/categories/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>分类</a><a href="/tags/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>标签</a><a href="/about/" class="unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link unset
+            h-10
+            flex
+            items-center
+            justify-center
+            border-b border-gray-100
+            text-sm text-c-text
+            menu-link" data-v-73630894>关于</a><!--]--></div></div></div><div class="hidden md:block mt-2"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div></div><div class="w-full md:w-0 md:flex-grow md:mx-5"><div><!--[--><div class="blog-base-area-box px-4 py-8 md:px-8"><div><h1 class="text-2xl font-normal break-words">vue-music记录</h1><div class="my-4 text-xs text-c-secondary"><div class="flex items-center flex-wrap"><!----><!----><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-calendar" data-v-43154e2c></use></svg>2017-09-04</div><!--[--><span class="mx-1">|</span><div class="whitespace-nowrap"><svg class="if-icon text-c-secondary mx-1 text-c-secondary mx-1" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-folder" data-v-43154e2c></use></svg><!--[--><!--[--><a href="/categories/前端" class="unset">前端</a><span></span><!--]--><!--]--></div><!--]--><!----></div></div><!-- content --><div class="markdown-body text-sm text-gray-800 leading-loose"><p>使用 Vue（2.x）全家桶，仿造网易云音乐 pc 网页版制作的一个单页应用，接口使用<a href="https://github.com/Binaryify/NeteaseCloudMusicApi">NeteaseCloudMusicApi</a>。</p>
+<p><del>演示链接</del>
+<a href="https://github.com/daief/vue-music">项目链接</a></p>
+
+<a id="more" class="h-0 mt-3 block"></a>
+
+
+<h1 id="数据方面的处理简述">数据方面的处理简述<a name="数据方面的处理简述" class="headerlink" href="#数据方面的处理简述"></a></h1><p>使用中：
+<a href="https://github.com/Binaryify/NeteaseCloudMusicApi">NeteaseCloudMusicApi</a></p>
+<p>最初的做法：
+<del>一个关键的问题是如何获得歌曲的 url，先看看网易云的链接，比如 id 为<code>25640828</code>的歌曲，对应的 url 是<code>http://m10.music.126.net/20170917181558/f1d4858ba2af5098b54f5261d821a76d/ymusic/7244/d140/31c4/acec84bc90b4e474bd3eeda288ad5617.mp3</code>，显然是经过加密处理的。因为不知道加密方案，无法通过 id 去获取对应的 url，所以使用了<code>http://link.hhtjim.com/</code>外链转换，歌曲的 url 格式形如：<code>http://link.hhtjim.com/25640828.mp3</code>。如此就能方便地知道歌曲所对应的 url。</del></p>
+<h1 id="实现过程中的问题记录">实现过程中的问题记录<a name="实现过程中的问题记录" class="headerlink" href="#实现过程中的问题记录"></a></h1><p>偷懒是坏文明，然而我…………</p>
+<h2 id="项目打包（npm run build）之后静态资源路径错误">项目打包（npm run build）之后静态资源路径错误<a name="项目打包（npm run build）之后静态资源路径错误" class="headerlink" href="#项目打包（npm run build）之后静态资源路径错误"></a></h2><h3 id="JS、CSS 等路径错误">JS、CSS 等路径错误<a name="JS、CSS 等路径错误" class="headerlink" href="#JS、CSS 等路径错误"></a></h3><p>webpack 配置：config/index.js</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-attr">build</span>: {
+  <span class="hljs-attr">env</span>: <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;./prod.env&#x27;</span>),
+  <span class="hljs-attr">index</span>: path.<span class="hljs-title function_">resolve</span>(__dirname, <span class="hljs-string">&#x27;../dist/index.html&#x27;</span>),
+  <span class="hljs-attr">assetsRoot</span>: path.<span class="hljs-title function_">resolve</span>(__dirname, <span class="hljs-string">&#x27;../dist&#x27;</span>),
+  <span class="hljs-attr">assetsSubDirectory</span>: <span class="hljs-string">&#x27;static&#x27;</span>,
+  <span class="hljs-comment">// 修改此处，默认是：assetsPublicPath: &#x27;/&#x27;</span>
+  <span class="hljs-attr">assetsPublicPath</span>: <span class="hljs-string">&#x27;./&#x27;</span>,
+  <span class="hljs-attr">productionSourceMap</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">productionGzip</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">productionGzipExtensions</span>: [<span class="hljs-string">&#x27;js&#x27;</span>, <span class="hljs-string">&#x27;css&#x27;</span>],
+  <span class="hljs-attr">bundleAnalyzerReport</span>: process.<span class="hljs-property">env</span>.<span class="hljs-property">npm_config_report</span>
+}</code></pre><h3 id="打包后 CSS 中的图片路径错误">打包后 CSS 中的图片路径错误<a name="打包后 CSS 中的图片路径错误" class="headerlink" href="#打包后 CSS 中的图片路径错误"></a></h3><p>路径会出现 <code>/static/css/static/img</code> 这样的重复现象，在 <code>build/utils.js</code> 中添加一行</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">if</span> (options.<span class="hljs-property">extract</span>) {
+  <span class="hljs-keyword">return</span> <span class="hljs-title class_">ExtractTextPlugin</span>.<span class="hljs-title function_">extract</span>({
+    <span class="hljs-attr">use</span>: loaders,
+    <span class="hljs-attr">fallback</span>: <span class="hljs-string">&quot;vue-style-loader&quot;</span>,
+    <span class="hljs-comment">// 新增 publicPath: &#x27;../../&#x27;</span>
+    <span class="hljs-attr">publicPath</span>: <span class="hljs-string">&quot;../../&quot;</span>
+  });
+} <span class="hljs-keyword">else</span> {
+  <span class="hljs-keyword">return</span> [<span class="hljs-string">&quot;vue-style-loader&quot;</span>].<span class="hljs-title function_">concat</span>(loaders);
+}</code></pre><h2 id="如何 watch 一个 vuex 中的状态">如何 watch 一个 vuex 中的状态<a name="如何 watch 一个 vuex 中的状态" class="headerlink" href="#如何 watch 一个 vuex 中的状态"></a></h2><p><code>stores/index.js</code>中，有一个 id 变量和对应的 getter</p>
+<pre class="hljs language-js" hljs-language="js"><code style="display:block;"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">state</span>: {
+    <span class="hljs-attr">id</span>: <span class="hljs-number">1</span>
+  },
+  <span class="hljs-attr">getters</span>: {
+    <span class="hljs-title class_">Id</span>: <span class="hljs-function"><span class="hljs-params">state</span> =&gt;</span> state.<span class="hljs-property">id</span>
+  }
+  <span class="hljs-attr">mutations</span>: {
+    <span class="hljs-title function_">setId</span>(<span class="hljs-params">state, newId</span>) {
+      state.<span class="hljs-property">id</span> = newId
+    }
+  },
+  <span class="hljs-attr">actions</span>: {
+    <span class="hljs-title function_">setId</span>(<span class="hljs-params">{commit}, id</span>) {
+      <span class="hljs-title function_">commit</span>(<span class="hljs-string">&#x27;setId&#x27;</span>, id)
+    }
+  }
+}</code></pre><p>在想要 watch 的组件中</p>
+<pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">import</span> { mapGetters } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;vuex&quot;</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">computed</span>: {
+    ...<span class="hljs-title function_">mapGetters</span>([
+      <span class="hljs-string">&quot;Id&quot;</span> <span class="hljs-comment">// 与getters对应</span>
+    ])
+  },
+  <span class="hljs-attr">watch</span>: {
+    <span class="hljs-comment">// 这样就可以在任何组件调用commit(&#x27;setId&#x27;, xxx);时watch到全局state中id的变化</span>
+    <span class="hljs-title class_">Id</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params">newvalue, oldvalue</span>) {
+      <span class="hljs-comment">// 处理</span>
+    }
+  }
+};</code></pre><h2 id="在 mounted 生命周期钩子中可以对 window 事件进行监听">在 mounted 生命周期钩子中可以对 window 事件进行监听<a name="在 mounted 生命周期钩子中可以对 window 事件进行监听" class="headerlink" href="#在 mounted 生命周期钩子中可以对 window 事件进行监听"></a></h2><pre class="hljs language-javascript" hljs-language="javascript"><code style="display:block;"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-title function_">mounted</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-comment">// 对window滚动事件的监听</span>
+    <span class="hljs-variable language_">window</span>.<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">&quot;scroll&quot;</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">appScroll</span>);
+  }
+  <span class="hljs-comment">// ...</span>
+};</code></pre><h2 id="在变量中保存静态图片路径，然后动态绑定到元素上">在变量中保存静态图片路径，然后动态绑定到元素上<a name="在变量中保存静态图片路径，然后动态绑定到元素上" class="headerlink" href="#在变量中保存静态图片路径，然后动态绑定到元素上"></a></h2><p>比如 App.vue，不能这样去做，因为 url 会被当成字符串处理，需要告诉 webpack 加载模块（此处指图片，图片也会被当成模块，<code>此处表述不知是否得当</code>）</p>
+<pre class="hljs language-html" hljs-language="html"><code style="display:block;"><span class="hljs-tag">&lt;<span class="hljs-name">template</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">img</span> <span class="hljs-attr">:src</span>=<span class="hljs-string">&quot;url&quot;</span> <span class="hljs-attr">alt</span>=<span class="hljs-string">&quot;&quot;</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="language-javascript">
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;app&quot;</span>,
+  <span class="hljs-title function_">data</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-attr">url</span>: <span class="hljs-string">&quot;./assets/avrtar.jpg&quot;</span>
+    };
+  },
+  <span class="hljs-attr">watch</span>: {}
+};
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre><p>修改写法，App.vue</p>
+<pre class="hljs language-html" hljs-language="html"><code style="display:block;"><span class="hljs-tag">&lt;<span class="hljs-name">template</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">img</span> <span class="hljs-attr">:src</span>=<span class="hljs-string">&quot;url&quot;</span> <span class="hljs-attr">alt</span>=<span class="hljs-string">&quot;&quot;</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="language-javascript">
+<span class="hljs-comment">// 导入</span>
+<span class="hljs-keyword">import</span> avatar <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;./assets/avrtar.jpg&quot;</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;app&quot;</span>,
+  <span class="hljs-title function_">data</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">return</span> {
+      <span class="hljs-comment">// 使用</span>
+      <span class="hljs-attr">url</span>: avatar
+    };
+  },
+  <span class="hljs-attr">watch</span>: {}
+};
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre><h2 id="2018-03-24 Mac 下 npm install 时报错">2018-03-24 Mac 下 npm install 时报错<a name="2018-03-24 Mac 下 npm install 时报错" class="headerlink" href="#2018-03-24 Mac 下 npm install 时报错"></a></h2><ol>
+<li><code>npm install</code> 失败</li>
+<li>终止安装后，提示更新 npm，<code>npm i -g npm</code> 失败</li>
+<li>权限问题使用 <code>sudo npm i -g npm</code>，删除 <code>node_modules</code> 后重新 <code>sudo npm install</code> 后成功<ul>
+<li>2018-09-18 补充（Mac）：提示无权限时可能是因为用户组的原因，多半因为被设置成<code>root</code>，而当前用户组不是<code>root</code>，<code>ll</code>可查看文件信息  包含用户组信息，<code>chown -R user ./dir</code>可将<code>./dir</code>的用户组改为<code>user</code></li>
+</ul>
+</li>
+</ol>
+<h1 id="2018-11-02 重写计划">2018-11-02 重写计划<a name="2018-11-02 重写计划" class="headerlink" href="#2018-11-02 重写计划"></a></h1><p>主要出于对 Vue 系列重新熟悉、学习的目的，并尝试使用 TypeScript 进行编写，基于 Vue 2.x、Vue Cli 3。</p>
+<p>新的记录文章：{% post_link happy-vue-with-typescript %}</p>
+</div><div class="mt-6 has-child mt-6 mt-6" data-v-3adb2250><!--[-->☘️<!--]--></div><div class="flex flex-wrap justify-center text-c-secondary text-sm mt-6"><!--[--><a href="/tags/JavaScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> JavaScript</a><a href="/tags/TypeScript" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> TypeScript</a><a href="/tags/Vue" class="unset block my-1 mx-2"><svg class="if-icon" aria-hidden="true" data-v-43154e2c><use xlink:href="#if-tag" data-v-43154e2c></use></svg> Vue</a><!--]--></div></div></div><!-- 上下篇 --><div class="blog-base-area-box px-4 py-4 my-8 flex justify-between md:px-8"><!--[--><div class="pr-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">上一篇 </div><div class="text-sm"><a href="/post/learn-webpack" class="unset">webpack学习</a></div><!--]--></div><div class="text-right pl-3 w-0 flex-grow break-words"><!--[--><div class="text-c-secondary text-xs mb-1">下一篇 </div><div class="text-sm"><a href="/post/install-java-tomcat-on-linux" class="unset">Linux-Java环境、Tomcat服务器的安装</a></div><!--]--></div><!--]--></div><!-- 评论 --><div id="comment" class="blog-base-area-box p-4 my-8 md:px-8"><h1 class="text-c-title text-xl block font-normal mb-5"><a href="#comment" class="unset text-c-title hover:text-c-title hover:underline"> 留言板 </a></h1><div class="utterances"></div></div><!--]--></div></div><div class="blog-base-area-box hidden md:block w-48 sticky top-6"><div style="display:none;" class="site-toc-wrap leading-6 break-all text-sm p-3"></div></div></div><div class="block mb-4 md:hidden"><div class="footer text-center text-sm" data-v-8b3f10e8><div data-v-8b3f10e8><div data-v-8b3f10e8>© 2017-2025</div></div><div class="flex items-center justify-center" data-v-8b3f10e8>By <a href="https://github.com/daief/blog/tree/master/packages/gugu" target="_blank" data-v-8b3f10e8>gugu</a>  &amp; daief - <span class="picker-wrap" data-v-7aa3923e data-v-8b3f10e8><span data-v-7aa3923e></span></span></div><!----><!----><div data-v-8b3f10e8><a href="/sitemap.xml" target="_blank" data-v-8b3f10e8>站点地图</a></div></div></div><div class="fixed z-100 right-8 bottom-14" data-v-49aec8bc><div class="blog-base-area-box action-btn opacity-0 pointer-events-none" data-v-49aec8bc><svg class="if-icon" aria-hidden="true" data-v-43154e2c data-v-49aec8bc><use xlink:href="#if-top" data-v-43154e2c></use></svg></div></div><!--]--></div>
+    
+  </body>
+</html>
