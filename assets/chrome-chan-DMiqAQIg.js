@@ -1,0 +1,1 @@
+var e=`/assets/chrome-chan-B6nNhnT_.jpg`;export{e as t};

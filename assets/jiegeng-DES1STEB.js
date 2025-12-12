@@ -1,0 +1,1 @@
+var e=`/assets/jiegeng-WNdtXSKS.jpg`;export{e as t};

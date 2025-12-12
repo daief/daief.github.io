@@ -1,0 +1,1 @@
+import{n as e,r as t}from"./isObject-STXFNBUz.js";var n=`[object Symbol]`;function r(r){return typeof r==`symbol`||e(r)&&t(r)==n}var i=r;export{i as t};
