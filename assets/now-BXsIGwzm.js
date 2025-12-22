@@ -1,0 +1,1 @@
+import{a as e}from"./isObject-STXFNBUz.js";var t=function(){return e.Date.now()};export{t};
