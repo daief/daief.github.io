@@ -1,0 +1,13 @@
+User-agent: *
+
+Disallow: /assets
+Disallow: /vue-music
+Disallow: /daisyui-vue
+
+Allow: /
+Allow: /archives/
+Allow: /tags/
+Allow: /post/
+
+Sitemap: https://daief.tech/sitemap.xml
+Sitemap: https://daief.tech/baidusitemap.xml
