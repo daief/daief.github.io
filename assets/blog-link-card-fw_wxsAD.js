@@ -1,0 +1,1 @@
+var e=`/assets/blog-link-card-CHW4z9j8.png`;export{e as t};
